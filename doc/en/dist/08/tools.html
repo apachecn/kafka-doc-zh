@@ -1,0 +1,7 @@
+<h4>Mirroring data between clusters</h4>
+We have a tool that runs a continuous copy between two clusters. The clusters are completely independent and the topology need not match (you can have a different number of brokers and a different number of partitions). Offsets and partitioning are currently not preserved by this tool as it is meant for geographical replication rather than backup.
+
+Documentation <a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+mirroring+%28MirrorMaker%29">here</a>.
+
+<h4>Administrative tools</h4>
+A set of tools for managing an 0.8 cluster is described in <a href="https://cwiki.apache.org/confluence/display/KAFKA/Replication+tools">here</a>.

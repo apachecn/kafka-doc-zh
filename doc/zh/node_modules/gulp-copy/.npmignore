@@ -1,0 +1,5 @@
+node_modules
+.idea
+example/output
+test/coverage
+test/junit

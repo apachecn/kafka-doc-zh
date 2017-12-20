@@ -1,0 +1,154 @@
+@@include('includes/_header.htm')
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_header.htm" -->
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+		@@include('includes/_nav.htm')
+	<!--#include virtual="includes/_nav.htm" -->
+	<div class="right">
+		<h1>Coding guidelines</h1>
+		<p>
+		These guidelines are meant to encourage consistency and best practices amongst people working on the Kafka&reg; code base. They should be observed unless there is a compelling reason to ignore them.
+		</p>
+
+		<h2>Basic Stuff</h2>
+		<ul>
+		<li>Avoid cryptic abbreviations. Single letter variable names are fine in very short methods with few variables, otherwise make them informative.</li>
+		<li>Clear code is preferable to comments. When possible make your naming so good you don't need comments. When that isn't possible comments should be thought of as mandatory, write them to be <i>read</i>.</li>
+		<li>Logging, configuration, and public APIs are our "UI". Make them pretty, consistent, and usable.</li>
+		<li>There is not a maximum line length (certainly not 80 characters, we don't work on punch cards any more), but be reasonable.</li>
+		<li>Don't be sloppy. Don't check in commented out code: we use version control, it is still there in the history. Don't leave TODOs in the code or FIXMEs if you can help it. Don't leave println statements in the code. Hopefully this is all obvious.</li>
+		<li>We want people to use our stuff, which means we need clear, correct documentation. User documentation should be considered a part of any user-facing the feature, just like unit tests or performance results.</li>
+		<li>Don't duplicate code (duh).</li>
+		<li>Kafka is system software, and certain things are appropriate in system software that are not appropriate elsewhere. Sockets, bytes, concurrency, and distribution are our core competency which means we will have a more "from scratch" implementation of some of these things then would be appropriate for software elsewhere in the stack. This is because we need to be exceptionally good at these things. This does not excuse fiddly low-level code, but it does excuse spending a little extra time to make sure that our filesystem structures, networking code, threading model, are all done perfectly right for our application rather than just trying to glue together ill-fitting off-the-shelf pieces (well-fitting off-the-shelf pieces are great though).</li>
+		</ul>
+
+		<h2>Scala</h2>
+		We are following the style guide given <a href="http://docs.scala-lang.org/style/">here</a> (though not perfectly). Below are some specifics worth noting:
+		<ul>
+		<li>Scala is a very flexible language. Use restraint. Magic cryptic one-liners do not impress us, readability impresses us.</li>
+		<li>Use <code>val</code>s when possible.</li>
+		<li>Use private when possible for member variables.</li>
+		<li>Method and member variable names should be in camel case with an initial lower case character like <code>aMethodName</code>.</li>
+		<li>Constants should be camel case with an initial capital <code>LikeThis</code> not <code>LIKE_THIS</code>.</li>
+		<li>Prefer a single top-level class per file for ease of finding things.</li>
+		<li>Do not use semi-colons unless required.</li>
+		<li>Avoid getters and setters - stick to plain <code>val</code>s or <code>var</code>s instead. If (later on) you require a custom setter (or getter) for a <code>var</code> named <code>myVar</code> then add a shadow <code>var myVar_underlying</code> and override the setter (<code>def myVar_=</code>) and the getter (<code>def myVar = myVar_underlying</code>).</li>
+		<li>Prefer <code>Option</code> to <code>null</code> in scala APIs.</li>
+		<li>Use named arguments when passing in literal values if the meaning is at all unclear, for example instead of <code>Utils.delete(true)</code> prefer <code>Utils.delete(recursive=true)</code>.
+		<li>Indentation is 2 spaces and never tabs. One could argue the right amount of indentation, but 2 seems to be standard for scala and consistency is best here since there is clearly no "right" way.</li>
+		<li>Include the optional parenthesis on a no-arg method only if the method has a side-effect, otherwise omit them. For example <code>fileChannel.force()</code> and <code>fileChannel.size</code>. This helps emphasize that you are calling the method for the side effect, which is changing some state, not just getting the return value.</li>
+		<li>Prefer case classes to tuples in important APIs to make it clear what the intended contents are.</li>
+		</ul>
+
+		<h2>Logging</h2>
+		<ul>
+		<li>Logging is one third of our "UI" and it should be taken seriously. Please take the time to assess the logs when making a change to ensure that the important things are getting logged and there is no junk there.</li>
+		<li>Logging statements should be complete sentences with proper capitalization that are written to be read by a person not necessarily familiar with the source code. It is fine to put in hacky little logging statements when debugging, but either clean them up or remove them before checking in. So logging something like "INFO: entering SyncProducer send()" is not appropriate.</li>
+		<li>Logging should not mention class names or internal variables.</li>
+		<li>There are six levels of logging <code>TRACE</code>, <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code>, and <code>FATAL</code>, they should be used as follows.
+			<ul>
+		    <li><code>INFO</code> is the level you should assume the software will be run in. INFO messages are things which are not bad but which the user will definitely want to know about every time they occur.
+		    <li><code>TRACE</code> and <code>DEBUG</code> are both things you turn on when something is wrong and you want to figure out what is going on. <code>DEBUG</code> should not be so fine grained that it will seriously effect the performance of the server. <code>TRACE</code> can be anything. Both <code>DEBUG</code> and <code>TRACE</code> statements should be wrapped in an <code>if(logger.isDebugEnabled)</code> check to avoid pasting together big strings all the time.
+		    <li><code>WARN</code> and <code>ERROR</code> indicate something that is bad. Use <code>WARN</code> if you aren't totally sure it is bad, and <code>ERROR</code> if you are.
+		    <li>Use <code>FATAL</code> only right before calling <code>System.exit()</code>.
+			</ul>
+		</li>
+		</ul>
+
+		<h2>Monitoring</h2>
+		<ul>
+		<li>Monitoring is the second third of our "UI" and it should also be taken seriously.</li>
+		<li>We use JMX for monitoring.</li>
+		<li>Any new features should come with appropriate monitoring to know the feature is working correctly. This is at least as important as unit tests as it verifies production.</li>
+		</ul>
+
+		<h2>Unit Tests</h2>
+		<ul>
+		<li>New patches should come with unit tests that verify the functionality being added.</li>
+		<li>Unit tests are first rate code, and should be treated like it. They should not contain code duplication, cryptic hackery, or anything like that.</li>
+		<li>Be aware of the methods in <code>kafka.utils.TestUtils</code>, they make a lot of the below things easier to get right.</li>
+		<li>Unit tests should test the least amount of code possible, don't start the whole server unless there is no other way to test a single class or small group of classes in isolation.</li>
+		<li>Tests should not depend on any external resources, they need to set up and tear down their own stuff. This means if you want zookeeper it needs to be started and stopped, you can't depend on it already being there. Likewise if you need a file with some data in it, you need to write it in the beginning of the test and delete it (pass or fail).</li>
+		<li>It is okay to use the filesystem and network in tests since that is our business but you need to clean up after yourself. There are helpers for this in <code>TestUtils</code>.</li>
+		<li>Do not use sleep or other timing assumptions in tests, it is always, always, always wrong and will fail intermittently on any test server with other things going on that causes delays. Write tests in such a way that they are not timing dependent. Seriously. One thing that will help this is to never directly use the system clock in code (i.e. <code>System.currentTimeMillis</code>) but instead to use the <code>kafka.utils.Time</code>. This is a trait that has a mock implementation allowing you to programmatically and deterministically cause the passage of time when you inject this mock clock instead of the system clock.</li>
+		<li>It must be possible to run the tests in parallel, without having them collide. This is a practical thing to allow multiple branches to CI on a single CI server. This means you can't hard code directories or ports or things like that in tests because two instances will step on each other. Again <code>TestUtils</code> has helpers for this stuff (e.g. <code>TestUtils.choosePort</code> will find a free port for you).</li>
+		</ul>
+
+		<h2>Configuration</h2>
+		<ul>
+		<li>Configuration is the final third of our "UI".</li>
+		<li>Names should be thought through from the point of view of the person using the config, but often programmers choose configuration names that make sense for someone reading the code.</li>
+		<li>Often the value that makes most sense in configuration is <i>not</i> the one most useful to program with. For example, let's say you want to throttle I/O to avoid using up all the I/O bandwidth. The easiest thing to implement is to give a "sleep time" configuration that let's the program sleep after doing I/O to throttle down its rate. But notice how hard it is to correctly use this configuration parameter, the user has to figure out the rate of I/O on the machine, and then do a bunch of arithmetic to calculate the right sleep time to give the desired rate of I/O on the system. It is much, much, much better to just have the user configure the maximum I/O rate they want to allow (say 5MB/sec) and then calculate the appropriate sleep time from that and the actual I/O rate. Another way to say this is that configuration should always be in terms of the quantity that the user knows, not the quantity you want to use.</li>
+		<li>Configuration is the answer to problems we can't solve up front for some reason--if there is a way to just choose a best value do that instead.</li>
+		<li>Configuration should come from the instance-level properties file. No additional sources of config (environment variables, system properties, etc) should be added as these usually inhibit running multiple instances of a broker on one machine.</li>
+		</ul>
+
+		<h2>Concurrency</h2>
+		<ul>
+		<li>Encapsulate synchronization. That is, locks should be private member variables within a class and only one class or method should need to be examined to verify the correctness of the synchronization strategy.</li>
+		<li>Annotate things as <code>@threadsafe</code> when they are supposed to be and <code>@notthreadsafe</code> when they aren't to help track this stuff.</li>
+		<li>There are a number of gotchas with threads and threadpools: is the daemon flag set appropriately for your threads? are your threads being named in a way that will distinguish their purpose in a thread dump? What happens when the number of queued tasks hits the limit (do you drop stuff? do you block?).</li>
+		<li>Prefer the java.util.concurrent packages to either low-level wait-notify, custom locking/synchronization, or higher level scala-specific primitives. The util.concurrent stuff is well thought out and actually works correctly. There is a generally feeling that threads and locking are not going to be the concurrency primitives of the future because of a variety of well-known weaknesses they have. This is probably true, but they have the advantage of actually being mature enough to use for high-performance software <i>right now</i>; their well-known deficiencies are easily worked around by equally well known best-practices. So avoid actors, software transactional memory, tuple spaces, or anything else not written by Doug Lea and used by at least a million other productions systems. :-)</li>
+		</ul>
+
+		<h2>Backwards Compatibility</h2>
+		<ul>
+		<li>Our policy is that the Kafka protocols and data formats should support backwards compatibility for one release to enable no-downtime upgrades (unless there is a <i>very</i> compelling counter-argument). This means the server MUST be able to support requests from both old and new clients simultaneously. This compatability need only be retained for one release (e.g. 0.7 must accept requests from 0.6 clients, but this need not be maintained indefinitely). The code handling the "old" path can be removed in the next release or whenever we can get all the clients up-to-date. A typical upgrade sequence for binary format changes would be (1) upgrade consumers to handle new message format, (2) upgrade server, (3) clients.</li>
+		<li>There are three things which require this binary compatibility: request objects, persistent data structure (messages and message sets), and zookeeper structures and protocols. The message binary structure has a "magic" byte to allow it to be evolved, this number should be incremented when the format is changed and the number can be checked to apply the right logic and fill in defaults appropriately. Network requests have a request id which serve a similar purpose, any change to a request object must be accompanied by a change in the request id. Any change here should be accompanied by compatibility tests that save requests or messages in the old format as a binary file which is tested for compatibility with the new code.</li>
+		</ul>
+
+		<h2>Client Code</h2>
+		<p>There are a few things that need to be considered in client code that are not a major concern on the server side.</p>
+		<ul>
+			<li>Libraries needed by the client should be avoided whenever possible. Clients are run in someone else's code and it is very possible that they may have the same library we have, but a different and incompatible version. This will mean they can't use our client. For this reason the client should not use any libraries that are not strictly necessary.</li>
+		<li>We should attempt to maintain API compatibility when possible, though at this point in the project's lifecycle it is more important to make things good rather than avoid breakage.</li>
+		</ul>
+
+		<h2>Streams API</h2>
+		<p>Kafka's Streams API (aka Kafka Streams) uses a few more additional coding guidelines.
+                   All contributors should follow these the get a high quality and uniform code base.
+                   Some rules help to simplify PR reviews and thus make the life of all contributors easier.</p>
+		<ul>
+			<li>Use <code>final</code> when possible.
+                            This holds for all class members, local variables, loop variables, and method parameters.</li>
+			<li>Write modular and thus testable code. Refactor if necessary!</li>
+			<li>Avoid large PRs (recommended is not more the 500 lines per PR).
+                            Many JIRAs requires larger code changes; thus, split the work in multiple PRs and create according sub-task on the JIRA to track the work.</li>
+			<li>All public APIs must have JavaDocs.</li>
+			<li>Verify if JavaDocs are still up to date or if they need to be updated.</li>
+			<li>JavaDocs: Write grammatically correct sentences and use punctuation marks correctly.</li>
+			<li>Use proper markup (e.g., <code>{@code null}</code>).</li>
+			<li>Update the documentation on the Kafka webpage (i.e., within folder <code>docs/</code>.
+                            Doc changes are not additional work (i.e., no follow up PRs) but part of the actual PR (can also be a sub-task).</li>
+			<li>Testing:
+				<ul>
+					<li>Use self-explaining method names (e.g., <code>shouldNotAcceptNullAsTopicName()</code>).</li>
+					<li>Each test should cover only a single case.</li>
+					<li>Keep tests as short as possible (i.e., write crisp code).</li>
+					<li>Write tests for all possible parameter values.</li>
+					<li>Don't use reflections but rewrite your code (reflections indicate bad design in the first place).</li>
+					<li>Use annotations such as <code>@Test(expected = SomeException.class)</code> only for single line tests.</li>
+				</ul>
+			</li>
+			<li>Code formatting (those make Github diffs easier to read and thus simplify code reviews):
+				<ul>
+					<li>No line should be longer than 120 characters.</li>
+					<li>Use a "single parameter per line" formatting when defining methods (also for methods with only 2 parameters).</li>
+					<li>If a method call is longer than 120 characters, switch to a single parameter per line formatting
+                                            (instead of just breaking it into two lines only).</li>
+					<li>For JavaDocs, start a new line for each new sentence.</li>
+					<li>Avoid unnecessary reformatting.</li>
+					<li>If reformatting is neccessary, do a minor PR (either upfront or as follow up).</li>
+				</ul>
+			</li>
+			<li>Run <code>./gradlew clean chechstyleMain checkstyleTest</code> before opening/updating a PR.</li>
+			<li>Help reviewing!
+                            No need to be shy; if you can contribute code, you know enough to comment on the work of others.</li>
+		</ul>
+	<script>
+	// Show selected style on nav item
+	$(function() { $('.b-nav__project').addClass('selected'); });
+	</script>
+	@@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->

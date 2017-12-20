@@ -1,0 +1,79 @@
+<h2 id="performance">Performance Results</h2>
+<p>The following tests give some basic information on Kafka throughput as the number of topics, consumers and producers and overall data size varies. Since Kafka nodes are independent, these tests are run with a single producer, consumer, and broker machine. Results can be extrapolated for a larger cluster.
+</p>
+
+<p>
+We run producer and consumer tests separately to isolate their performance. For the consumer these tests test <i>cold</i> performance, that is consuming a large uncached backlog of messages. Simultaneous production and consumption tends to help performance since the cache is hot.
+</p>
+
+<p>We took below setting for some of the parameters:</p>
+
+<ul>
+<li>message size = 200 bytes</li>
+<li>batch size = 200 messages</li>
+<li>fetch size = 1MB</li>
+<li>flush interval = 600 messages</li>
+</ul>
+
+In our performance tests, we run experiments to answer below questions.
+<h3>What is the producer throughput as a function of batch size?</h3>
+<p>We can push about 50MB/sec to the system. However, this number changes with the batch size. The below graphs show the relation between these two quantities.<p>
+<p><span style="" class="image-wrap"><img border="0" src="images/onlyBatchSize.jpg" width="500" height="300"/></span><br /></p>
+
+<h3>What is the consumer throughput?</h3>
+<p>According to our experiments, we can consume about 100M/sec from a broker and the total does not seem to change much as we increase
+the number of consumer threads.<p>
+<p><span style="" class="image-wrap"><img border="0" src="images/onlyConsumer.jpg" width="500" height="300"/></span> </p>
+
+<h3> Does data size effect our performance? </h3>
+<p><span style="" class="image-wrap"><img border="0" src="images/dataSize.jpg" width="500" height="300"/></span><br /></p>
+
+<h3>What is the effect of the number of producer threads on producer throughput?</h3>
+<p>We are able to max out production with only a few threads.<p>
+<p><span style="" class="image-wrap"><img border="0" src="images/onlyProducer.jpg" width="500" height="300"/></span><br /></p>
+
+<h3> What is the effect of number of topics on producer throughput?</h3>
+<p>Based on our experiments, the number of topic has a minimal effect on the total data produced.
+The below graph is an experiment where we used 40 producers and varied the number of topics<p>
+
+<p><span style="" class="image-wrap"><img border="0" src="images/onlyTopic.jpg" width="500" height="300"/></span><br /></p>
+
+<h2>How to Run a Performance Test</h2>
+
+<p>The performance related code is under perf folder. To run the simulator :</p>
+
+<p>&nbsp;../run-simulator.sh -kafkaServer=localhost -numTopic=10&nbsp;  -reportFile=report-html/data -time=15 -numConsumer=20 -numProducer=40  -xaxis=numTopic</p>
+
+<p>It will run a simulator with 40 producer and 20 consumer threads
+          producing/consuming from a local kafkaserver.&nbsp; The simulator is going to
+          run 15 minutes and the results are going to be saved under
+          report-html/data</p>
+
+<p>and they will be plotted from there. Basically it will write MB of
+          data consumed/produced, number of messages consumed/produced given a
+          number of topic and report.html will plot the charts.</p>
+
+
+      <p>Other parameters include numParts, fetchSize, messageSize.</p>
+
+      <p>In order to test how the number of topic affects the performance the below script can be used (it is under utl-bin)</p>
+
+
+
+      <p>#!/bin/bash<br />
+
+         for i in 1 10 20 30 40 50;<br />
+
+         do<br />
+
+         &nbsp; ../kafka-server.sh server.properties 2>&amp;1 >kafka.out&amp;<br />
+         sleep 60<br />
+  &nbsp;../run-simulator.sh -kafkaServer=localhost -numTopic=$i&nbsp;  -reportFile=report-html/data -time=15 -numConsumer=20 -numProducer=40  -xaxis=numTopic<br />
+         &nbsp;../stop-server.sh<br />
+	  &nbsp;rm -rf /tmp/kafka-logs<br />
+
+         &nbsp;sleep 300<br />
+
+         done</p>
+
+<p>The charts similar to above graphs can be plotted with report.html automatically.</p>
