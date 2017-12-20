@@ -1,0 +1,39 @@
+@@include('includes/_header.htm')
+<!--#include virtual="includes/_header.htm" -->
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+	@@include('includes/_nav.htm')
+	<!--#include virtual="includes/_nav.htm" -->
+	<div class="right right-home">
+		<div class="desc">
+			<a href="/documentation/#producerapi" class="desc-item">
+				<h2>发布 &amp; 订阅</h2>
+				<p>类似于一个消息系统，读写流式的数据.</p>
+				<span class="desc-item__cta">查看更多  &raquo;</span>
+			</a>
+			<a href="/documentation/streams" class="desc-item">
+				<h2>处理</h2>
+				<p>编写可扩展的流处理应用程序，用于实时事件的应用场景</p>
+				<span class="desc-item__cta">查看更多 &raquo;</span>
+			</a>
+			<a href="/intro#kafka_storage" class="desc-item">
+				<h2>存储</h2>
+				<p>安全的将流式的数据存储在具有分布式，有副本备份，容错性的集群。</p>
+				<span class="desc-item__cta">查看更多 &raquo;</span>
+			</a>
+		</div>
+		<div class="index">
+			<img width="451" height="435" class="kafka-diagram" src="/images/kafka_diagram.png">
+			<div class="callout">
+				<p>Kafka&reg; 用于构建实时的管道和流式的app，它可以横向扩展，容错，速度快，并且在数千家公司的生产中运行。</p>
+				<a class="btn btn--secondary btn--sm callout__action" href="/intro.html">查看更多</a>
+			</div>
+		</div>
+
+<script>
+// Show selected style on nav item
+$(function() { $('.b-nav__home').addClass('selected'); });
+</script>
+@@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->
