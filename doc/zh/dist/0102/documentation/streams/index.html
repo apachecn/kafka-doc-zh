@@ -34,7 +34,31 @@
  limitations under the License.
 -->
 
-<script><!--#include virtual="../js/templateData.js" --></script>
+<script>
+
+/*
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Define variables for doc templates
+var context={
+    "version": "0102",
+    "dotVersion": "0.10.2"
+};
+<!--#include virtual="../js/templateData.js" --></script>
 
 <script id="streams-template" type="text/x-handlebars-template">
     <h1>Streams</h1>
@@ -85,18 +109,267 @@
     </div>
 </script>
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:og="http://ogp.me/ns#">
+	<head>
+		<title>Apache Kafka</title>
+		<link rel='stylesheet' href='/css/styles.css' type='text/css'>
+		<link rel='stylesheet' href='/css/syntax-highlighting.css' type='text/css'>
+		<link rel="icon" type="image/gif" href="/images/apache_feather.gif">
+		<meta name="robots" content="index,follow" />
+		<meta name="language" content="en" />
+		<meta name="keywords" content="apache kafka messaging queuing distributed stream processing">
+		<meta name="description" content="Apache Kafka: A Distributed Streaming Platform.">
+		<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
+		<meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+		<meta property="og:title" content="Apache Kafka" />
+		<meta property="og:image" content="http://apache-kafka.org/images/apache-kafka.png" />
+		<meta property="og:description" content="Apache Kafka: A Distributed Streaming Platform." />
+		<meta property="og:site_name" content="Apache Kafka" />
+		<meta property="og:type" content="website" />
+		<link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Roboto:400,700,900" rel="stylesheet">
+		<script src="/js/jquery.min.js"></script>
+		<script>
+			// DO NOT NEED TO UPDATE
+			// Legacy versions of the documentation to not do frontend redirect for
+			// These docs are written as a single super long file so no need to re-route
+			var legacyDocPaths = [
+				'/07/documentation',
+				'/07/documentation/',
+				'/08/documentation',
+				'/08/documentation/',
+				'/081/documentation',
+				'/081/documentation/',
+				'/082/documentation',
+				'/082/documentation/',
+				'/090/documentation',
+				'/090/documentation/',
+				'/0100/documentation',
+				'/0100/documentation/'
+			];
+
+			// Any direct request for Streams documentation in docs versions prior to 0101
+			// Redirect these requests to the standalone Streams doc page
+			var currentPath = window.location.pathname;
+			var shouldRedirect = !legacyDocPaths.includes(currentPath);
+			var isDocumenationPage = currentPath.includes('/documentation');
+
+			var hasNotSpecifiedFullPath = !currentPath.includes('/documentation/streams') && !currentPath.includes('/documentation/streams/');
+			
+			// Look for legacy anchors to clue us in on what full path the user needs
+			// Add more as needed
+			var specifiedStreamsAnchor = window.location.hash.includes('#streams_');
+
+			if (shouldRedirect && isDocumenationPage && hasNotSpecifiedFullPath) {
+				if (specifiedStreamsAnchor) {
+					window.location.pathname = currentPath + 'streams';
+				}
+			}
+		</script>
+	</head>
+
 <!--#include virtual="../../includes/_header.htm" -->
+<body>
+	<div class="main">
+		<div class="header">
+			<a href="/"><img width="325" height="97" class="logo" src="/images/logo.png"></a>
+		</div>
+
 <!--#include virtual="../../includes/_top.htm" -->
 <div class="content documentation documentation--current">
-	<!--#include virtual="../../includes/_nav.htm" -->
-	<div class="right">
-		<!--#include virtual="../../includes/_docs_banner.htm" -->
+        <nav class="b-sticky-nav">
+  <div class="nav-scroller">
+    <div class="nav__inner">
+      <a class="b-nav__home nav__item" href="/">主页</a>
+      <a class="b-nav__intro nav__item" href="/intro">介绍</a>
+      <a class="b-nav__quickstart nav__item" href="/quickstart">快速开始</a>
+      <a class="b-nav__uses nav__item" href="/uses">使用案例</a>
+
+      <div class="nav__item nav__item__with__subs">
+        <a class="b-nav__docs nav__item nav__sub__anchor" href="/documentation.html">文档</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#gettingStarted">入门</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#api">APIs</a>
+        <a class="b-nav__streams nav__item nav__sub__item" href="/documentation.html#streams">kafka streams</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#connect">kafka connect</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#configuration">配置</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#design">设计</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#implementation">实现</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#operations">操作</a>
+        <a class="nav__item nav__sub__item" href="/documentation.html#security">安全</a>
+      </div>
+
+      <a class="b-nav__performance nav__item" href="/performance">性能</a>
+      <a class="b-nav__poweredby nav__item" href="/powered-by">powered by</a>
+      <a class="b-nav__project nav__item" href="/project">项目信息</a>
+      <a class="b-nav__ecosystem nav__item" href="https://cwiki.apache.org/confluence/display/KAFKA/Ecosystem" target="_blank">生态圈</a>
+      <a class="b-nav__clients nav__item" href="https://cwiki.apache.org/confluence/display/KAFKA/Clients" target="_blank">客户端</a>
+      <a class="b-nav__events nav__item" href="/events">事件</a>
+      <a class="b-nav__contact nav__item" href="/contact">联系我们</a>
+
+      <div class="nav__item nav__item__with__subs">
+        <a class="b-nav__apache nav__item nav__sub__anchor b-nav__sub__anchor" href="#">apache</a>
+        <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/" target="_blank">贡献</a>
+        <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/licenses/" target="_blank">license</a>
+        <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/foundation/sponsorship.html" target="_blank">赞助</a>
+        <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/foundation/thanks.html" target="_blank">感谢</a>
+        <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/security/" target="_blank">安全</a>
+      </div>
+
+      <a class="btn" href="/downloads">下载</a>
+      <div class="social-links">
+        <a class="twitter" href="https://twitter.com/apachekafka" target="_blank">@apachekafka</a>
+      </div>
+    </div>
+  </div>
+  <div class="navindicator">
+    <div class="b-nav__home navindicator__item"></div>
+    <div class="b-nav__intro navindicator__item"></div>
+    <div class="b-nav__quickstart navindicator__item"></div>
+    <div class="b-nav__uses navindicator__item"></div>
+    <div class="b-nav__docs navindicator__item"></div>
+    <div class="b-nav__performance navindicator__item"></div>
+    <div class="b-nav__poweredby navindicator__item"></div>
+    <div class="b-nav__project navindicator__item"></div>
+    <div class="b-nav__ecosystem navindicator__item"></div>
+    <div class="b-nav__clients navindicator__item"></div>
+    <div class="b-nav__events navindicator__item"></div>
+    <div class="b-nav__contact navindicator__item"></div>
+  </div>
+</nav>
+
+        <!--#include virtual="../../includes/_nav.htm" -->
+        <div class="right">
+                <a class="documentation__banner b-sticky-doc-banner" href="/documentation">
+  You're viewing documentation for an older version of Kafka - check out our current documentation here.
+</a>
+
+            <!--#include virtual="../../includes/_docs_banner.htm" -->
         <ul class="breadcrumbs">
             <li><a href="/documentation">Documentation</a></li>
         </ul>
         <div class="p-streams"></div>
     </div>
 </div>
+				</div>
+			</div>
+		</div>
+		<div class="footer">
+			<div class="footer__inner">
+				<div class="footer__legal">
+					<span class="footer__legal__one">The contents of this website are &copy; 2016 <a href="https://www.apache.org/" target="_blank">Apache Software Foundation</a> under the terms of the <a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">Apache License v2</a>.</span>
+					<span class="footer__legal__two">Apache Kafka, Kafka, and the Kafka logo are either registered trademarks or trademarks of The Apache Software Foundation</span>
+					<span class="footer__legal__three">in the United States and other countries.</span>
+				</div>
+				<a class="apache-feather" target="_blank" href="http://www.apache.org">
+					<img width="40" src="/images/feather-small.png" alt="Apache Feather">
+				</a>
+			</div>
+		</div>
+	</body>
+
+    <script type="text/javascript" src="/js/syntaxhighlighter.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js"></script>
+	<script>
+		$(function () {
+			// list of pages that are rendered with Handlebars
+			var templates = [
+				'introduction',
+				'implementation',
+				'design',
+				'api',
+				'configuration',
+				'ops',
+				'security',
+				'connect',
+				'streams',
+				'quickstart',
+				'toc',
+				'upgrade',
+				'content'
+			];
+
+			// loop through all Handlebar templates on the page and render them
+			for(var i = 0; i < templates.length; i++) {
+				var templateScript = $("#" + templates[i] + "-template").html();
+				if(templateScript) {
+					var template = Handlebars.compile(templateScript);
+					var html = template(context);
+					$(".p-" + templates[i]).html(html);
+				}
+			}
+		});
+	</script>
+
+	<script src="/js/jquery.sticky-kit.min.js"></script>
+	<script>
+		$(function() {
+			// Set mobile scroll position on nav
+			function setNavScroll(offsetLeft) {
+				$('.nav-scroller').animate({
+					scrollLeft: $('.nav-scroller').scrollLeft() + $('nav .selected').offset().left - offsetLeft
+				}, 50);
+			}
+
+			// Helper classes for nav
+			$('nav').mouseenter(function(){
+				$(this).addClass('hovering');
+			});
+			$('nav').mouseleave(function(){
+				$(this).removeClass('hovering');
+			});
+
+			// Handle expanding sections of nav (async)
+			$('.b-nav__sub__anchor').click(function(){
+				$('nav .selected').removeClass('selected');
+				$('.nav__item__with__subs--expanded').removeClass('nav__item__with__subs--expanded');
+
+				$(this).addClass('selected');
+				$(this).parent().toggleClass('nav__item__with__subs--expanded');
+
+				if($(window).width() <= 650) {
+					window.setTimeout(function(){
+						setNavScroll(30);
+					}, 300);
+				}
+			});
+
+			// Initialize sticky elements on the page
+			if($(window).width() > 650) {
+				// Nav for desktop
+				$('.b-sticky-nav').stick_in_parent({offset_top: 40});
+				// Documentation banner for desktop
+				$('.b-sticky-doc-banner').stick_in_parent({offset_top: 0});
+			}	else {
+				// Scroll nav for mobile so current nav item is in view
+				window.setTimeout(function(){
+					setNavScroll(80);
+				}, 300);
+			}
+
+			// On window resize check to see if stuff should be unstuck
+			window.onresize = function(event) {
+			  if($(window).width() <= 650) {
+			    $('.b-sticky-nav').trigger("sticky_kit:detach");
+			  } else {
+			    $('.b-sticky-nav').stick_in_parent({offset_top: 40});
+					$('.b-sticky-doc-banner').stick_in_parent({offset_top: 0});
+			  }
+			};
+		});
+	</script>
+
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-7818013-4', 'apache.org');
+		ga('send', 'pageview');
+
+	</script>
+</html>
+
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {
