@@ -1,0 +1,38 @@
+@@include('includes/_header.htm')
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_header.htm" -->
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+		@@include('includes/_nav.htm')
+	<!--#include virtual="includes/_nav.htm" -->
+	<div class="right">
+		<h1>Getting the code</h1>
+		<p>
+		Our code is kept in git. You can check it out like this:
+		</p>
+		<pre>
+			git clone https://git-wip-us.apache.org/repos/asf/kafka.git kafka
+		</pre>
+		<p>
+		Information on contributing patches can be found <a href="contributing.html">here</a>.
+		</p>
+		<p>
+		Official releases are available <a href="downloads.html">here</a>.
+		</p>
+		<p>
+		The source code for the web site and documentation can be checked out from Apache git repo:
+		<pre>
+			git clone -b asf-site https://git-wip-us.apache.org/repos/asf/kafka-site.git
+		</pre>
+		A <a href="https://github.com/apache/kafka-site">github mirror</a> is used for submitting patches for website and documentation. We think documentation is a core part of the project and welcome any improvements, suggestions, or clarifications. The procedure of contributing to the documentation can also be found <a href="contributing.html">here</a>.
+		</p>
+		<p>
+		To setup IDEs for development, following <a href="https://cwiki.apache.org/confluence/display/KAFKA/Developer+Setup">this guide</a> on the wiki.
+		</p>
+
+	<script>
+	// Show selected style on nav item
+	$(function() { $('.b-nav__project').addClass('selected'); });
+	</script>
+	@@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->

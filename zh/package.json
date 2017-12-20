@@ -1,0 +1,24 @@
+{
+  "name": "kafka-site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apache/kafka-site.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/apache/kafka-site/issues"
+  },
+  "homepage": "https://github.com/apache/kafka-site#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-copy": "^1.0.1",
+    "gulp-file-include": "^2.0.0"
+  }
+}

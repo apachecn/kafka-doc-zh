@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>Scaladoc for kafka.consumer</title>
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+		      <script type="text/javascript" src="../../lib/jquery.js"></script>
+          
+      <link href="../../lib/template.css" rel="stylesheet" type="text/css" media="screen" />
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+    
+        </head>
+        <body class="value">
+
+      <p id="owner"><a href="../package.html" class="extype" name="kafka">kafka</a></p>
+
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <h1>consumer</h1>
+      </div>
+
+      <h4 class="signature" id="signature">
+      <span class="kind">package</span>
+      <span class="symbol">
+        <span class="name">consumer</span>
+      </span>
+      </h4>
+      <div class="fullcomment" id="comment"></div>
+      
+      <div id="template">
+
+        <div id="mbrsel">
+          
+          <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in">Public</li><li class="all out">All</li></ol>
+          </div>
+        </div>
+        
+                
+        
+        <div class="members" id="types">
+              <h3>Type Members</h3>
+              <ol><li visbl="pub" name="kafka.consumer.ConsumerConfig">
+      <h4 class="signature"><a href="ConsumerConfig.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">ConsumerConfig</span><span class="result"> extends ZKConfig</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.ConsumerConnector">
+      <h4 class="signature"><a href="ConsumerConnector.html">
+      <span class="kind">trait</span>
+      <span class="symbol">
+        <span class="name">ConsumerConnector</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt"> Main interface for consumer
+</p>
+    </li><li visbl="pub" name="kafka.consumer.ConsumerIterator">
+      <h4 class="signature"><a href="ConsumerIterator.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">ConsumerIterator</span><span class="result"> extends IteratorTemplate[Message]</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt">An iterator that blocks until a value can be read from the supplied queue.</p>
+    </li><li visbl="pub" name="kafka.consumer.ConsumerTimeoutException">
+      <h4 class="signature"><a href="ConsumerTimeoutException.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">ConsumerTimeoutException</span><span class="result"> extends RuntimeException</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.FetcherRunnable">
+      <h4 class="signature"><a href="FetcherRunnable.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">FetcherRunnable</span><span class="result"> extends Thread</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.KafkaMessageStream">
+      <h4 class="signature"><a href="KafkaMessageStream.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">KafkaMessageStream</span><span class="result"> extends Iterable[Message] with Iterable[Message]</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt">All calls to elements should produce the same thread-safe iterator? Should have a separate thread
+that feeds messages into a blocking queue for processing.</p>
+    </li><li visbl="pub" name="kafka.consumer.SimpleConsumer">
+      <h4 class="signature"><a href="SimpleConsumer.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">SimpleConsumer</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt">A consumer of kafka messages
+</p>
+    </li><li visbl="pub" name="kafka.consumer.SimpleConsumerStats">
+      <h4 class="signature"><a href="SimpleConsumerStats.html">
+      <span class="kind">class</span>
+      <span class="symbol">
+        <span class="name">SimpleConsumerStats</span><span class="result"> extends SimpleConsumerStatsMBean</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.SimpleConsumerStatsMBean">
+      <h4 class="signature"><a href="SimpleConsumerStatsMBean.html">
+      <span class="kind">trait</span>
+      <span class="symbol">
+        <span class="name">SimpleConsumerStatsMBean</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.ZookeeperConsumerConnectorMBean">
+      <h4 class="signature"><a href="ZookeeperConsumerConnectorMBean.html">
+      <span class="kind">trait</span>
+      <span class="symbol">
+        <span class="name">ZookeeperConsumerConnectorMBean</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt"> JMX interface for monitoring consumer
+</p>
+    </li></ol>
+            </div>
+        
+        <div class="members" id="values">
+              <h3>Value Members</h3>
+              <ol><li visbl="pub" name="kafka.consumer.ConsoleConsumer">
+      <h4 class="signature"><a href="ConsoleConsumer$.html">
+      <span class="kind">object</span>
+      <span class="symbol">
+        <span class="name">ConsoleConsumer</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      <p class="comment cmt">Consumer that dumps messages out to standard out.</p>
+    </li><li visbl="pub" name="kafka.consumer.Consumer">
+      <h4 class="signature"><a href="Consumer$.html">
+      <span class="kind">object</span>
+      <span class="symbol">
+        <span class="name">Consumer</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.ConsumerConfig">
+      <h4 class="signature"><a href="ConsumerConfig$.html">
+      <span class="kind">object</span>
+      <span class="symbol">
+        <span class="name">ConsumerConfig</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.SimpleConsumerStats">
+      <h4 class="signature"><a href="SimpleConsumerStats$.html">
+      <span class="kind">object</span>
+      <span class="symbol">
+        <span class="name">SimpleConsumerStats</span><span class="result"> extends AnyRef</span>
+      </span>
+      </a></h4>
+      
+    </li><li visbl="pub" name="kafka.consumer.storage">
+      <h4 class="signature"><a href="storage/package.html">
+      <span class="kind">package</span>
+      <span class="symbol">
+        <span class="name">storage</span>
+      </span>
+      </a></h4>
+      
+    </li></ol>
+            </div>
+                
+      </div>
+      
+      <div id="tooltip"></div>
+      
+    </body>
+      </html>

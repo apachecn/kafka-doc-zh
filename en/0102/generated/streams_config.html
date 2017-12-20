@@ -1,0 +1,74 @@
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>application.id</td><td>An identifier for the stream processing application. Must be unique within the Kafka cluster. It is used as 1) the default client-id prefix, 2) the group-id for membership management, 3) the changelog topic prefix.</td><td>string</td><td></td><td></td><td>high</td></tr>
+<tr>
+<td>bootstrap.servers</td><td>A list of host/port pairs to use for establishing the initial connection to the Kafka cluster. The client will make use of all servers irrespective of which servers are specified here for bootstrapping&mdash;this list only impacts the initial hosts used to discover the full set of servers. This list should be in the form <code>host1:port1,host2:port2,...</code>. Since these servers are just used for the initial connection to discover the full cluster membership (which may change dynamically), this list need not contain the full set of servers (you may want more than one, though, in case a server is down).</td><td>list</td><td></td><td></td><td>high</td></tr>
+<tr>
+<td>client.id</td><td>An id string to pass to the server when making requests. The purpose of this is to be able to track the source of requests beyond just ip/port by allowing a logical application name to be included in server-side request logging.</td><td>string</td><td>""</td><td></td><td>high</td></tr>
+<tr>
+<td>zookeeper.connect</td><td>Zookeeper connect string for Kafka topics management.</td><td>string</td><td>""</td><td></td><td>high</td></tr>
+<tr>
+<td>connections.max.idle.ms</td><td>Close idle connections after the number of milliseconds specified by this config.</td><td>long</td><td>540000</td><td></td><td>medium</td></tr>
+<tr>
+<td>key.serde</td><td>Serializer / deserializer class for key that implements the <code>Serde</code> interface.</td><td>class</td><td>org.apache.kafka.common.serialization.Serdes.ByteArraySerde</td><td></td><td>medium</td></tr>
+<tr>
+<td>partition.grouper</td><td>Partition grouper class that implements the <code>PartitionGrouper</code> interface.</td><td>class</td><td>org.apache.kafka.streams.processor.DefaultPartitionGrouper</td><td></td><td>medium</td></tr>
+<tr>
+<td>receive.buffer.bytes</td><td>The size of the TCP receive buffer (SO_RCVBUF) to use when reading data. If the value is -1, the OS default will be used.</td><td>int</td><td>32768</td><td>[0,...]</td><td>medium</td></tr>
+<tr>
+<td>replication.factor</td><td>The replication factor for change log topics and repartition topics created by the stream processing application.</td><td>int</td><td>1</td><td></td><td>medium</td></tr>
+<tr>
+<td>request.timeout.ms</td><td>The configuration controls the maximum amount of time the client will wait for the response of a request. If the response is not received before the timeout elapses the client will resend the request if necessary or fail the request if retries are exhausted.</td><td>int</td><td>40000</td><td>[0,...]</td><td>medium</td></tr>
+<tr>
+<td>security.protocol</td><td>Protocol used to communicate with brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.</td><td>string</td><td>PLAINTEXT</td><td></td><td>medium</td></tr>
+<tr>
+<td>send.buffer.bytes</td><td>The size of the TCP send buffer (SO_SNDBUF) to use when sending data. If the value is -1, the OS default will be used.</td><td>int</td><td>131072</td><td>[0,...]</td><td>medium</td></tr>
+<tr>
+<td>state.dir</td><td>Directory location for state store.</td><td>string</td><td>/tmp/kafka-streams</td><td></td><td>medium</td></tr>
+<tr>
+<td>timestamp.extractor</td><td>Timestamp extractor class that implements the <code>TimestampExtractor</code> interface.</td><td>class</td><td>org.apache.kafka.streams.processor.FailOnInvalidTimestamp</td><td></td><td>medium</td></tr>
+<tr>
+<td>value.serde</td><td>Serializer / deserializer class for value that implements the <code>Serde</code> interface.</td><td>class</td><td>org.apache.kafka.common.serialization.Serdes.ByteArraySerde</td><td></td><td>medium</td></tr>
+<tr>
+<td>windowstore.changelog.additional.retention.ms</td><td>Added to a windows maintainMs to ensure data is not deleted from the log prematurely. Allows for clock drift. Default is 1 day</td><td>long</td><td>86400000</td><td></td><td>medium</td></tr>
+<tr>
+<td>application.server</td><td>A host:port pair pointing to an embedded user defined endpoint that can be used for discovering the locations of state stores within a single KafkaStreams application</td><td>string</td><td>""</td><td></td><td>low</td></tr>
+<tr>
+<td>buffered.records.per.partition</td><td>The maximum number of records to buffer per partition.</td><td>int</td><td>1000</td><td></td><td>low</td></tr>
+<tr>
+<td>cache.max.bytes.buffering</td><td>Maximum number of memory bytes to be used for buffering across all threads</td><td>long</td><td>10485760</td><td>[0,...]</td><td>low</td></tr>
+<tr>
+<td>commit.interval.ms</td><td>The frequency with which to save the position of the processor.</td><td>long</td><td>30000</td><td></td><td>low</td></tr>
+<tr>
+<td>metadata.max.age.ms</td><td>The period of time in milliseconds after which we force a refresh of metadata even if we haven't seen any partition leadership changes to proactively discover any new brokers or partitions.</td><td>long</td><td>300000</td><td>[0,...]</td><td>low</td></tr>
+<tr>
+<td>metric.reporters</td><td>A list of classes to use as metrics reporters. Implementing the <code>MetricReporter</code> interface allows plugging in classes that will be notified of new metric creation. The JmxReporter is always included to register JMX statistics.</td><td>list</td><td>""</td><td></td><td>low</td></tr>
+<tr>
+<td>metrics.num.samples</td><td>The number of samples maintained to compute metrics.</td><td>int</td><td>2</td><td>[1,...]</td><td>low</td></tr>
+<tr>
+<td>metrics.recording.level</td><td>The highest recording level for metrics.</td><td>string</td><td>INFO</td><td>[INFO, DEBUG]</td><td>low</td></tr>
+<tr>
+<td>metrics.sample.window.ms</td><td>The window of time a metrics sample is computed over.</td><td>long</td><td>30000</td><td>[0,...]</td><td>low</td></tr>
+<tr>
+<td>num.standby.replicas</td><td>The number of standby replicas for each task.</td><td>int</td><td>0</td><td></td><td>low</td></tr>
+<tr>
+<td>num.stream.threads</td><td>The number of threads to execute stream processing.</td><td>int</td><td>1</td><td></td><td>low</td></tr>
+<tr>
+<td>poll.ms</td><td>The amount of time in milliseconds to block waiting for input.</td><td>long</td><td>100</td><td></td><td>low</td></tr>
+<tr>
+<td>reconnect.backoff.ms</td><td>The amount of time to wait before attempting to reconnect to a given host. This avoids repeatedly connecting to a host in a tight loop. This backoff applies to all requests sent by the consumer to the broker.</td><td>long</td><td>50</td><td>[0,...]</td><td>low</td></tr>
+<tr>
+<td>retry.backoff.ms</td><td>The amount of time to wait before attempting to retry a failed request to a given topic partition. This avoids repeatedly sending requests in a tight loop under some failure scenarios.</td><td>long</td><td>100</td><td>[0,...]</td><td>low</td></tr>
+<tr>
+<td>rocksdb.config.setter</td><td>A Rocks DB config setter class that implements the <code>RocksDBConfigSetter</code> interface</td><td>class</td><td>null</td><td></td><td>low</td></tr>
+<tr>
+<td>state.cleanup.delay.ms</td><td>The amount of time in milliseconds to wait before deleting state when a partition has migrated.</td><td>long</td><td>60000</td><td></td><td>low</td></tr>
+</tbody></table>

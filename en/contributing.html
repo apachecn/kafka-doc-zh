@@ -1,0 +1,60 @@
+@@include('includes/_header.htm')
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_header.htm" -->
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+		@@include('includes/_nav.htm')
+	<!--#include virtual="includes/_nav.htm" -->
+	<div class="right">
+		<h1>How to contribute</h1>
+		<p>We are always very happy to have contributions, whether for trivial cleanups or big new features.</p>
+		<p>
+		If you don't know Java or Scala you can still contribute to the project. An important area is the <a href="https://cwiki.apache.org/confluence/display/KAFKA/Clients">clients</a>. We want to have high quality, well documented clients for each programming language. These, as well as the surrounding <a href="https://cwiki.apache.org/confluence/display/KAFKA/Ecosystem">ecosystem</a> of integration tools that people use with Kafka&reg;, are critical aspects of the project.
+		<p>
+		Nor is code the only way to contribute to the project. We strongly value documentation and gladly accept improvements to the documentation.
+
+		<h2>Contributing A Code Change</h2>
+
+		To submit a change for inclusion, please do the following:
+
+		<ul>
+			<li>If the change is non-trivial please include some unit tests that cover the new functionality.</li>
+			<li>If you are introducing a completely new feature or API it is a good idea to start a wiki and get consensus on the basic design first.</li>
+			<li>Make sure you have observed the recommendations in the <a href="coding-guide.html">style guide</a>.</li>
+			<li>Follow the detailed instructions in <a href="https://cwiki.apache.org/confluence/display/KAFKA/Contributing+Code+Changes">Contributing Code Changes</a>.</li>
+			<li>Note that if the change is related to user-facing protocols / interface / configs, etc, you need to make the corresponding change on the documentation as well. For wiki page changes feel free to edit the page content directly (you may need to contact us to get the permission first if it is your first time to edit on wiki);  website docs live in the code repo under `docs` so that changes to that can be done in the same PR as changes to the code. Website doc change instructions are given below.
+			<li>It is our job to follow up on patches in a timely fashion. <a href="mailto: dev@kafka.apache.org">Nag us</a> if we aren't doing our job (sometimes we drop things).</li>
+		</ul>
+
+		<h2>Contributing A Change To The Website</h2>
+
+		To submit a change for inclusion please do the following:
+
+		<ul>
+		       <li>Follow the instructions in <a href="https://cwiki.apache.org/confluence/display/KAFKA/Contributing+Website+Documentation+Changes">Contributing Website Changes</a>.</li>
+		       <li>It is our job to follow up on patches in a timely fashion. <a href="mailto: dev@kafka.apache.org">Nag us</a> if we aren't doing our job (sometimes we drop things). If the patch needs improvement, the reviewer will mark the jira back to "In Progress" after reviewing.</li>
+		</ul>
+
+		<h2>Finding A Project To Work On</h2>
+
+		The easiest way to get started working with the code base is to pick up a really easy JIRA and work on that. This will help you get familiar with the code base, build system, review process, etc. We flag these kind of starter bugs <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20KAFKA%20AND%20labels%20%3D%20newbie%20AND%20status%20%3D%20Open">here</a>.
+		<p>
+		Please contact us to be added the contributor list. After that you can assign yourself to the JIRA ticket you have started working on so others will notice.
+		</p>
+                <p>
+                If your work is considered a "major change" then you would need to initiate a Kafka Improvement Proposal (KIP) along with the JIRA ticket (more details can be found <a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Improvement+Proposals">here</a>). Please ask us to grant you the permission on wiki space in order to create a KIP wiki page.
+                </p>
+		<p>
+		Once you have gotten through the basic process of checking in code, you may want to move on to a more substantial project. We try to curate this kind of project as well, and you can find these <a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20KAFKA%20AND%20labels%20%3D%20project%20AND%20status%20%3D%20Open">here</a>.
+		</p>
+
+		<h2>Becoming a Committer</h2>
+
+		We are always interested in adding new contributors. What we look for is a series of contributions, good taste, and an ongoing interest in the project. If you are interested in becoming a committer, let one of the existing committers know and they can help guide you through the process.
+
+	<script>
+	// Show selected style on nav item
+	$(function() { $('.b-nav__project').addClass('selected'); });
+	</script>
+	@@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->

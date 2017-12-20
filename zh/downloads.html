@@ -1,0 +1,558 @@
+@@include('includes/_header.htm')
+<!--#include virtual="includes/_header.htm" -->
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+        @@include('includes/_nav.htm')
+	<!--#include virtual="includes/_nav.htm" -->
+	<div class="right">
+		<h1>Download</h1>
+    <p>1.0.0 is the latest release. The current stable version is 1.0.0.</p>
+
+    <p>
+    You can verify your download by following these <a href="http://www.apache.org/info/verification.html">procedures</a> and using these <a href="https://kafka.apache.org/KEYS">KEYS</a>.
+    </p>
+        <h3>1.0.0</h3>
+
+        <ul>
+            <li>
+                Released November 1, 2017
+            </li>
+            <li>
+                Source download: <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/1.0.0/kafka-1.0.0-src.tgz">kafka-1.0.0-src.tgz</a> (<a href="https://www.apache.org/dist/kafka/1.0.0/kafka-1.0.0-src.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/1.0.0/kafka-1.0.0-src.tgz.sha512">sha512</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.11 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/1.0.0/kafka_2.11-1.0.0.tgz">kafka_2.11-1.0.0.tgz</a> (<a href="https://www.apache.org/dist/kafka/1.0.0/kafka_2.11-1.0.0.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/1.0.0/kafka_2.11-1.0.0.tgz.sha512">sha512</a>)</li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/1.0.0/kafka_2.12-1.0.0.tgz">kafka_2.12-1.0.0.tgz</a> (<a href="https://www.apache.org/dist/kafka/1.0.0/kafka_2.12-1.0.0.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/1.0.0/kafka_2.12-1.0.0.tgz.sha512">sha512</a>)</li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <p>
+            Kafka 1.0.0 is no mere bump of the version number. The Apache Kafka Project Management Committee has packed a number of valuable enhancements into the release. Here is a summary of a few of them:
+        </p>
+
+        <ul>
+            <li>
+                Since its introduction in version 0.10, the Streams API has become hugely popular among Kafka users, including the likes of Pinterest, Rabobank, Zalando, and The New York Times. In 1.0, the the API continues to evolve at a healthy pace. To begin with, the builder API has been improved (KIP-120). A new API has been added to expose the state of active tasks at runtime (KIP-130). The new cogroup API makes it much easier to deal with partitioned aggregates with fewer StateStores and fewer moving parts in your code (KIP-150). Debuggability gets easier with enhancements to the print() and writeAsText() methods (KIP-160). And if that’s not enough, check out KIP-138 and KIP-161 too. For more on streams, check out the <a href="https://kafka.apache.org/documentation/streams/">Apache Kafka Streams</a> documentation, including some helpful new tutorial videos.
+            </li>
+            <li>
+                Operating Kafka at scale requires that the system remain observable, and to make that easier, we’ve made a number of improvements to metrics. These are too many to summarize without becoming tedious, but Connect metrics have been significantly improved (KIP-196), a litany of new health check metrics are now exposed (KIP-188), and we now have a global topic and partition count (KIP-168). Check out KIP-164 and KIP-187 for even more.
+            </li>
+            <li>
+                We now support Java 9, leading, among other things, to significantly faster TLS and CRC32C implementations. Over-the-wire encryption will be faster now, which will keep Kafka fast and compute costs low when encryption is enabled.
+            </li>
+            <li>
+                In keeping with the security theme, KIP-152 cleans up the error handling on Simple Authentication Security Layer (SASL) authentication attempts. Previously, some authentication error conditions were indistinguishable from broker failures and were not logged in a clear way. This is cleaner now.
+            </li>
+            <li>
+                Kafka can now tolerate disk failures better. Historically, JBOD storage configurations have not been recommended, but the architecture has nevertheless been tempting: after all, why not rely on Kafka’s own replication mechanism to protect against storage failure rather than using RAID? With KIP-112, Kafka now handles disk failure more gracefully. A single disk failure in a JBOD broker will not bring the entire broker down; rather, the broker will continue serving any log files that remain on functioning disks.
+            </li>
+            <li>
+                Since release 0.11.0, the idempotent producer (which is the producer used in the presence of a transaction, which of course is the producer we use for exactly-once processing) required max.in.flight.requests.per.connection to be equal to one. As anyone who has written or tested a wire protocol can attest, this put an upper bound on throughput. Thanks to KAFKA-5949, this can now be as large as five, relaxing the throughput constraint quite a bit.
+            </li>
+        </ul>
+
+        <p>
+            For more information, please read the detailed <a href="https://www.apache.org/dist/kafka/1.0.0/RELEASE_NOTES.html">Release Notes</a>.
+        </p>
+
+
+        <h3>0.11.0.2</h3>
+        <ul>
+            <li>
+                Released November 17, 2017
+            </li>
+            <li>
+                <a href="https://www.apache.org/dist/kafka/0.11.0.2/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.11.0.2/kafka-0.11.0.2-src.tgz">kafka-0.11.0.2-src.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka-0.11.0.2-src.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka-0.11.0.2-src.tgz.sha512">sha512</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.11 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz">kafka_2.11-0.11.0.2.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz.sha512">sha512</a>)</li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz">kafka_2.12-0.11.0.2.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.11.0.2/kafka_2.12-0.11.0.2.tgz.sha512">sha512</a>)</li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.11.0.1</h3>
+        <ul>
+            <li>
+                Released September 13, 2017
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.11.0.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka-0.11.0.1-src.tgz">kafka-0.11.0.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka-0.11.0.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka-0.11.0.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.11-0.11.0.1.tgz">kafka_2.11-0.11.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.11-0.11.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.11-0.11.0.1.tgz.md5">md5</a>)</li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.12-0.11.0.1.tgz">kafka_2.12-0.11.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.12-0.11.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.1/kafka_2.12-0.11.0.1.tgz.md5">md5</a>)</li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+
+        <h3>0.11.0.0</h3>
+        <ul>
+            <li>
+                Released June 28, 2017
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.11.0.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka-0.11.0.0-src.tgz">kafka-0.11.0.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka-0.11.0.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka-0.11.0.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.11-0.11.0.0.tgz">kafka_2.11-0.11.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.11-0.11.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.11-0.11.0.0.tgz.md5">md5</a>)</li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.12-0.11.0.0.tgz">kafka_2.12-0.11.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.12-0.11.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.11.0.0/kafka_2.12-0.11.0.0.tgz.md5">md5</a>)</li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.2.1</h3>
+        <ul>
+            <li>
+                Released April 26, 2017
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.2.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.2.1/kafka-0.10.2.1-src.tgz">kafka-0.10.2.1-src.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka-0.10.2.1-src.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka-0.10.2.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.2.1/kafka_2.10-0.10.2.1.tgz">kafka_2.10-0.10.2.1.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.10-0.10.2.1.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.10-0.10.2.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz">kafka_2.11-0.10.2.1.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.2.1/kafka_2.12-0.10.2.1.tgz">kafka_2.12-0.10.2.1.tgz</a> (<a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.12-0.10.2.1.tgz.asc">asc</a>, <a href="https://www.apache.org/dist/kafka/0.10.2.1/kafka_2.12-0.10.2.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We add 2.12 to the supported Scala version. These different versions only matter if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.2.0</h3>
+        <ul>
+            <li>
+                Released February 21, 2017
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.2.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka-0.10.2.0-src.tgz">kafka-0.10.2.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka-0.10.2.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka-0.10.2.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.10-0.10.2.0.tgz">kafka_2.10-0.10.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.10-0.10.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.10-0.10.2.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.11-0.10.2.0.tgz">kafka_2.11-0.10.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.11-0.10.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.11-0.10.2.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.12 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.12-0.10.2.0.tgz">kafka_2.12-0.10.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.12-0.10.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.2.0/kafka_2.12-0.10.2.0.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We add 2.12 to the supported Scala version. These different versions only matter if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.1.1</h3>
+        <ul>
+            <li>
+                Released December 20, 2016
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.1.1/RELEASE_NOTES.html.">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka-0.10.1.1-src.tgz">kafka-0.10.1.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka-0.10.1.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka-0.10.1.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.10-0.10.1.1.tgz">kafka_2.10-0.10.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.10-0.10.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.10-0.10.1.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz">kafka_2.11-0.10.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.12 (pre-alpha) &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.12-0.10.1.1.tgz">kafka_2.12-0.10.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.12-0.10.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.12-0.10.1.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala, and include 2.12 as a pre-alpha before the next major release. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.1.0</h3>
+        <ul>
+            <li>
+                Released October 20, 2016
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.1.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka-0.10.1.0-src.tgz">kafka-0.10.1.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka-0.10.1.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka-0.10.1.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.10-0.10.1.0.tgz">kafka_2.10-0.10.1.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.10-0.10.1.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.10-0.10.1.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz">kafka_2.11-0.10.1.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.0.1</h3>
+        <ul>
+            <li>
+                Released August 10, 2016
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.0.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka-0.10.0.1-src.tgz">kafka-0.10.0.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka-0.10.0.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka-0.10.0.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.10-0.10.0.1.tgz">kafka_2.10-0.10.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.10-0.10.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.10-0.10.0.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz">kafka_2.11-0.10.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.10.0.0</h3>
+        <ul>
+            <li>
+                Released May 22, 2016
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.10.0.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka-0.10.0.0-src.tgz">kafka-0.10.0.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka-0.10.0.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka-0.10.0.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.10-0.10.0.0.tgz">kafka_2.10-0.10.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.10-0.10.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.10-0.10.0.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz">kafka_2.11-0.10.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.9.0.1</h3>
+        <ul>
+            <li>
+                Released February 19, 2016
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.9.0.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka-0.9.0.1-src.tgz">kafka-0.9.0.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka-0.9.0.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka-0.9.0.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.10-0.9.0.1.tgz">kafka_2.10-0.9.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.10-0.9.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.10-0.9.0.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz">kafka_2.11-0.9.0.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.9.0.0</h3>
+        <ul>
+            <li>
+                Released November 23, 2015
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.9.0.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka-0.9.0.0-src.tgz">kafka-0.9.0.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka-0.9.0.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka-0.9.0.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.10-0.9.0.0.tgz">kafka_2.10-0.9.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.10-0.9.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.10-0.9.0.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz">kafka_2.11-0.9.0.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.11 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.2.2</h3>
+        <ul>
+            <li>
+                Released October 2, 2015
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.2.2/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka-0.8.2.2-src.tgz">kafka-0.8.2.2-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka-0.8.2.2-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka-0.8.2.2-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.1-0.8.2.2.tgz">kafka_2.9.1-0.8.2.2.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.1-0.8.2.2.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.1-0.8.2.2.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.2-0.8.2.2.tgz">kafka_2.9.2-0.8.2.2.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.2-0.8.2.2.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.9.2-0.8.2.2.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz">kafka_2.10-0.8.2.2.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.11-0.8.2.2.tgz">kafka_2.11-0.8.2.2.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.11-0.8.2.2.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.2/kafka_2.11-0.8.2.2.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.10 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.2.1</h3>
+        <ul>
+            <li>
+                Released March 11, 2015
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.2.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka-0.8.2.1-src.tgz">kafka-0.8.2.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka-0.8.2.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka-0.8.2.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.1-0.8.2.1.tgz">kafka_2.9.1-0.8.2.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.1-0.8.2.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.1-0.8.2.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.2-0.8.2.1.tgz">kafka_2.9.2-0.8.2.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.2-0.8.2.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.9.2-0.8.2.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz">kafka_2.10-0.8.2.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz">kafka_2.11-0.8.2.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.11-0.8.2.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.10 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.2.0</h3>
+        <ul>
+            <li>
+                Released February 2, 2015
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.2.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka-0.8.2.0-src.tgz">kafka-0.8.2.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka-0.8.2.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka-0.8.2.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.1-0.8.2.0.tgz">kafka_2.9.1-0.8.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.1-0.8.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.1-0.8.2.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.2-0.8.2.0.tgz">kafka_2.9.2-0.8.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.2-0.8.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.9.2-0.8.2.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.10-0.8.2.0.tgz">kafka_2.10-0.8.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.10-0.8.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.10-0.8.2.0.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.11-0.8.2.0.tgz">kafka_2.11-0.8.2.0.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.11-0.8.2.0.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2.0/kafka_2.11-0.8.2.0.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.10 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.2-beta</h3>
+        <ul>
+            <li>
+                Released October 28, 2014
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka-0.8.2-beta-src.tgz">kafka-0.8.2-beta-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka-0.8.2-beta-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka-0.8.2-beta-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.1-0.8.2-beta.tgz">kafka_2.9.1-0.8.2-beta.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.1-0.8.2-beta.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.1-0.8.2-beta.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.2-0.8.2-beta.tgz">kafka_2.9.2-0.8.2-beta.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.2-0.8.2-beta.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.9.2-0.8.2-beta.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.10-0.8.2-beta.tgz">kafka_2.10-0.8.2-beta.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.10-0.8.2-beta.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.10-0.8.2-beta.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.11 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.11-0.8.2-beta.tgz">kafka_2.11-0.8.2-beta.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.11-0.8.2-beta.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.2-beta/kafka_2.11-0.8.2-beta.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.10 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.1.1 Release</h3>
+        <ul>
+            <li>
+                Released April 29, 2014
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.1.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka-0.8.1.1-src.tgz">kafka-0.8.1.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka-0.8.1.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka-0.8.1.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.8.0 - <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz">kafka_2.8.0-0.8.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.1-0.8.1.1.tgz">kafka_2.9.1-0.8.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.1-0.8.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.1-0.8.1.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.2-0.8.1.1.tgz">kafka_2.9.2-0.8.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.2-0.8.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.9.2-0.8.1.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 &nbsp;- <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz">kafka_2.10-0.8.1.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1.1/kafka_2.10-0.8.1.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.9.2 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.1 Release</h3>
+        <ul>
+            <li>
+                Released March 12, 2014
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.1/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka-0.8.1-src.tgz">kafka-0.8.1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka-0.8.1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka-0.8.1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary downloads:
+                <ul>
+                    <li>Scala 2.8.0 - <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.0-0.8.1.tgz">kafka_2.8.0-0.8.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.0-0.8.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.0-0.8.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.8.2 - <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.2-0.8.1.tgz">kafka_2.8.2-0.8.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.2-0.8.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.8.2-0.8.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.1 - <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.1-0.8.1.tgz">kafka_2.9.1-0.8.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.1-0.8.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.1-0.8.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.9.2 - <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.2-0.8.1.tgz">kafka_2.9.2-0.8.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.2-0.8.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.9.2-0.8.1.tgz.md5">md5</a>)
+                    </li>
+                    <li>Scala 2.10 - <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.10-0.8.1.tgz">kafka_2.10-0.8.1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.10-0.8.1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.1/kafka_2.10-0.8.1.tgz.md5">md5</a>)
+                    </li>
+                </ul>
+                We build for multiple versions of Scala. This only matters if you are using Scala and you want a version built for the same Scala version you use. Otherwise any version should work (2.9.2 is recommended).
+            </li>
+        </ul>
+
+        <h3>0.8.0 Release</h3>
+        <ul>
+            <li>
+                Released December 3, 2013
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/0.8.0/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/0.8.0/kafka-0.8.0-src.tgz">kafka-0.8.0-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.0/kafka-0.8.0-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.0/0.8.0/kafka-0.8.0-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary download: <a href="https://archive.apache.org/dist/kafka/0.8.0/kafka_2.8.0-0.8.0.tar.gz">kafka_2.8.0-0.8.0.tar.gz</a> (<a href="https://archive.apache.org/dist/kafka/0.8.0/kafka_2.8.0-0.8.0.tar.gz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/0.8.0/kafka_2.8.0-0.8.0.tar.gz.md5">md5</a>)
+            </li>
+        </ul>
+
+        <h3>0.8.0 Beta1 Release</h3>
+        <ul>
+            <li>
+                Released June 28, 2013
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/RELEASE_NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Source download: <a href="https://archive.apache.org/dist/kafka/kafka-0.8.0-beta1-src.tgz">kafka-0.8.0-beta1-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/kafka-0.8.0-beta1-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/kafka-0.8.0-beta1-src.tgz.md5">md5</a>)
+            </li>
+            <li>
+                Binary download: <a href="https://archive.apache.org/dist/kafka/kafka_2.8.0-0.8.0-beta1.tgz">kafka_2.8.0-0.8.0-beta1.tgz</a> (<a href="https://archive.apache.org/dist/kafka/kafka_2.8.0-0.8.0-beta1.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/kafka_2.8.0-0.8.0-beta1.tgz.md5">md5</a>)
+            </li>
+        </ul>
+
+        <h3>0.7.2 Release</h3>
+        <ul>
+            <li>
+                Released October 10, 2012
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.2-incubating/RELEASE-NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Download: <a href="http://archive.apache.org/dist/kafka/old_releases/kafka-0.7.2-incubating/kafka-0.7.2-incubating-src.tgz">kafka-0.7.2-incubating-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.2-incubating/kafka-0.7.2-incubating-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.2-incubating/kafka-0.7.2-incubating-src.tgz.md5">md5</a>)
+            </li>
+        </ul>
+
+        <h3>0.7.1 Release</h3>
+        <ul>
+            <li>
+                Released June 27, 2012
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.1-incubating/RELEASE-NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Download: <a href="http://archive.apache.org/dist/kafka/old_releases/kafka-0.7.1-incubating/kafka-0.7.1-incubating-src.tgz">kafka-0.7.1-incubating-src.tgz</a> (<a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.1-incubating/kafka-0.7.1-incubating-src.tgz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.1-incubating/kafka-0.7.1-incubating-src.tgz.md5">md5</a>)
+            </li>
+        </ul>
+
+        <h3>0.7.0 Release</h3>
+        <ul>
+            <li>
+                Released January 4, 2012
+            </li>
+            <li>
+                <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.0-incubating/RELEASE-NOTES.html">Release Notes</a>
+            </li>
+            <li>
+                Download: <a href="http://archive.apache.org/dist/kafka/old_releases/kafka-0.7.0-incubating/kafka-0.7.0-incubating-src.tar.gz">kafka-0.7.0-incubating-src.tar.gz</a> (<a href="	kafka-0.7.0-incubating/kafka-0.7.0-incubating-src.tar.gz.asc">asc</a>, <a href="https://archive.apache.org/dist/kafka/old_releases/kafka-0.7.0-incubating/kafka-0.7.0-incubating-src.tar.gz.md5">md5</a>)
+            </li>
+        </ul>
+
+        <p>
+            You can download releases previous to 0.7.0-incubating <a href="http://sna-projects.com/kafka/downloads.php">here</a>.
+        </p>
+
+        @@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->
