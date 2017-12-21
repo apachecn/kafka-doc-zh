@@ -55,7 +55,7 @@ gulp.task('copy6',function(){
 
     
 }) 
-var folders=['07','08','10','081','082','090','0100','0101','0102','0103']
+var folders=['07','08','10','081','082','090','0100','0101','0102','0103','0110']
 
 gulp.task('html', function () {
     for(var i=0;i<folders.length;i++){
