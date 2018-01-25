@@ -25,3 +25,4 @@ en/dist
 zh/dist
 en/node_modules
 zh/node_modules
+/.idea/
