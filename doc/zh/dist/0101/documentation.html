@@ -41,63 +41,96 @@ var context={
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html xmlns:og="http://ogp.me/ns#">
-	<head>
-		<title>Apache Kafka</title>
-		<link rel='stylesheet' href='/css/styles.css' type='text/css'>
-		<link rel='stylesheet' href='/css/syntax-highlighting.css' type='text/css'>
-		<link rel="icon" type="image/gif" href="/images/apache_feather.gif">
-		<meta name="robots" content="index,follow" />
-		<meta name="language" content="en" />
-		<meta name="keywords" content="apache kafka messaging queuing distributed stream processing">
-		<meta name="description" content="Apache Kafka: A Distributed Streaming Platform.">
-		<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
-		<meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
-		<meta property="og:title" content="Apache Kafka" />
-		<meta property="og:image" content="http://apache-kafka.org/images/apache-kafka.png" />
-		<meta property="og:description" content="Apache Kafka: A Distributed Streaming Platform." />
-		<meta property="og:site_name" content="Apache Kafka" />
-		<meta property="og:type" content="website" />
-		<link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Roboto:400,700,900" rel="stylesheet">
-		<script src="/js/jquery.min.js"></script>
-		<script>
-			// DO NOT NEED TO UPDATE
-			// Legacy versions of the documentation to not do frontend redirect for
-			// These docs are written as a single super long file so no need to re-route
-			var legacyDocPaths = [
-				'/07/documentation',
-				'/07/documentation/',
-				'/08/documentation',
-				'/08/documentation/',
-				'/081/documentation',
-				'/081/documentation/',
-				'/082/documentation',
-				'/082/documentation/',
-				'/090/documentation',
-				'/090/documentation/',
-				'/0100/documentation',
-				'/0100/documentation/'
-			];
 
-			// Any direct request for Streams documentation in docs versions prior to 0101
-			// Redirect these requests to the standalone Streams doc page
-			var currentPath = window.location.pathname;
-			var shouldRedirect = !legacyDocPaths.includes(currentPath);
-			var isDocumenationPage = currentPath.includes('/documentation');
+<head>
+	<title>Apache Kafka</title>
+	<link rel='stylesheet' href='../css/styles.css' type='text/css'>
+	<link rel='stylesheet' href='../css/syntax-highlighting.css' type='text/css'>
+	<link rel="icon" type="image/gif" href="../images/apache_feather.gif">
+	<meta name="robots" content="index,follow" />
+	<meta name="language" content="en" />
+	<meta name="keywords" content="apache kafka messaging queuing distributed stream processing">
+	<meta name="description" content="Apache Kafka: A Distributed Streaming Platform.">
+	<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
+	<meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+	<meta property="og:title" content="Apache Kafka" />
+	<meta property="og:image" content="http://apache-kafka.org/images/apache-kafka.png" />
+	<meta property="og:description" content="Apache Kafka: A Distributed Streaming Platform." />
+	<meta property="og:site_name" content="Apache Kafka" />
+	<meta property="og:type" content="website" />
+	<link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Roboto:400,700,900" rel="stylesheet">
+	<script src="../js/jquery.min.js"></script>
+	<script async src="../js/apachecn/googletagmanager.js"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
 
-			var hasNotSpecifiedFullPath = !currentPath.includes('/documentation/streams') && !currentPath.includes('/documentation/streams/');
-			
-			// Look for legacy anchors to clue us in on what full path the user needs
-			// Add more as needed
-			var specifiedStreamsAnchor = window.location.hash.includes('#streams_');
+		gtag('config', 'UA-102475051-9');
+	</script>
 
-			if (shouldRedirect && isDocumenationPage && hasNotSpecifiedFullPath) {
-				if (specifiedStreamsAnchor) {
-					window.location.pathname = currentPath + 'streams';
-				}
+	<script>
+		var _hmt = _hmt || [];
+		(function () {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?9f2b74b80ab8aafb5970835acf96a0ea";
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(hm, s);
+		})();
+	</script>
+
+	<script>
+		(function () {
+			var bp = document.createElement('script');
+			var curProtocol = window.location.protocol.split(':')[0];
+			if (curProtocol === 'https') {
+				bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
 			}
-		</script>
-	</head>
+			else {
+				bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+			}
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(bp, s);
+		})();
+	</script>
+	<script>
+		// DO NOT NEED TO UPDATE
+		// Legacy versions of the documentation to not do frontend redirect for
+		// These docs are written as a single super long file so no need to re-route
+		var legacyDocPaths = [
+			'../07/documentation',
+			'../07/documentation/',
+			'../08/documentation',
+			'../08/documentation/',
+			'../081/documentation',
+			'../081/documentation/',
+			'../082/documentation',
+			'../082/documentation/',
+			'../090/documentation',
+			'../090/documentation/',
+			'../0100/documentation',
+			'../0100/documentation/'
+		];
 
+		// Any direct request for Streams documentation in docs versions prior to 0101
+		// Redirect these requests to the standalone Streams doc page
+		var currentPath = window.location.pathname;
+		var shouldRedirect = !legacyDocPaths.includes(currentPath);
+		var isDocumenationPage = currentPath.includes('/documentation');
+
+		var hasNotSpecifiedFullPath = !currentPath.includes('/documentation/streams') && !currentPath.includes('/documentation/streams/');
+
+		// Look for legacy anchors to clue us in on what full path the user needs
+		// Add more as needed
+		var specifiedStreamsAnchor = window.location.hash.includes('#streams_');
+
+		if (shouldRedirect && isDocumenationPage && hasNotSpecifiedFullPath) {
+			if (specifiedStreamsAnchor) {
+				window.location.pathname = currentPath + 'streams';
+			}
+		}
+	</script>
+</head>
 <body>
 	<div class="main">
 		<div class="header">
@@ -112,9 +145,9 @@ var context={
   <div class="nav-scroller">
     <div class="nav__inner">
       <a class="b-nav__home nav__item" href="/">主页</a>
-      <a class="b-nav__intro nav__item" href="/intro">介绍</a>
-      <a class="b-nav__quickstart nav__item" href="/quickstart">快速开始</a>
-      <a class="b-nav__uses nav__item" href="/uses">使用案例</a>
+      <a class="b-nav__intro nav__item" href="/intro.html">介绍</a>
+      <a class="b-nav__quickstart nav__item" href="/quickstart.html">快速开始</a>
+      <a class="b-nav__uses nav__item" href="/uses.html">使用案例</a>
 
       <div class="nav__item nav__item__with__subs">
         <a class="b-nav__docs nav__item nav__sub__anchor" href="/documentation.html">文档</a>
@@ -129,13 +162,13 @@ var context={
         <a class="nav__item nav__sub__item" href="/documentation.html#security">安全</a>
       </div>
 
-      <a class="b-nav__performance nav__item" href="/performance">性能</a>
-      <a class="b-nav__poweredby nav__item" href="/powered-by">powered by</a>
-      <a class="b-nav__project nav__item" href="/project">项目信息</a>
+      <a class="b-nav__performance nav__item" href="/performance.html">性能</a>
+      <a class="b-nav__poweredby nav__item" href="/powered-by.html">powered by</a>
+      <a class="b-nav__project nav__item" href="/project.html">项目信息</a>
       <a class="b-nav__ecosystem nav__item" href="https://cwiki.apache.org/confluence/display/KAFKA/Ecosystem" target="_blank">生态圈</a>
       <a class="b-nav__clients nav__item" href="https://cwiki.apache.org/confluence/display/KAFKA/Clients" target="_blank">客户端</a>
-      <a class="b-nav__events nav__item" href="/events">事件</a>
-      <a class="b-nav__contact nav__item" href="/contact">联系我们</a>
+      <a class="b-nav__events nav__item" href="/events.html">事件</a>
+      <a class="b-nav__contact nav__item" href="/contact.html">联系我们</a>
 
       <div class="nav__item nav__item__with__subs">
         <a class="b-nav__apache nav__item nav__sub__anchor b-nav__sub__anchor" href="#">apache</a>
@@ -146,7 +179,7 @@ var context={
         <a class="b-nav__apache nav__item nav__sub__item" href="http://www.apache.org/security/" target="_blank">安全</a>
       </div>
 
-      <a class="btn" href="/downloads">下载</a>
+      <a class="btn" href="/downloads.html">下载</a>
       <div class="social-links">
         <a class="twitter" href="https://twitter.com/apachekafka" target="_blank">@apachekafka</a>
       </div>
@@ -4894,16 +4927,7 @@ the port to listen and accept connections on</td><td>int</td><td>9092</td><td></
 		});
 	</script>
 
-	<script>
-		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-		ga('create', 'UA-7818013-4', 'apache.org');
-		ga('send', 'pageview');
-
-	</script>
 </html>
 
     <script>
