@@ -16,42 +16,34 @@
 -->
 
 <script id="design-template" type="text/x-handlebars-template">
-    <h3><a id="majordesignelements" href="#majordesignelements">4.1 Motivation</a></h3>
+    <h3><a id="majordesignelements" href="#majordesignelements">4.1 动机</a></h3>
     <p>
-    We designed Kafka to be able to act as a unified platform for handling all the real-time data feeds <a href="#introduction">a large company might have</a>. To do this we had to think through a fairly broad set of use cases.
+        我们设计了Kafka作为一个统一的平台来处理<a href="#introduction">大公司可能拥有的</a>所有实时数据源。 要做到这一点，我们必须考虑相当广泛的用例。
     <p>
-    It would have to have high-throughput to support high volume event streams such as real-time log aggregation.
+        Kafka必须具有高吞吐量来支持高容量事件流，例如实时日志聚合。
     <p>
-    It would need to deal gracefully with large data backlogs to be able to support periodic data loads from offline systems.
+        Kafka需要能够正常处理大量的数据积压，以便能够支持来自离线系统的周期性数据加载。
     <p>
-    It also meant the system would have to handle low-latency delivery to handle more traditional messaging use-cases.
+        这也意味着系统要能够处理低延迟分发，来处理更传统的消息传递用例。
     <p>
-    We wanted to support partitioned, distributed, real-time processing of these feeds to create new, derived feeds. This motivated our partitioning and consumer model.
+        我们希望支持数据分区、分布式、实时处理等特性，以便创建新的派生数据源。由此产生了我们的分区和消费者模式。
     <p>
-    Finally in cases where the stream is fed into other data systems for serving, we knew the system would have to be able to guarantee fault-tolerance in the presence of machine failures.
+        最后，在数据流被馈送到其他数据系统进行服务的情况下，我们要求系统必须能够在出现机器故障时保证容错。
     <p>
-    Supporting these uses led us to a design with a number of unique elements, more akin to a database log than a traditional messaging system. We will outline some elements of the design in the following sections.
-
-    <h3><a id="persistence" href="#persistence">4.2 Persistence</a></h3>
-    <h4><a id="design_filesystem" href="#design_filesystem">Don't fear the filesystem!</a></h4>
+        为支持这些用例，引导着我们设计了许多独特的元素，使得Kafka相比传统的消息系统更像数据库日志。我们将在后面的章节中概述设计中的一些要素。
+    <h3><a id="persistence" href="#persistence">4.2 持久化</a></h3>
+    <h4><a id="design_filesystem" href="#design_filesystem">不要害怕文件系统！</a></h4>
     <p>
-    Kafka relies heavily on the filesystem for storing and caching messages. There is a general perception that "disks are slow" which makes people skeptical that a persistent structure can offer competitive performance.
-    In fact disks are both much slower and much faster than people expect depending on how they are used; and a properly designed disk structure can often be as fast as the network.
+        Kafka消息的存储和缓存严重依赖于文件系统。人们对于“磁盘速度慢”的普遍印象，使得人们对于持久化的结构能够提供有竞争力的性能产生了怀疑。事实上，磁盘速度比人们预期的要慢的多，也快得多，这都取决于磁盘的使用方式；一个设计合理的磁盘结构通常可以和网络一样快。
     <p>
-    The key fact about disk performance is that the throughput of hard drives has been diverging from the latency of a disk seek for the last decade. As a result the performance of linear writes on a <a href="http://en.wikipedia.org/wiki/Non-RAID_drive_architectures">JBOD</a>
-    configuration with six 7200rpm SATA RAID-5 array is about 600MB/sec but the performance of random writes is only about 100k/sec&mdash;a difference of over 6000X. These linear reads and writes are the most
-    predictable of all usage patterns, and are heavily optimized by the operating system. A modern operating system provides read-ahead and write-behind techniques that prefetch data in large block multiples and
-    group smaller logical writes into large physical writes. A further discussion of this issue can be found in this <a href="http://queue.acm.org/detail.cfm?id=1563874">ACM Queue article</a>; they actually find that
-    <a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg">sequential disk access can in some cases be faster than random memory access!</a>
+        磁盘性能的关键在于硬盘驱动的吞吐量，不再像过去十年一样受限于磁盘的检索时间延迟。因此，使用6个7200rpm、SATA接口的磁盘组成RAID-5的磁盘阵列在<a href="http://en.wikipedia.org/wiki/Non-RAID_drive_architectures">JBOD</a>配置下的线性写入的性能约为600MB/秒，但随机写入的性能仅约为100k/秒，相差6000倍以上。因为线性的读取和写入是所有磁盘使用模式中最容易预测的，并且由操作系统进行了大量的优化。现代操作系统提供了预先读和延后写技术，以大数据块为单位预先读取数据，并将多个小型的逻辑写合并成一次大型物理磁盘写入。关于该问题的进一步讨论可以参考<a href="http://queue.acm.org/detail.cfm?id=1563874">ACM Queue article</a>，他们发现实际上<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg">顺序磁盘访问在某些情况下比随机内存访问还要快</a>！
     <p>
-    To compensate for this performance divergence, modern operating systems have become increasingly aggressive in their use of main memory for disk caching. A modern OS will happily divert <i>all</i> free memory to
-    disk caching with little performance penalty when the memory is reclaimed. All disk reads and writes will go through this unified cache. This feature cannot easily be turned off without using direct I/O, so even
-    if a process maintains an in-process cache of the data, this data will likely be duplicated in OS pagecache, effectively storing everything twice.
+        为了弥补这种性能差异，现代操作系统在使用内存对磁盘进行缓存方面变得越来越积极。现代操作系统主动将所有空闲内存分配给磁盘进行缓存，代价是在内存回收时性能会有所降低。所有对磁盘的读写操作都会通过这个统一的缓存进行。如果不使用直接I/O，该功能不能轻易关闭。因此即使进程维护了进程内部的数据缓存，该数据也可能会在操作系统的页面缓存中冗余备份，从而有效地把所有内容存储两份。
     <p>
-    Furthermore, we are building on top of the JVM, and anyone who has spent any time with Java memory usage knows two things:
+        此外，Kafka建立在JVM的基础之上，任何花时间了解过Java内存使用的人都知道两点：
     <ol>
-        <li>The memory overhead of objects is very high, often doubling the size of the data stored (or worse).</li>
-        <li>Java garbage collection becomes increasingly fiddly and slow as the in-heap data increases.</li>
+        <li>对象的内存开销非常高，通常是所存储的数据的两倍(甚至更多)。</li>
+        <li>随着堆中数据的增加，Java的垃圾回收变得越来越复杂和缓慢。</li>
     </ol>
     <p>
     As a result of these factors using the filesystem and relying on pagecache is superior to maintaining an in-memory cache or other structure&mdash;we at least double the available cache by having automatic access
