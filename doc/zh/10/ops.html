@@ -534,7 +534,7 @@
   </pre>
   Note that these properties are being deprecated and may be removed in a future release. Defaults configured using kafka-configs.sh take precedence over these properties.
 
-  <h3><a id="datacenters" href="#datacenters">6.2 Datacenters</a></h3>
+  <h3><a id="datacenters" href="#datacenters">6.2 数据中心</a></h3>
 
   Some deployments will need to manage a data pipeline that spans multiple datacenters. Our recommended approach to this is to deploy a local Kafka cluster in each datacenter with application instances in each datacenter interacting only with their local cluster and mirroring between clusters (see the documentation on the <a href="#basic_ops_mirror_maker">mirror maker tool</a> for how to do this).
   <p>
