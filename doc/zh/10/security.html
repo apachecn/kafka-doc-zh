@@ -663,7 +663,7 @@
     </li>
     </ol>
 
-    <h3><a id="security_authz" href="#security_authz">7.4 Authorization(授权) and ACLs(访问控制列表)</a></h3>
+    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs(授权和访问控制列表)</a></h3>
     Kafka带有一个可插拔的授权器(Authorizer)和一个开箱即用的授权器实现，它使用zookeeper存储所有的acls。Kafka acls定义主体(Principal)对主机上的某个资源的操作是允许还是拒绝。您可以在KIP-11上阅读更多关于acl结构信息。 您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，可以在server.properties中包含以下内容。
     <pre>allow.everyone.if.no.acl.found=true</pre>
     还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
@@ -674,7 +674,7 @@
     <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的例子，该例子可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
     <pre>sasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//,DEFAULT</pre>
 
-    <h4><a id="security_authz_cli" href="#security_authz_cli">命令行接口 </a></h4>
+    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface(命令行接口) </a></h4>
     Kafka Authorization management CLI can be found under bin directory with all the other CLIs. The CLI script is called <b>kafka-acls.sh</b>. Following lists all the options that the script supports:
     <p></p>
     <table class="data-table">
