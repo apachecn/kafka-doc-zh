@@ -663,18 +663,18 @@
     </li>
     </ol>
 
-    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs</a></h3>
-    Kafka ships with a pluggable Authorizer and an out-of-box authorizer implementation that uses zookeeper to store all the acls. Kafka acls are defined in the general format of "Principal P is [Allowed/Denied] Operation O From Host H On Resource R". You can read more about the acl structure on KIP-11. In order to add, remove or list acls you can use the Kafka authorizer CLI. By default, if a Resource R has no associated acls, no one other than super users is allowed to access R. If you want to change that behavior, you can include the following in server.properties.
+    <h3><a id="security_authz" href="#security_authz">7.4 Authorization(授权) and ACLs(访问控制列表)</a></h3>
+    Kafka带有一个可插拔的授权器(Authorizer)和一个开箱即用的授权器实现，它使用zookeeper存储所有的acls。Kafka acls定义主体(Principal)对主机上的某个资源的操作是允许还是拒绝。您可以在KIP-11上阅读更多关于acl结构信息。 您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，可以在server.properties中包含以下内容。
     <pre>allow.everyone.if.no.acl.found=true</pre>
-    One can also add super users in server.properties like the following (note that the delimiter is semicolon since SSL user names may contain comma).
+    还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
     <pre>super.users=User:Bob;User:Alice</pre>
-    By default, the SSL user name will be of the form "CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown". One can change that by setting a customized PrincipalBuilder in server.properties like the following.
+    默认情况下，SSL用户名的格式为："CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown"。可以通过在server.properties中设置一个自定义的PrincipalBuilder来改变这种情况，如下所示。
     <pre>principal.builder.class=CustomizedPrincipalBuilderClass</pre>
-    By default, the SASL user name will be the primary part of the Kerberos principal. One can change that by setting <code>sasl.kerberos.principal.to.local.rules</code> to a customized rule in server.properties.
-    The format of <code>sasl.kerberos.principal.to.local.rules</code> is a list where each rule works in the same way as the auth_to_local in <a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>. Each rules starts with RULE: and contains an expression in the format [n:string](regexp)s/pattern/replacement/g. See the kerberos documentation for more details. An example of adding a rule to properly translate user@MYDOMAIN.COM to user while also keeping the default rule in place is:
+    默认情况下，SASL用户名将成为Kerberos主体的主要部分。有一种方式可以改变，通过设置 <code>sasl.kerberos.principal.to.local.rules</code> 在server.properties中自定义规则。
+    <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的例子，该例子可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
     <pre>sasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//,DEFAULT</pre>
 
-    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface</a></h4>
+    <h4><a id="security_authz_cli" href="#security_authz_cli">命令行接口 </a></h4>
     Kafka Authorization management CLI can be found under bin directory with all the other CLIs. The CLI script is called <b>kafka-acls.sh</b>. Following lists all the options that the script supports:
     <p></p>
     <table class="data-table">
