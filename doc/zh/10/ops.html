@@ -536,40 +536,40 @@
 
   <h3><a id="datacenters" href="#datacenters">6.2 数据中心</a></h3>
 
-  Some deployments will need to manage a data pipeline that spans multiple datacenters. Our recommended approach to this is to deploy a local Kafka cluster in each datacenter with application instances in each datacenter interacting only with their local cluster and mirroring between clusters (see the documentation on the <a href="#basic_ops_mirror_maker">mirror maker tool</a> for how to do this).
+  有一些部署需要维护一个跨越多个数据中心的数据管道。对此，我们推荐的方法是在每个拥有众多应用实例的数据中心内部署一个本地Kafka集群，在每个数据中心内只与本地的kafka集群进行交互，然后各集群之间通过镜像进行同步，（请参阅<a href="#basic_ops_mirror_maker">镜像制作工具< / a>了解怎么做到这一点）。.
   <p>
-  This deployment pattern allows datacenters to act as independent entities and allows us to manage and tune inter-datacenter replication centrally. This allows each facility to stand alone and operate even if the inter-datacenter links are unavailable: when this occurs the mirroring falls behind until the link is restored at which time it catches up.
+  这种部署模式允许数据中心充当一个独立的实体，并允许我们能够集中的管理和调节数据中心之间的复制。在这种部署模式下，即使数据中心间的链路不可用，每个设施也可以独立运行：当发生这种情况时，镜像会落后，直到链路恢复正常并追上时为止。
   <p>
-  For applications that need a global view of all data you can use mirroring to provide clusters which have aggregate data mirrored from the local clusters in <i>all</i> datacenters. These aggregate clusters are used for reads by applications that require the full data set.
+    对于需要所有数据的全局视图的应用程序，你可以使用镜像来提供具有来自所有<i>数据中心</i>的本地集群镜像的聚合数据的集群。聚合集群用于需要全部数据集的应用程序读取。
   <p>
-  This is not the only possible deployment pattern. It is possible to read from or write to a remote Kafka cluster over the WAN, though obviously this will add whatever latency is required to get the cluster.
+  这并是不唯一的部署模式，可以通过广域网读取或者写入到远程的Kafka集群，但是这显然会增加获取集群的延时。
   <p>
-  Kafka naturally batches data in both the producer and consumer so it can achieve high-throughput even over a high-latency connection. To allow this though it may be necessary to increase the TCP socket buffer sizes for the producer, consumer, and broker using the <code>socket.send.buffer.bytes</code> and <code>socket.receive.buffer.bytes</code> configurations. The appropriate way to set this is documented <a href="http://en.wikipedia.org/wiki/Bandwidth-delay_product">here</a>.
+  Kafka能在生产端和消费端很轻易的批处理数据，所以即使在高延时的连接中也可以实现高吞吐量。为此.虽然我们可能需要在生产端，消费端还有broker端增加TCP 套接字缓冲区大小，修改如下参数配置<code>socket.send.buffer.bytes</code> 和 <code>socket.receive.buffer.bytes</code>。具体请参见<a href="http://en.wikipedia.org/wiki/Bandwidth-delay_product">这里</a>。
   <p>
-  It is generally <i>not</i> advisable to run a <i>single</i> Kafka cluster that spans multiple datacenters over a high-latency link. This will incur very high replication latency both for Kafka writes and ZooKeeper writes, and neither Kafka nor ZooKeeper will remain available in all locations if the network between locations is unavailable.
+  通常不建议在高延时链路的情况下部署一个跨越多个数据中心的Kafka集群。这将对Kafka写入和ZooKeeper写入产生非常高的复制延时，当各位置节点之间的网络不可用时，Kafka和ZooKeeper也将不保证可用
 
-  <h3><a id="config" href="#config">6.3 Kafka Configuration</a></h3>
+  <h3><a id="config" href="#config">6.3 Kafka 配置</a></h3>
 
-  <h4><a id="clientconfig" href="#clientconfig">Important Client Configurations</a></h4>
-  The most important old Scala producer configurations control
+  <h4><a id="clientconfig" href="#clientconfig">重要的客户端配置</a></h4>
+  最重要的旧scala producer configurations control
   <ul>
       <li>acks</li>
       <li>compression</li>
       <li>sync vs async production</li>
       <li>batch size (for async producers)</li>
   </ul>
-  The most important new Java producer configurations control
+  最重要的新 Java producer configurations control
   <ul>
       <li>acks</li>
       <li>compression</li>
       <li>batch size</li>
   </ul>
-  The most important consumer configuration is the fetch size.
+  最重要的消费端配置是 fetch size。
   <p>
-  All configurations are documented in the <a href="#configuration">configuration</a> section.
+  所有的配置请查阅 <a href="#configuration">configuration</a> 章节。
   <p>
-  <h4><a id="prodconfig" href="#prodconfig">A Production Server Config</a></h4>
-  Here is an example production server configuration:
+  <h4><a id="prodconfig" href="#prodconfig">一个生产服务器配置</a></h4>
+  以下是生产服务器配置示例：
   <pre class="brush: text;">
   # ZooKeeper
   zookeeper.connect=[list of ZooKeeper servers]
@@ -587,22 +587,22 @@
   queued.max.requests=[number of concurrent requests]
   </pre>
 
-  Our client configuration varies a fair amount between different use cases.
+  我们的客户端配置在不同的使用场景下需要相应的变化。
 
-  <h3><a id="java" href="#java">6.4 Java Version</a></h3>
+  <h3><a id="java" href="#java">6.4 Java 版本</a></h3>
 
-  From a security perspective, we recommend you use the latest released version of JDK 1.8 as older freely available versions have disclosed security vulnerabilities.
+  从安全角度来看，我们建议您使用JDK 1.8的最新发布版本，因为较早的免费版本已经披露了安全漏洞。
 
-  LinkedIn is currently running JDK 1.8 u5 (looking to upgrade to a newer version) with the G1 collector. If you decide to use the G1 collector (the current default) and you are still on JDK 1.7, make sure you are on u51 or newer. LinkedIn tried out u21 in testing, but they had a number of problems with the GC implementation in that version.
+  LinkedIn目前正在使用G1垃圾收集器运行JDK1.8 u5（希望升级到更新的版本）。如果您决定使用G1（当前默认值），并且您仍然使用JDK1.7，请确保您使用的是u51或者以上版本。LinkedIn已经在测试中试用了u21，但是在该版本中，GC方面存在着一些问题。
 
-  LinkedIn's tuning looks like this:
+  LinkedIn的调整如下所示:
   <pre class="brush: text;">
   -Xmx6g -Xms6g -XX:MetaspaceSize=96m -XX:+UseG1GC
   -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M
   -XX:MinMetaspaceFreeRatio=50 -XX:MaxMetaspaceFreeRatio=80
   </pre>
 
-  For reference, here are the stats on one of LinkedIn's busiest clusters (at peak):
+  作为参考，下面是LinkedIn最繁忙的群集（峰值）之一的统计数据：
   <ul>
       <li>60 brokers</li>
       <li>50k partitions (replication factor 2)</li>
@@ -610,90 +610,90 @@
       <li>300 MB/sec inbound, 1 GB/sec+ outbound</li>
   </ul>
 
-  The tuning looks fairly aggressive, but all of the brokers in that cluster have a 90% GC pause time of about 21ms, and they're doing less than 1 young GC per second.
+  该调整看起来相当激进，但是在集群中的所有broker的GC暂停时间90%都在大约21ms，并且每秒钟的yong GC少于一次。
 
-  <h3><a id="hwandos" href="#hwandos">6.5 Hardware and OS</a></h3>
-  We are using dual quad-core Intel Xeon machines with 24GB of memory.
+  <h3><a id="hwandos" href="#hwandos">6.5 硬件和操作系统</a></h3>
+  我们正在使用双四核24GB的Intel Xeon 机器。
   <p>
-  You need sufficient memory to buffer active readers and writers. You can do a back-of-the-envelope estimate of memory needs by assuming you want to be able to buffer for 30 seconds and compute your memory need as write_throughput*30.
+  您需要足够的内存来缓存活动的readers和writers。您可以通过假设您希望缓存30秒，将您的内存需求计算为write_throughput * 30来进行内存需求的后期估计。
   <p>
-  The disk throughput is important. We have 8x7200 rpm SATA drives. In general disk throughput is the performance bottleneck, and more disks is better. Depending on how you configure flush behavior you may or may not benefit from more expensive disks (if you force flush often then higher RPM SAS drives may be better).
+  磁盘的吞吐量很重要。我们有8x7200转的SATA硬盘。通常磁盘的吞吐量是瓶颈，磁盘是越多越好。您能不能从更昂贵的磁盘中受益取决于你的刷新配置（如果您经常强制刷新，那么更高转速的SAS硬盘可能更好）。
 
   <h4><a id="os" href="#os">OS</a></h4>
-  Kafka should run well on any unix system and has been tested on Linux and Solaris.
+  Kafka应该在任何Unix系统运行良好，并且已经在Linux和Solaris上进行了测试。
   <p>
-  We have seen a few issues running on Windows and Windows is not currently a well supported platform though we would be happy to change that.
+  我们已经发现了在windows运行的一些问题，目前windows还不是一个理想的支持平台，虽然我们很乐意改变这个问题。
   <p>
-  It is unlikely to require much OS-level tuning, but there are two potentially important OS-level configurations:
+  Kafka不需要太多的操作系统层面的调优，但是有两个潜在重要的操作系统级别的配置：
   <ul>
-      <li>File descriptor limits: Kafka uses file descriptors for log segments and open connections.  If a broker hosts many partitions, consider that the broker needs at least (number_of_partitions)*(partition_size/segment_size) to track all log segments in addition to the number of connections the broker makes.  We recommend at least 100000 allowed file descriptors for the broker processes as a starting point.
-      <li>Max socket buffer size: can be increased to enable high-performance data transfer between data centers as <a href="http://www.psc.edu/index.php/networking/641-tcp-tune">described here</a>.
+      <li>文件描述符限制: Kafka把文件描述符用于日志段和打开连接。如果一个broker上有许多分区，则考虑broker至少(number_of_partitions)*(partition_size/segment_size) 个文件描述符来跟踪所有的日志段和broker所创建的连接。我们推荐每一个broker一开始至少配置100000个文件描述符。
+      <li>最大套接字缓冲区大小：可以增加以实现数据中心之间的高性能数据传输，如<a href="http://www.psc.edu/index.php/networking/641-tcp-tune">此处所述</a>。
   </ul>
   <p>
 
-  <h4><a id="diskandfs" href="#diskandfs">Disks and Filesystem</a></h4>
-  We recommend using multiple drives to get good throughput and not sharing the same drives used for Kafka data with application logs or other OS filesystem activity to ensure good latency. You can either RAID these drives together into a single volume or format and mount each drive as its own directory. Since Kafka has replication the redundancy provided by RAID can also be provided at the application level. This choice has several tradeoffs.
+  <h4><a id="diskandfs" href="#diskandfs">磁盘和文件系统</a></h4>
+  我们建议使用多个驱动器以获得良好的吞吐量，并且为了确保良好的延迟，不应该与应用程序日志或其他的操作系统文件系统活动共享用于Kafka数据的相同驱动器。您可以将这些驱动器RAID成单个卷或格式，并且把每个驱动器挂载到它自己的目录。Kafka的副本冗余功能可以由RAID或者应用程序级别提供，可以折衷选择实现。
   <p>
-  If you configure multiple data directories partitions will be assigned round-robin to data directories. Each partition will be entirely in one of the data directories. If data is not well balanced among partitions this can lead to load imbalance between disks.
+  如果您配置了多个数据目录，那么分区将被循环分配到数据目录。每个分区只属于一个数据目录，如果分区间的数据不均衡，则可能导致磁盘间的负载不均衡。
   <p>
-  RAID can potentially do better at balancing load between disks (although it doesn't always seem to) because it balances load at a lower level. The primary downside of RAID is that it is usually a big performance hit for write throughput and reduces the available disk space.
+  RAID可以更好地平衡磁盘之间的负载（尽管似乎并不总是如此），因为它在较低的级别上进行平衡负载。 RAID的主要缺点是通常会大幅度影响写入性能并且降低可用磁盘空间。
   <p>
-  Another potential benefit of RAID is the ability to tolerate disk failures. However our experience has been that rebuilding the RAID array is so I/O intensive that it effectively disables the server, so this does not provide much real availability improvement.
+  RAID的另一个潜在好处是能够容忍磁盘故障。 然而，我们的经验是，重建RAID阵列是I/O密集型操作以至于服务器不可用，所以这不提供太多的实际可用性改进。
 
-  <h4><a id="appvsosflush" href="#appvsosflush">Application vs. OS Flush Management</a></h4>
-  Kafka always immediately writes all data to the filesystem and supports the ability to configure the flush policy that controls when data is forced out of the OS cache and onto disk using the flush. This flush policy can be controlled to force data to disk after a period of time or after a certain number of messages has been written. There are several choices in this configuration.
+  <h4><a id="appvsosflush" href="#appvsosflush">应用程序 vs. OS 刷新管理</a></h4>
+  Kafka总是立即将所有数据写入文件系统，并支持配置刷新策略的功能，该策略控制何时将数据从OS缓存中强制刷新到磁盘上。该刷新策略可以控制在一段时间之后或者在写入一定数量的消息之后把数据持久化到磁盘。这里有几个可选配置项。
   <p>
-  Kafka must eventually call fsync to know that data was flushed. When recovering from a crash for any log segment not known to be fsync'd Kafka will check the integrity of each message by checking its CRC and also rebuild the accompanying offset index file as part of the recovery process executed on startup.
+  Kafka最总必须调用fsync指令才能知道数据已经被刷新。当从任何不被fsync所知的日志段崩溃中恢复时，Kafka将通过每个消息的CRC来检查其完整性，并且在启动时执行的恢复过程中会重建相应的偏移量索引文件。
   <p>
-  Note that durability in Kafka does not require syncing data to disk, as a failed node will always recover from its replicas.
+  请注意，Kafka中的持久性并不需要将数据同步到磁盘，因为失败的节点将始终从其副本中恢复。
   <p>
-  We recommend using the default flush settings which disable application fsync entirely. This means relying on the background flush done by the OS and Kafka's own background flush. This provides the best of all worlds for most uses: no knobs to tune, great throughput and latency, and full recovery guarantees. We generally feel that the guarantees provided by replication are stronger than sync to local disk, however the paranoid still may prefer having both and application level fsync policies are still supported.
+  我们建议使用完全禁用应用程序fsync的默认刷新设置。这意味着依靠操作系统和Kafka自己的后台完成的刷新操作。这种设置对大多数用途是最好的选择：无需调整，巨大的吞吐量和延时，以及完全的恢复保证。我们认为通过复制提供的保证比同步到本地磁盘更好，但是一些偏执的人仍然可能喜欢让OS，Kafka和应用程序级别的fsync策略都得到支持。
   <p>
-  The drawback of using application level flush settings is that it is less efficient in its disk usage pattern (it gives the OS less leeway to re-order writes) and it can introduce latency as fsync in most Linux filesystems blocks writes to the file whereas the background flushing does much more granular page-level locking.
+  使用应用程序级别刷新设置的缺点是它的磁盘使用模式效率低下（它是操作系统在重新排序时没有什么回旋余地），并且在大多数Linux文件系统block中fsync写入文件时会引入延时，而后台刷新则会做更多粒度的页面级锁定。
   <p>
-  In general you don't need to do any low-level tuning of the filesystem, but in the next few sections we will go over some of this in case it is useful.
+  通常你不需要对文件系统进行任何低级别的调整，但是，在接下来的几节中，我们也会介绍其中的一些内容，以防万一。
 
-  <h4><a id="linuxflush" href="#linuxflush">Understanding Linux OS Flush Behavior</a></h4>
+  <h4><a id="linuxflush" href="#linuxflush">理解Linux操作系统刷新行为</a></h4>
 
-  In Linux, data written to the filesystem is maintained in <a href="http://en.wikipedia.org/wiki/Page_cache">pagecache</a> until it must be written out to disk (due to an application-level fsync or the OS's own flush policy). The flushing of data is done by a set of background threads called pdflush (or in post 2.6.32 kernels "flusher threads").
+  在Linux中，写入文件系统的数据在<a href="http://en.wikipedia.org/wiki/Page_cache">页面缓存</a>中保存，直到必须写入磁盘（由于应用程序级别的fsync或操作系统自己的刷新策略）。数据的刷新是通过一组叫做pdflush的后台线程来完成的（或者在2.6.32内核中的“flusher threads”）。
   <p>
-  Pdflush has a configurable policy that controls how much dirty data can be maintained in cache and for how long before it must be written back to disk.
-  This policy is described <a href="http://web.archive.org/web/20160518040713/http://www.westnet.com/~gsmith/content/linux-pdflush.htm">here</a>.
-  When Pdflush cannot keep up with the rate of data being written it will eventually cause the writing process to block incurring latency in the writes to slow down the accumulation of data.
+  pdflush有一个可配置的策略，可以控制在缓存中可以维护多少脏数据，以及多久时间之前必须将数据写回到磁盘。
+  该策略详情请参阅<a href="http://web.archive.org/web/20160518040713/http://www.westnet.com/~gsmith/content/linux-pdflush.htm">这里</a>。
+  当Pdflush无法跟上数据写入的速率时，最终会导致写入过程阻塞发生写入延时来减慢数据的堆积。
   <p>
-  You can see the current state of OS memory usage by doing
+  您可以通过执行下面命令来查看当前OS内存使用状态
   <pre class="brush: bash;"> &gt; cat /proc/meminfo </pre>
-  The meaning of these values are described in the link above.
-  <p>
-  Using pagecache has several advantages over an in-process cache for storing data that will be written out to disk:
+  这些值的含义在上面的链接中有描述。
+    <p>
+  相对于进程内缓存，使用页面缓存来存储将被写入到磁盘的数据有几个优势：
   <ul>
-    <li>The I/O scheduler will batch together consecutive small writes into bigger physical writes which improves throughput.
-    <li>The I/O scheduler will attempt to re-sequence writes to minimize movement of the disk head which improves throughput.
-    <li>It automatically uses all the free memory on the machine
+    <li>I/O 调度器将一批连续的小写入转换成为更大的物理写入，从而提高吞吐量。
+    <li>I/O调度器将尝试重新排序写入操作，以尽量减少磁盘磁头的移动，从而提高吞吐量I/O
+    <li>它会自动使用机器上的所有可用内存
   </ul>
 
-  <h4><a id="filesystems" href="#filesystems">Filesystem Selection</a></h4>
-  <p>Kafka uses regular files on disk, and as such it has no hard dependency on a specific filesystem. The two filesystems which have the most usage, however, are EXT4 and XFS. Historically, EXT4 has had more usage, but recent improvements to the XFS filesystem have shown it to have better performance characteristics for Kafka's workload with no compromise in stability.</p>
-  <p>Comparison testing was performed on a cluster with significant message loads, using a variety of filesystem creation and mount options. The primary metric in Kafka that was monitored was the "Request Local Time", indicating the amount of time append operations were taking. XFS resulted in much better local times (160ms vs. 250ms+ for the best EXT4 configuration), as well as lower average wait times. The XFS performance also showed less variability in disk performance.</p>
-  <h5><a id="generalfs" href="#generalfs">General Filesystem Notes</a></h5>
-  For any filesystem used for data directories, on Linux systems, the following options are recommended to be used at mount time:
-  <ul>
-    <li>noatime: This option disables updating of a file's atime (last access time) attribute when the file is read. This can eliminate a significant number of filesystem writes, especially in the case of bootstrapping consumers. Kafka does not rely on the atime attributes at all, so it is safe to disable this.</li>
+  <h4><a id="filesystems" href="#filesystems">文件系统的选择</a></h4>
+  <p>Kafka在磁盘上使用常规的文件，不依赖于特定的文件系统。 然而，使用最多的两个文件系统是EXT4和XFS。 从历史上看，EXT4使用更多，但最近对XFS文件系统的改进已经表明它对Kafka的负载具有更好的性能，而且不会影响稳定性。</p>
+  <p>通过尝试各种文件系统的创建和挂载选项，在具有重要消息负载的集群上执行对比测试。Kafka监测的主要指标是“Request Local Time”，它表示追加操作的时间。XFS的本地时间更短（160ms比250ms +最好的EXT4配置），以及更低的平均等待时间。 随着磁盘性能变化，XFS的性能也表现出较小的波动。</p>
+  <h5><a id="generalfs" href="#generalfs">一般文件系统注意事项</a></h5>
+    对于用于数据目录的任何文件系统，在Linux系统上，建议在挂载时使用以下选项：
+    <ul>
+    <li>noatime：此选项禁止在读取文件时更新文件的atime（上次访问时间）属性。 这可以消除大量的文件系统写入，特别是在引导consumer的情况下。 Kafka根本不依赖atime属性，因此禁用这个属性是安全的。</li>
   </ul>
-  <h5><a id="xfs" href="#xfs">XFS Notes</a></h5>
-  The XFS filesystem has a significant amount of auto-tuning in place, so it does not require any change in the default settings, either at filesystem creation time or at mount. The only tuning parameters worth considering are:
+  <h5><a id="xfs" href="#xfs">XFS 注意事项</a></h5>
+    XFS文件系统具有大量的自动调整功能，因此无需在文件系统创建时或挂载时对默认设置进行任何更改。 唯一值得考虑的调整参数是：
   <ul>
-    <li>largeio: This affects the preferred I/O size reported by the stat call. While this can allow for higher performance on larger disk writes, in practice it had minimal or no effect on performance.</li>
-    <li>nobarrier: For underlying devices that have battery-backed cache, this option can provide a little more performance by disabling periodic write flushes. However, if the underlying device is well-behaved, it will report to the filesystem that it does not require flushes, and this option will have no effect.</li>
+    <li>largeio: 这会影响统计调用报告的首选I/O大小。 虽然这可以允许在更大的磁盘写入时获得更高的性能，但是实际上它对性能的影响很小或者没有影响。</li>
+    <li>nobarrier: 对于具有 battery-backed cache 的底层设备，此选项可以通过禁用定期写入刷新来提供更多的性能。 但是，如果底层设备运行良好，则会向文件系统报告不需要刷新，此选项不起作用。</li>
   </ul>
-  <h5><a id="ext4" href="#ext4">EXT4 Notes</a></h5>
-  EXT4 is a serviceable choice of filesystem for the Kafka data directories, however getting the most performance out of it will require adjusting several mount options. In addition, these options are generally unsafe in a failure scenario, and will result in much more data loss and corruption. For a single broker failure, this is not much of a concern as the disk can be wiped and the replicas rebuilt from the cluster. In a multiple-failure scenario, such as a power outage, this can mean underlying filesystem (and therefore data) corruption that is not easily recoverable. The following options can be adjusted:
+  <h5><a id="ext4" href="#ext4">EXT4 注意事项</a></h5>
+    EXT4是Kafka数据目录的文件系统的一个可选择的选项，但是为了获得最高的性能需要调整几个挂载选项。 另外，这些选项在故障情况下通常是不安全的，并且会导致更多的数据丢失和损坏。 对于单个 broker 失败，这不是一个问题，因为可以擦除磁盘，并从集群重建副本。 但在诸如停电等多故障情况下，这可能意味着不容易恢复损坏的底层文件系统（数据）。 以下选项可以调整：
   <ul>
-    <li>data=writeback: Ext4 defaults to data=ordered which puts a strong order on some writes. Kafka does not require this ordering as it does very paranoid data recovery on all unflushed log. This setting removes the ordering constraint and seems to significantly reduce latency.
-    <li>Disabling journaling: Journaling is a tradeoff: it makes reboots faster after server crashes but it introduces a great deal of additional locking which adds variance to write performance. Those who don't care about reboot time and want to reduce a major source of write latency spikes can turn off journaling entirely.
-    <li>commit=num_secs: This tunes the frequency with which ext4 commits to its metadata journal. Setting this to a lower value reduces the loss of unflushed data during a crash. Setting this to a higher value will improve throughput.
-    <li>nobh: This setting controls additional ordering guarantees when using data=writeback mode. This should be safe with Kafka as we do not depend on write ordering and improves throughput and latency.
-    <li>delalloc: Delayed allocation means that the filesystem avoid allocating any blocks until the physical write occurs. This allows ext4 to allocate a large extent instead of smaller pages and helps ensure the data is written sequentially. This feature is great for throughput. It does seem to involve some locking in the filesystem which adds a bit of latency variance.
+    <li>data=writeback:Ext4默认为data = ordered，这会导致某些写入操作上有很强的顺序性。Kafka不需要这样的顺序，因为它在所有未刷新的日志上进行非常偏执的数据恢复。此设置消除了排序约束，似乎显著减少了延迟。
+    <li>Disabling journaling: Journaling 是一个折衷：在服务器崩溃之后，它会使重新启动更快，但会引入大量额外的锁定，从而增加写入性能的差异。那些不关心重启时间，想要减少写入延迟尖峰的主要来源，可以完全关闭Journaling。
+    <li>commit=num_secs: 这调整了ext4向其元数据日志提交的频率。将其设置为较低的值可以减少崩溃期间未刷新数据的丢失。将其设置为更高的值则将提高吞吐量。
+    <li>nobh: 当使用 data=writeback 模式时，此设置控制额外的排序保证。 Kafka应该是安全的，因为我们不依赖写入顺序并提高吞吐量和延迟。
+    <li>delalloc: 延迟分配意味着文件系统避免分配任何 block 直到物理写入发生。这使得ext4可以在很大程度上分配连续区域而不是较小的页面，并有助于确保数据连续写入。这个功能非常适合吞吐量。它似乎涉及到文件系统中的一些锁定，这增加了一些延迟差异。
   </ul>
 
   <h3><a id="monitoring" href="#monitoring">6.6 Monitoring</a></h3>
