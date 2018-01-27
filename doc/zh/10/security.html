@@ -290,13 +290,13 @@
     <li><h4><a id="security_sasl_config"
                href="#security_sasl_config">SASL 的配置</a></h4>
 
-        <p> SASL 分别与 PLAINTEXT 或者 SSL 组成传输层协议（SASL_PLAINTEXT 和 SASL_SSL）
-            如果要使用 SASL_SSL， 需在使用前配置 <a href="#security_ssl"></a>.</p>
+        <p> SASL 可以使用 PLAINTEXT 或者 SSL 协议作为传输层，相对应的就是使用 SASL_PLAINTEXT 或者 SASL_SSL 安全协议。
+            如果使用 SASL_SSL 安全协议，必须配置 <a href="#security_ssl">SSL证书</a>。</p>
 
         <ol>
             <li><h5><a id="security_sasl_mechanism"
                        href="#security_sasl_mechanism">SASL 安全机制</a></h5>
-                Kafka 支持一下的四个 SASL 机制:
+                Kafka 支持以下的四个 SASL 机制:
                 <ul>
                     <li><a href="#security_sasl_kerberos">GSSAPI</a> (Kerberos)</li>
                     <li><a href="#security_sasl_plain">PLAIN</a></li>
@@ -307,22 +307,20 @@
             <li><h5><a id="security_sasl_brokerconfig"
                        href="#security_sasl_brokerconfig">Kafka brokers 的SASL配置</a></h5>
                 <ol>
-                    <li>在 server.properties 文件中的 <i>listeners</i> 配置参数中， 通过添加至少一个 SASL_PLAINTEXT 或者 SASL_SSL
-                        来配置一个 SASL 端口（以逗号分割）：
+                    <li>在 server.properties 文件中配置一个 SASL 端口， 要为 <i>listeners</i> 添加其中至少一个参数（SASL_PLAINTEXT 或者 SASL_SSL）：
                         <pre>    listeners=SASL_PLAINTEXT://host.name:port</pre>
-                        如果您只配置一个 SASL 端口 或者在 Kafka brokersz 之间中，您只想使用 SASL来认证的话，
-                        需确保您在 borker 之间通信中 设置了相同的 SASL 协议
+                        如果您只配置一个 SASL 端口 （或者您只想希望在 Kafka brokersz 之间使用 SASL 协议相互认证的话）您需要确保您在 borker 之间通信中 使用了了相同的 SASL 协议。
                         <pre>    security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)</pre></li>
-                    <li>在 broker 中，选择一个或者多个 <a href="#security_sasl_mechanism">支持的机制</a>
-                        根据所给的步骤来配置 SASL。 如果您想在 broker中配置多个机制， 请根据<a href="#security_sasl_multimechanism">这个</a>步骤。
+                    <li>选择一个或者多个 <a href="#security_sasl_mechanism">支持的安全机制</a>
+                        然后按照所给的步骤来为所选的安全机制配置 SASL 协议。 如果您想在 broker 中启用多个安全机制， 请根据<a href="#security_sasl_multimechanism">此处</a>步骤操作。
                 </ol>
             </li>
             <li><h5><a id="security_sasl_clientconfig"
                        href="#security_sasl_clientconfig">Kafka 客户端配置 SASL</a></h5>
-                <p> SASL 认证只在新的 Java Kafka producer and consumer 中被支持。之前的API并不支持</p>
+                <p> SASL 授权只在新的 Java Kafka producer and consumer API 中被支持。之前的API并不支持</p>
 
-                <p>要在客户端配置 SASL 认证， 需在 broker 中选择启用一个<a href="#security_sasl_mechanism">SASL 机制</a>
-                    并且根据其步骤为所选的机制配置 SASL。</p>
+                <p>要在客户端配置 SASL 授权， 需在 broker 中选择一个已启用的<a href="#security_sasl_mechanism">SASL 机制</a>用于客户端授权
+                    并且根据下面的步骤为所选的安全机制配置 SASL 协议。</p>
             </li>
         </ol>
     </li>
