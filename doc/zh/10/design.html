@@ -52,26 +52,17 @@
     <p>
         这里给出了一个非常简单的设计：相比于维护尽可能多的in-memory cache，并且在空间不足的时候匆忙将数据flush到文件系统，我们把这个过程倒过来。所有数据一开始就被写入到文件系统的持久化日志中，而不用在cache空间不足的时候flush到磁盘。实际上，这表明数据被转移到了内核的pagecache中。
     <p>
-        This style of pagecache-centric design is described in an <a href="http://varnish-cache.org/wiki/ArchitectNotes">article</a> on the design of Varnish here (along with a healthy dose of arrogance).
         这种以pagecache为中心的设计风格出现在一篇关于<a href="http://varnish-cache.org/wiki/ArchitectNotes">Varnish</a>设计的文章中。
     <h4><a id="design_constanttime" href="#design_constanttime">常量时间就足够了</a></h4>
     <p>
-    The persistent data structure used in messaging systems are often a per-consumer queue with an associated BTree or other general-purpose random access data structures to maintain metadata about messages.
-    BTrees are the most versatile data structure available, and make it possible to support a wide variety of transactional and non-transactional semantics in the messaging system.
-    They do come with a fairly high cost, though: Btree operations are O(log N). Normally O(log N) is considered essentially equivalent to constant time, but this is not true for disk operations.
-    Disk seeks come at 10 ms a pop, and each disk can do only one seek at a time so parallelism is limited. Hence even a handful of disk seeks leads to very high overhead.
-    Since storage systems mix very fast cached operations with very slow physical disk operations, the observed performance of tree structures is often superlinear as data increases with fixed cache--i.e. doubling
-    your data makes things much worse than twice as slow.
         消息系统使用的持久化数据结构通常是和BTree相关联的消费者队列或者其他用于存储消息源数据的通用随机访问数据结构。BTree是最通用的数据结构，可以在消息系统能够支持各种事务性和非事务性语义。
     虽然BTree的操作复杂度是O(log N),但成本也相当高。通常我们认为O(log N)基本等同于常数时间，但这条在磁盘操作中不成立。磁盘寻址是每10ms一跳，并且每个磁盘同时只能执行一次寻址，因此并行性受到了限制。
-    因此即使是少量的磁盘寻址也会很高的开销。由于存储系统将非常快的缓存操作和非常慢的物理磁盘操作混合在一起，当数据随着fixed cache增加时，可以观察到树的性能通常是
+    因此即使是少量的磁盘寻址也会很高的开销。由于存储系统将非常快的cache操作和非常慢的物理磁盘操作混合在一起，当数据随着fixed cache增加时，可以看到树的性能通常是非线性的——比如数据翻倍时性能下降不只两倍。
     <p>
-    Intuitively a persistent queue could be built on simple reads and appends to files as is commonly the case with logging solutions. This structure has the advantage that all operations are O(1) and reads do not
-    block writes or each other. This has obvious performance advantages since the performance is completely decoupled from the data size&mdash;one server can now take full advantage of a number of cheap,
-    low-rotational speed 1+TB SATA drives. Though they have poor seek performance, these drives have acceptable performance for large reads and writes and come at 1/3 the price and 3x the capacity.
+    直观来看，持久化队列可以建立在简单的读取和向文件后追加两种操作之上，这和日志解决方案相同。这种架构的优点在于所有的操作复杂度都是O(1)，而且读操作不会阻塞写操作，读操作之间也不会互相影响。这有着明显的性能优势，由于性能和数据大小完全分离开来——服务器现在可以充分利用大量廉价、低转速的1+TB SATA硬盘。
+    虽然这些硬盘的寻址性能很差，但他们在大规模读写方面的性能是可以接受的，而且价格是原来的三分之一、容量是原来的三倍。
     <p>
-    Having access to virtually unlimited disk space without any performance penalty means that we can provide some features not usually found in a messaging system. For example, in Kafka, instead of attempting to
-    delete messages as soon as they are consumed, we can retain messages for a relatively long period (say a week). This leads to a great deal of flexibility for consumers, as we will describe.
+    在不产生任何性能损失的情况下能够访问几乎无限的硬盘空间，这意味着我们可以提供一些其他消息系统不常见的特性。例如：在Kafka中，我们可以让消息保留相对较长的一段时间(比如一周)，而不是试图在被消费后立即删除。正如我们后面将要提到的，这给消费者带来了很大的灵活性。
 
     <h3><a id="maximizingefficiency" href="#maximizingefficiency">4.3 Efficiency</a></h3>
     <p>
