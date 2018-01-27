@@ -18,7 +18,7 @@
 <script id="design-template" type="text/x-handlebars-template">
     <h3><a id="majordesignelements" href="#majordesignelements">4.1 动机</a></h3>
     <p>
-        我们设计了Kafka作为一个统一的平台来处理<a href="#introduction">大公司可能拥有的</a>所有实时数据源。 要做到这一点，我们必须考虑相当广泛的用例。
+        我们设计Kafka作为一个统一的平台来处理<a href="#introduction">大公司可能拥有的</a>所有实时数据馈送。 要做到这点，我们必须考虑相当广泛的用例。
     <p>
         Kafka必须具有高吞吐量来支持高容量事件流，例如实时日志聚合。
     <p>
@@ -26,7 +26,7 @@
     <p>
         这也意味着系统要能够处理低延迟分发，来处理更传统的消息传递用例。
     <p>
-        我们希望支持数据分区、分布式、实时处理等特性，以便创建新的派生数据源。由此产生了我们的分区和消费者模式。
+        我们希望支持分区、分布式、实时处理这些馈送来创建新的派生馈送等特性。由此产生了我们的分区和消费者模式。
     <p>
         最后，在数据流被馈送到其他数据系统进行服务的情况下，我们要求系统必须能够在出现机器故障时保证容错。
     <p>
@@ -34,31 +34,27 @@
     <h3><a id="persistence" href="#persistence">4.2 持久化</a></h3>
     <h4><a id="design_filesystem" href="#design_filesystem">不要害怕文件系统！</a></h4>
     <p>
-        Kafka消息的存储和缓存严重依赖于文件系统。人们对于“磁盘速度慢”的普遍印象，使得人们对于持久化的结构能够提供有竞争力的性能产生了怀疑。事实上，磁盘速度比人们预期的要慢的多，也快得多，这都取决于磁盘的使用方式；一个设计合理的磁盘结构通常可以和网络一样快。
+        Kafka对消息的存储和缓存严重依赖于文件系统。人们对于“磁盘速度慢”的普遍印象，使得人们对于持久化的架构能够提供强有力的性能产生怀疑。事实上，磁盘的速度比人们预期的要慢的多，也快得多，这具体取决于磁盘的使用方式；一个设计合理的磁盘架构通常可以和网络一样快。
     <p>
-        磁盘性能的关键在于硬盘驱动的吞吐量，不再像过去十年一样受限于磁盘的检索时间延迟。因此，使用6个7200rpm、SATA接口的磁盘组成RAID-5的磁盘阵列在<a href="http://en.wikipedia.org/wiki/Non-RAID_drive_architectures">JBOD</a>配置下的线性写入的性能约为600MB/秒，但随机写入的性能仅约为100k/秒，相差6000倍以上。因为线性的读取和写入是所有磁盘使用模式中最容易预测的，并且由操作系统进行了大量的优化。现代操作系统提供了预先读和延后写技术，以大数据块为单位预先读取数据，并将多个小型的逻辑写合并成一次大型物理磁盘写入。关于该问题的进一步讨论可以参考<a href="http://queue.acm.org/detail.cfm?id=1563874">ACM Queue article</a>，他们发现实际上<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg">顺序磁盘访问在某些情况下比随机内存访问还要快</a>！
+        磁盘性能的关键在于硬盘驱动的吞吐量，不再像过去十年一样受限于磁盘的寻址时延。因此，使用6个7200rpm、SATA、RAID-5的磁盘阵列在<a href="http://en.wikipedia.org/wiki/Non-RAID_drive_architectures">JBOD</a>配置下的线性写入的性能约为600MB/秒，但随机写入的性能仅约为100k/秒，相差6000倍以上。因为线性的读取和写入是磁盘使用模式中最有规律的，并且由操作系统进行了大量的优化。现代操作系统提供了read-ahead和write-behind技术，read-ahead是以大的data block为单位预先读取数据，而write-behind是将多个小型的逻辑写合并成一次大型的物理磁盘写入。关于该问题的进一步讨论可以参考<a href="http://queue.acm.org/detail.cfm?id=1563874">ACM Queue article</a>，他们发现实际上<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg">顺序磁盘访问在某些情况下比随机内存访问还要快</a>！
     <p>
-        为了弥补这种性能差异，现代操作系统在使用内存对磁盘进行缓存方面变得越来越积极。现代操作系统主动将所有空闲内存分配给磁盘进行缓存，代价是在内存回收时性能会有所降低。所有对磁盘的读写操作都会通过这个统一的缓存进行。如果不使用直接I/O，该功能不能轻易关闭。因此即使进程维护了进程内部的数据缓存，该数据也可能会在操作系统的页面缓存中冗余备份，从而有效地把所有内容存储两份。
+        为了弥补这种性能差异，现代操作系统在越来越注重使用内存对磁盘进行cache。现代操作系统主动将所有空闲内存用作disk caching，代价是在内存回收时性能会有所降低。所有对磁盘的读写操作都会通过这个统一的cache。如果不使用直接I/O，该功能不能轻易关闭。因此即使进程维护了in-process cache，该数据也可能会被复制到操作系统的pagecache中，所有内容都被存储了两份。
     <p>
-        此外，Kafka建立在JVM的基础之上，任何花时间了解过Java内存使用的人都知道两点：
+        此外，Kafka建立在JVM之上，任何了解Java内存使用的人都知道两点：
     <ol>
         <li>对象的内存开销非常高，通常是所存储的数据的两倍(甚至更多)。</li>
         <li>随着堆中数据的增加，Java的垃圾回收变得越来越复杂和缓慢。</li>
     </ol>
     <p>
-    As a result of these factors using the filesystem and relying on pagecache is superior to maintaining an in-memory cache or other structure&mdash;we at least double the available cache by having automatic access
-    to all free memory, and likely double again by storing a compact byte structure rather than individual objects. Doing so will result in a cache of up to 28-30GB on a 32GB machine without GC penalties.
-    Furthermore, this cache will stay warm even if the service is restarted, whereas the in-process cache will need to be rebuilt in memory (which for a 10GB cache may take 10 minutes) or else it will need to start
-    with a completely cold cache (which likely means terrible initial performance). This also greatly simplifies the code as all logic for maintaining coherency between the cache and filesystem is now in the OS,
-    which tends to do so more efficiently and more correctly than one-off in-process attempts. If your disk usage favors linear reads then read-ahead is effectively pre-populating this cache with useful data on each
-    disk read.
+        受这些因素影响，相比于维护in-memory cache或者其他结构，使用文件系统和pagecache显得更有优势--我们可以通过自动访问所有空闲内存将可用缓存的容量至少翻倍，并且通过存储紧凑的字节结构而不是独立的对象，有望将缓存容量再翻一番。
+        这样使得32GB的机器缓存容量可以达到28-30GB,并且不会产生额外的GC负担。此外，即使服务重新启动，缓存依旧可用，而in-process cache则需要在内存中重建(重建一个10GB的缓存可能需要10分钟)，否则进程就要从cold cache的状态开始(这意味着进程最初的性能表现十分糟糕)。
+        这同时也极大的简化了代码，因为所有保持cache和文件系统之间一致性的逻辑现在都被放到了OS中，这样做比一次性的进程内缓存更准确、更高效。如果你的磁盘使用更倾向于顺序读写，那么read-ahead可以有效的使用每次从磁盘中读取到的有用数据预先填充cache。
     <p>
-    This suggests a design which is very simple: rather than maintain as much as possible in-memory and flush it all out to the filesystem in a panic when we run out of space, we invert that. All data is immediately
-    written to a persistent log on the filesystem without necessarily flushing to disk. In effect this just means that it is transferred into the kernel's pagecache.
+        这里给出了一个非常简单的设计：相比于维护尽可能多的in-memory cache，并且在空间不足的时候匆忙将数据flush到文件系统，我们把这个过程倒过来。所有数据一开始就被写入到文件系统的持久化日志中，而不用在cache空间不足的时候flush到磁盘。实际上，这表明数据被转移到了内核的pagecache中。
     <p>
-    This style of pagecache-centric design is described in an <a href="http://varnish-cache.org/wiki/ArchitectNotes">article</a> on the design of Varnish here (along with a healthy dose of arrogance).
-
-    <h4><a id="design_constanttime" href="#design_constanttime">Constant Time Suffices</a></h4>
+        This style of pagecache-centric design is described in an <a href="http://varnish-cache.org/wiki/ArchitectNotes">article</a> on the design of Varnish here (along with a healthy dose of arrogance).
+        这种以pagecache为中心的设计风格出现在一篇关于<a href="http://varnish-cache.org/wiki/ArchitectNotes">Varnish</a>设计的文章中。
+    <h4><a id="design_constanttime" href="#design_constanttime">常量时间就足够了</a></h4>
     <p>
     The persistent data structure used in messaging systems are often a per-consumer queue with an associated BTree or other general-purpose random access data structures to maintain metadata about messages.
     BTrees are the most versatile data structure available, and make it possible to support a wide variety of transactional and non-transactional semantics in the messaging system.
@@ -66,6 +62,9 @@
     Disk seeks come at 10 ms a pop, and each disk can do only one seek at a time so parallelism is limited. Hence even a handful of disk seeks leads to very high overhead.
     Since storage systems mix very fast cached operations with very slow physical disk operations, the observed performance of tree structures is often superlinear as data increases with fixed cache--i.e. doubling
     your data makes things much worse than twice as slow.
+        消息系统使用的持久化数据结构通常是和BTree相关联的消费者队列或者其他用于存储消息源数据的通用随机访问数据结构。BTree是最通用的数据结构，可以在消息系统能够支持各种事务性和非事务性语义。
+    虽然BTree的操作复杂度是O(log N),但成本也相当高。通常我们认为O(log N)基本等同于常数时间，但这条在磁盘操作中不成立。磁盘寻址是每10ms一跳，并且每个磁盘同时只能执行一次寻址，因此并行性受到了限制。
+    因此即使是少量的磁盘寻址也会很高的开销。由于存储系统将非常快的缓存操作和非常慢的物理磁盘操作混合在一起，当数据随着fixed cache增加时，可以观察到树的性能通常是
     <p>
     Intuitively a persistent queue could be built on simple reads and appends to files as is commonly the case with logging solutions. This structure has the advantage that all operations are O(1) and reads do not
     block writes or each other. This has obvious performance advantages since the performance is completely decoupled from the data size&mdash;one server can now take full advantage of a number of cheap,
