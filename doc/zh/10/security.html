@@ -229,34 +229,33 @@
             href="#security_jaas_broker">Kafka brokers 的 JAAS 的配置</a></h5>
 
             <p><tt>KafkaServer</tt> 是每一个 KafkaServer/Broker 的 JASS 文件里面的节点名称。
-                在这个节点中，提供了 brokers 之间通信的 SASL 客户端的连接的 SASL 的配置选项。</p>
+                在这个节点中，提供了用于所有 brokers 之间通信的 SASL 客户端连接的 SASL 配置选项。</p>
 
             <p><tt>Client</tt> 节点是用于认证 SASL 与 zookeeper 之间的连接。它也允许 brokers 通过设定 zookeeper 节点中 SASL ACL
                 来锁定这些节点 从而确定这些节点不被其他 broker 修改。
-                在所有的 broker 中都必须使用相同的名称。 如果您想使用客户端以外名称, 请设置系统属性
-                <tt>zookeeper.sasl.clientconfig</tt> 中设置合适的名称
+                在所有的 broker 中都必须使用相同的名称。 如果您想使用 Client 以外名称, 请设置系统属性
+                <tt>zookeeper.sasl.clientconfig</tt> 中填写合适的名称
                 (<i>e.g.</i>, <tt>-Dzookeeper.sasl.clientconfig=ZkClient</tt>).</p>
 
             <p>ZooKeeper 使用 "zookeeper" 作为默认的名称. 如果您想改变它的话, 请设置系统属性
-            <tt>zookeeper.sasl.client.username</tt> 中设置合适的名称
+            <tt>zookeeper.sasl.client.username</tt> 中填写合适的名称
             (<i>e.g.</i>, <tt>-Dzookeeper.sasl.client.username=zk</tt>).</p></li>
 
         <li><h5><a id="security_jaas_client"
             href="#security_jaas_client">Kafka clients 的 JAAS 的配置</a></h5>
 
-            <p>客户通过客户端属性的配置<a href="#security_client_dynamicjaas">sasl.jaas.config</a>
-                或者通过与 brokers 相似的方法来配置 JAAS <a href="#security_client_staticjaas">static JAAS config file</a>
+            <p>Client 通过配置客户端属性 <a href="#security_client_dynamicjaas">sasl.jaas.config</a>
+                或者通过与 brokers 相似的方法来配置 JAAS （<a href="#security_client_staticjaas">static JAAS config file</a>）
             </p>
 
             <ol>
             <li><h6><a id="security_client_dynamicjaas"
                 href="#security_client_dynamicjaas">通过客户端配置属性来配置JAAS</a></h6>
-                <p>客户无需创建物理文件来配置角色 只需要通过在JASS配置中指定 producer 或者 consumer。
-                    这种模式通过为每个客户端指定不同的属性来使用不同的凭证 确保可以在在同一个 JVM 中使用不同的 producers
-                    and consumers。如果静态JAAS配置系统属性
-                <code>java.security.auth.login.config</code> 和客户端属性 <code>sasl.jaas.config</code>
-              同时被配置, 客户端配置将会被使用.</p>
-
+                <p>客户无需创建物理文件来配置角色 只需要在 JASS 配置中指定 producer 或者 consumer。
+                    这种模式通过为每个客户端指定不同的属性来使用不同的凭证，从而确保可以在在同一个 JVM 中使用不同的 producers
+                    和 consumers。如果静态JAAS配置系统属性的方法
+                <code>java.security.auth.login.config</code> 和配置客户端属性 <code>sasl.jaas.config</code>的方法
+              同时被使用, 客户端的配置将会被使用.</p>
                 <p>请看 <a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
                 <a href="#security_sasl_plain_clientconfig">PLAIN</a> or
                 <a href="#security_sasl_scram_clientconfig">SCRAM</a> 中的示例配置。</p></li>
@@ -264,7 +263,7 @@
                 <li><h6><a id="security_client_staticjaas" href="#security_client_staticjaas">通过静态配置文件来配置 JAAS</a></h6>
                     使用静态 JAAS 配置文件 来配置 SASL 的客户端认证服务：
                 <ol>
-                <li>添加一个名为 <tt>KafkaClient</tt>客户端的登陆节点.在<tt>KafkaClient</tt>为所选机制来配置一个登陆模块
+                <li>添加一个名为 <tt>KafkaClient</tt> 客户端的登陆节点，同时为 <tt>KafkaClient</tt> 中所选机制来配置一个登陆模块
                     如设置<a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
                     <a href="#security_sasl_plain_clientconfig">PLAIN</a> 或者
                     <a href="#security_sasl_scram_clientconfig">SCRAM</a>。
