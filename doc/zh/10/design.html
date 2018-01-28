@@ -82,62 +82,82 @@
     Having access to virtually unlimited disk space without any performance penalty means that we can provide some features not usually found in a messaging system. For example, in Kafka, instead of attempting to
     delete messages as soon as they are consumed, we can retain messages for a relatively long period (say a week). This leads to a great deal of flexibility for consumers, as we will describe.
 
-    <h3><a id="maximizingefficiency" href="#maximizingefficiency">4.3 Efficiency</a></h3>
+    <h3><a id="maximizingefficiency" href="#maximizingefficiency">4.3 Efficiency </a></h3>
     <p>
     We have put significant effort into efficiency. One of our primary use cases is handling web activity data, which is very high volume: each page view may generate dozens of writes. Furthermore, we assume each
     message published is read by at least one consumer (often many), hence we strive to make consumption as cheap as possible.
+    我们在性能上已经做了很大的努力. 我们主要的使用场景是处理网络活动数据, 这个数据量非常大, 因为每个页面都有可能很多次的写入. 此外我们假设每个发布 message 至少被一个consumer (通常很多个consumer) 消费, 因此我们努力让消费尽可能付出少的
+    代价.
     <p>
     We have also found, from experience building and running a number of similar systems, that efficiency is a key to effective multi-tenant operations. If the downstream infrastructure service can easily become a
     bottleneck due to a small bump in usage by the application, such small changes will often create problems. By being very fast we help ensure that the application will tip-over under load before the infrastructure.
     This is particularly important when trying to run a centralized service that supports dozens or hundreds of applications on a centralized cluster as changes in usage patterns are a near-daily occurrence.
+    我们还发现, 从经验上看, 建设和运行许多类似的系统,多租户(技术)运行的关键是性能. 如果下游的基础设施服务很轻易被应用程序冲击形成瓶颈,那么这种情况会经常导致问题. 通过非常快的(缓存)技术, 我们能确保应用程序能冲击基础设施之前, 将负载卸下.
+    当尝试去运行支持集中式集群上成百上千个应用程序的集中式服务时, 这一点很重要, 因为应用程序使用方式几乎每天都会发生变化.
     <p>
     We discussed disk efficiency in the previous section. Once poor disk access patterns have been eliminated, there are two common causes of inefficiency in this type of system: too many small I/O operations, and
     excessive byte copying.
+    我们在上一节讨论了磁盘性能. 磁盘访问速度过慢的方式已经被淘汰了, 这是操作系统中两种常见的导致磁盘性能低下的原因: 太多的小 I/O 操作, 过多的字节复制. 
     <p>
     The small I/O problem happens both between the client and the server and in the server's own persistent operations.
+    客户端和服务端之间以及服务端自身的持久化操作都会导致小的 I/O 问题. 
     <p>
     To avoid this, our protocol is built around a "message set" abstraction that naturally groups messages together. This allows network requests to group messages together and amortize the overhead of the network
     roundtrip rather than sending a single message at a time. The server in turn appends chunks of messages to its log in one go, and the consumer fetches large linear chunks at a time.
+    为了避免这种情况, 我们的协议是建立在一个 "message set" 抽象的基础上, 自然将消息分组在一起, 这允许网络请求将消息分组在一起并分摊网络的开销往返而不是一次发送一条消息. 服务端依次将消息块一次加载到它的日志中, consumer 一次获取大的有顺序
+    的消息块. 
     <p>
     This simple optimization produces orders of magnitude speed up. Batching leads to larger network packets, larger sequential disk operations, contiguous memory blocks, and so on, all of which allows Kafka to turn
     a bursty stream of random message writes into linear writes that flow to the consumers.
+    这个简单的优化将速度产生数量级的提升. 批处理允许更大的网络数据包, 更大的顺序磁盘操作, 连续的内存块等等, 所有这些都使 KafKa 将随机流消息顺序写入, 再流向 consumers .
     <p>
     The other inefficiency is in byte copying. At low message rates this is not an issue, but under load the impact is significant. To avoid this we employ a standardized binary message format that is shared by the
     producer, the broker, and the consumer (so data chunks can be transferred without modification between them).
+    另一个低效率的操作是字节复制, 在消息量少时, 这不是问题. 但是在高负载额情况下, 影响还是挺大的. 为了避免这种情况, 我们使用一个producer , broker , 和 consumer 都能用的标准化的二进制消息格式, 这样数据不用修改就能在他们之间传递. 
     <p>
     The message log maintained by the broker is itself just a directory of files, each populated by a sequence of message sets that have been written to disk in the same format used by the producer and consumer.
     Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data
-    out of pagecache to a socket; in Linux this is done with the <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
+    out of pagecache to a socket; in Linux this is done with the <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>. 
+    broker 维护的消息日志本身就是一个文件目录, 每个文件都是序列化的 message sets, 以 producer 和 consumer 所使用格式写入到磁盘. 保持这种通用格式能进行最重要优化方式: 持久日志块的网络传输. 
+    现代的 unix 操作系统提供了一个高度优化的编码路径,用于将数据从页面缓存转移到套接字; Linux 是这样做的 <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
     <p>
     To understand the impact of sendfile, it is important to understand the common data path for transfer of data from file to socket:
+    为了理解 sendfile 的意义, 了解数据从文件传输到套接字的常见数据路径非常重要: 
     <ol>
-        <li>The operating system reads data from the disk into pagecache in kernel space</li>
-        <li>The application reads the data from kernel space into a user-space buffer</li>
-        <li>The application writes the data back into kernel space into a socket buffer</li>
-        <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network</li>
+        <li>The operating system reads data from the disk into pagecache in kernel space 操作系统从磁盘读取数据到内核空间的pagecache</li>
+        <li>The application reads the data from kernel space into a user-space buffer  应用程序读取内核空间的数据到用户空间的缓冲区</li>
+        <li>The application writes the data back into kernel space into a socket buffer  应用程序将数据(用户空间的缓冲区)写回内核空间到套接字缓冲区(内核空间)</li>
+        <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network 操作系统将数据从套接字缓冲区(内核空间)复制到通过网络发送的NIC缓冲区 </li>
     </ol>
     <p>
     This is clearly inefficient, there are four copies and two system calls. Using sendfile, this re-copying is avoided by allowing the OS to send the data from pagecache to the network directly. So in this optimized
     path, only the final copy to the NIC buffer is needed.
+    这显然是低效的, 有四个副本和两个系统调用. 使用 sendfile, 通过允许操作系统将数据从 pagecache 直接发送到网络,这样避免重新复制数据. 所以在这个优化路径,只需要将最终拷贝到NIC缓冲区.
     <p>
     We expect a common use case to be multiple consumers on a topic. Using the zero-copy optimization above, data is copied into pagecache exactly once and reused on each consumption instead of being stored in memory
-    and copied out to user-space every time it is read. This allows messages to be consumed at a rate that approaches the limit of the network connection.
+    and copied out to user-space every time it is read. This allows messages to be consumed at a rate that approaches the limit of the network connection. 
+    我们期望一个 topic 有多个 consumer 是普遍的使用场景. 使用上述的零复制优化, 数据在使用时只会被复制到pagecache中一次, 而不是每次拷贝到用户空间内存,再进行读取. 这使得消息能够以网络连接速度的上限进行消费. 
     <p>
     This combination of pagecache and sendfile means that on a Kafka cluster where the consumers are mostly caught up you will see no read activity on the disks whatsoever as they will be serving data entirely from cache.
+    pagecache 和 sendfile 的组合使用意味着,在一个kafka集群中, 大多数 consumer 消费时, 您将看不到磁盘上的读取活动, 因为它们将完全从缓存中提供数据.
+  
     <p>
     For more background on the sendfile and zero-copy support in Java, see this <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">article</a>.
-
-    <h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression</a></h4>
+    JAVA 中更多有关 sendfile 和零复制相关的资料, 参看这里的 <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">文章</a>.
+    <h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression 端到端的批量压缩</a></h4>
     <p>
     In some cases the bottleneck is actually not CPU or disk but network bandwidth. This is particularly true for a data pipeline that needs to send messages between data centers over a wide-area network. Of course,
     the user can always compress its messages one at a time without any support needed from Kafka, but this can lead to very poor compression ratios as much of the redundancy is due to repetition between messages of
     the same type (e.g. field names in JSON or user agents in web logs or common string values). Efficient compression requires compressing multiple messages together rather than compressing each message individually.
+    在某些情况下, 数据传输的瓶颈不是 CPU 或 磁盘, 而是网络带宽. 对于需要通过广域网在数据中心之间发送消息的数据管道尤其如此. 当然, 用户可以在不需要 Kakfa 支持下一个一个的压缩消息. 但是这样会造成非常差的压缩比, 和消息重复类型的冗余, 比如
+    JSON 中的字段名称或者是或Web日志中的用户代理或公共字符串值. 高性能的压缩是一次压缩多个消息, 而不是压缩单个消息.
     <p>
     Kafka supports this with an efficient batching format. A batch of messages can be clumped together compressed and sent to the server in this form. This batch of messages will be written in compressed form and will
     remain compressed in the log and will only be decompressed by the consumer.
+    Kafka 以高效的批处理格式支持这一点. 一批消息可以压缩在一起发送到服务器. 这批消息将以压缩格式写入, 并且在日志中保持压缩, 只会在 consumer 消费时解压缩.
     <p>
     Kafka supports GZIP, Snappy and LZ4 compression protocols. More details on compression can be found <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">here</a>.
-
+    Kafka 支持 GZIP, Snappy 和 LZ4 压缩协议. 更多有关压缩的资料参看 <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">这里</a>.
     <h3><a id="theproducer" href="#theproducer">4.4 The Producer</a></h3>
 
     <h4><a id="design_loadbalancing" href="#design_loadbalancing">Load balancing</a></h4>
@@ -285,28 +305,38 @@
     <p>
     Kafka replicates the log for each topic's partitions across a configurable number of servers (you can set this replication factor on a topic-by-topic basis). This allows automatic failover to these replicas when a
     server in the cluster fails so messages remain available in the presence of failures.
+    Kafka 允许 topic 的分区拥有若干副本, 这个数量是可以配置的, 您可以为每个topic 配置副本的数量. Kafka会自动在每个个副本上备份数据, 所以当一个节点 down 掉时数据依然是可用的. 
     <p>
     Other messaging systems provide some replication-related features, but, in our (totally biased) opinion, this appears to be a tacked-on thing, not heavily used, and with large downsides: slaves are inactive,
     throughput is heavily impacted, it requires fiddly manual configuration, etc. Kafka is meant to be used with replication by default&mdash;in fact we implement un-replicated topics as replicated topics where the
     replication factor is one.
+    其他的消息系统也提供了副本相关的特性, 但是在我们(带有偏见)看来, 这个功能不常用, 而且有很大缺点: slaves 是不活动的, 并且会让吞吐量受到严重影响, 并且还要手动配置. Kafka 默认使用备份机制, 事实上, 我们将没有副本的 topic 实现为 副本数为
+    1 的 topic .
     <p>
     The unit of replication is the topic partition. Under non-failure conditions, each partition in Kafka has a single leader and zero or more followers. The total number of replicas including the leader constitute the
     replication factor. All reads and writes go to the leader of the partition. Typically, there are many more partitions than brokers and the leaders are evenly distributed among brokers. The logs on the followers are
     identical to the leader's log&mdash;all have the same offsets and messages in the same order (though, of course, at any given time the leader may have a few as-yet unreplicated messages at the end of its log).
+    创建副本的单位是 topic 的分区, 正常情况下, 每个分区都有一个 leader 和零或多个 followers . 总的副本数是包含 leader 副本数的总和. 所有的读写操作都由 leader 处理, 一般分区的数量都比broker的数量多的多, 各分区的leader均匀的分布在brokers中. 
+    所有的 followers 都复制 leader 的日志, 日志中的消息和偏移量都和 leader 中的一致. 当然, 在任何给定时间, leader 的日志末尾时可能有几个消息尚未被备份完成. 
     <p>
     Followers consume messages from the leader just as a normal Kafka consumer would and apply them to their own log. Having the followers pull from the leader has the nice property of allowing the follower to naturally
     batch together log entries they are applying to their log.
+    Followers 就像普通的 consumer 那样从 leader 那里拉取消息并保存在自己的日志文件中. 
     <p>
     As with most distributed systems automatically handling failures requires having a precise definition of what it means for a node to be "alive". For Kafka node liveness has two conditions
+    许多分布式的消息系统自动的处理失败的请求, 它们对一个节点是否着 "alive" 有着清晰的定义, Kafka 判断节点是否活着有两种方式
     <ol>
-        <li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper's heartbeat mechanism)
-        <li>If it is a slave it must replicate the writes happening on the leader and not fall "too far" behind
+        <li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper's heartbeat mechanism) 节点必须可以维护和ZooKeeper的连接, Zookeeper通过心跳机制检查每个节点的连接.
+        <li>If it is a slave it must replicate the writes happening on the leader and not fall "too far" behind 如果节点是个follower, 它必须能及时的同步leader的写操作. 延时不能太久.
     </ol>
     We refer to nodes satisfying these two conditions as being "in sync" to avoid the vagueness of "alive" or "failed". The leader keeps track of the set of "in sync" nodes. If a follower dies, gets stuck, or falls
     behind, the leader will remove it from the list of in sync replicas. The determination of stuck and lagging replicas is controlled by the replica.lag.time.max.ms configuration.
+    我们提到节点满足这两种情况就能称之为 "in sync" , 区别于 "alive" 或者 "failed".  Leader会追踪所有 "in sync" 的节点. 一旦一个down掉了, 或是卡住了, 或是超时, leader就会把它移除.
+    同步超时和卡住的时间的由 replica.lag.time.max.ms 配置确定.
     <p>
-    In distributed systems terminology we only attempt to handle a "fail/recover" model of failures where nodes suddenly cease working and then later recover (perhaps without knowing that they have died). Kafka does not
+    In distributed systems terminology we only attempt to handle a  model of failures where nodes suddenly cease working and then later recover (perhaps without knowing that they have died). Kafka does not
     handle so-called "Byzantine" failures in which nodes produce arbitrary or malicious responses (perhaps due to bugs or foul play).
+    在分布式系统中, 我们只尝试处理节点突然挂掉,然后又恢复(不知道自己已经挂掉)的 "fail/recover" 模式. Kafka 没有处理所谓的 "Byzantine" 故障, 即一个节点出现了异常的响应(可能出现错误).
     <p>
     We can now more precisely define that a message is considered committed when all in sync replicas for that partition have applied it to their log.
     Only committed messages are ever given out to the consumer. This means that the consumer need not worry about potentially seeing a message that could be lost if the leader fails. Producers, on the other hand, 
@@ -315,38 +345,54 @@
     Note that topics have a setting for the "minimum number" of in-sync replicas that is checked when the producer requests acknowledgment that a message
     has been written to the full set of in-sync replicas. If a less stringent acknowledgement is requested by the producer, then the message can be committed, and consumed, 
     even if the number of in-sync replicas is lower than the minimum (e.g. it can be as low as just the leader).
+    现在, 我们可以更精确地定义, 只有当消息被所有的副本加入到日志中时, 才算是 "committed", 只有 committed 的消息才会发送给 consumer, 这样就不用担心一旦leader down 掉了消息会丢失.
+    另一方面, Producer 也可以选择是否等待消息被提交的通知, 这取决于延迟和持久性之间的选择, 这个是由参数 request.required.acks 决定的.
+    请注意, Topic 可以设置所有副本的最小同步数量, producer 请求确认消息是否被写入到所有的副本时, 可以用最小同步数量判断. 如果 producer 对同步的副本数没有严格的要求, 那么消息就被提交,消费. 
+    即便是同步的副本数量低于最小同步数量(例如仅仅只有 leader 同步了数据) .
     <p>
     The guarantee that Kafka offers is that a committed message will not be lost, as long as there is at least one in sync replica alive, at all times.
+    在所有时间里, Kafka 保证只要有一个同步中的节点, committed 的消息就不会丢失.
     <p>
     Kafka will remain available in the presence of node failures after a short fail-over period, but may not remain available in the presence of network partitions.
-
+    在短暂的故障节点切换期后, Kafka 将保持可用状态, 但在网络分区的情况下可能不能保持可用状态.
     <h4><a id="design_replicatedlog" href="#design_replicatedlog">Replicated Logs: Quorums, ISRs, and State Machines (Oh my!)</a></h4>
 
     At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one. A replicated log can be
     used by other systems as a primitive for implementing other distributed systems in the <a href="http://en.wikipedia.org/wiki/State_machine_replication">state-machine style</a>.
+    Kafka 分区的核心是复制日志. 复制日志是分布式数据系统中最基本的原语之一, 有很多中实现方法. 复制日志可以被其他系统用作原型实现分布式系统的 <a href="http://en.wikipedia.org/wiki/State_machine_replication">状态机</a> 
     <p>
     A replicated log models the process of coming into consensus on the order of a series of values (generally numbering the log entries 0, 1, 2, ...). There are many ways to implement this, but the simplest and fastest
     is with a leader who chooses the ordering of values provided to it. As long as the leader remains alive, all followers need to only copy the values and ordering the leader chooses.
+    复制日志按照一系列值的顺序（通常是对日志条目编号0,1,2, ...）进行建模. 有很多种方式实现这个, 但是最简单最快速的方式是 leader 选择值的顺序并提供给其他Followers. 只要 leader 存活, 所有的Followers 只需要向 leader 拷贝值和顺序.
     <p>
     Of course if leaders didn't fail we wouldn't need followers! When the leader does die we need to choose a new leader from among the followers. But followers themselves may fall behind or crash so we must ensure we
     choose an up-to-date follower. The fundamental guarantee a log replication algorithm must provide is that if we tell the client a message is committed, and the leader fails, the new leader we elect must also have
     that message. This yields a tradeoff: if the leader waits for more followers to acknowledge a message before declaring it committed then there will be more potentially electable leaders.
+    当然, 如果 leader 不会 down 掉, 我们就不需要 followers . 但是如果 leader down 了, 我们就需要从 followers 中选举出一个新的 leader. 但是 followers 自身也有可能 down 了, 我们必须确保我们能选择一个数据最新的 followers .
+    日志复制算法必须提供的基本保证是: 如果我们告诉客户端一个消息被 committed , 即便是 leader down 了, 新的 leader 也会有这个消息. 这就产生了一种情况: leader 在宣布 committed 之前需要多个 followers 承认消息被 committed,
+    这样才有多个潜在的 followers 能成为 leader .
     <p>
     If you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.
+    如果您选择获得选票的数量和日志数量进行比较选举一个 leader , 以确保是有一个 Follwer 满足这两种情况, 这称为 Quorum . 
     <p>
     A common approach to this tradeoff is to use a majority vote for both the commit decision and the leader election. This is not what Kafka does, but let's explore it anyway to understand the tradeoffs. Let's say we
     have 2<i>f</i>+1 replicas. If <i>f</i>+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least
     <i>f</i>+1 replicas, then, with no more than <i>f</i> failures, the leader is guaranteed to have all committed messages. This is because among any <i>f</i>+1 replicas, there must be at least one replica that contains
     all committed messages. That replica's log will be the most complete and therefore will be selected as the new leader. There are many remaining details that each algorithm must handle (such as precisely defined what
     makes a log more complete, ensuring log consistency during leader failure or changing the set of servers in the replica set) but we will ignore these for now.
+    这种权衡的常见方法是投票决定谁是 leader . 但是  Kafka 不是这样做的, 了解一下. 我们有2<i>f</i> + 1副本. 如果 <i>f</i>+1个副本都能在 leader 宣布消息 committed 之前收到消息, 那么我们就有 <i>f</i>+1 个拥有完整日志的 followers , 它们都能
+    成为新的 leader . 一旦 leader down 掉, 新的leader也有之前所有提交的消息。这个算法都必须处理许多其他细节(例如精确定义怎样使日志更加完整, 确保在 leader down 掉期间, 保证日志一致性或者副本服务器的副本集的改变), 但是现在我们将忽略这些.
     <p>
     This majority vote approach has a very nice property: the latency is dependent on only the fastest servers. That is, if the replication factor is three, the latency is determined by the faster slave not the slower one.
+    这种(消息 committed)多数表决方法有一个非常好的属性：延迟是取决于最快的服务器. 也就是说, 如果复制因子是3, 需要同步的消息副本数是2 ( f + 1,f=1 ) 份,leader 有一份消息, 则副本同步时间取决于最快的 Follwer .
     <p>
     There are a rich variety of algorithms in this family including ZooKeeper's
+    这里有很多分布式算法, 包含ZooKeeper的
     <a href="http://web.archive.org/web/20140602093727/http://www.stanford.edu/class/cs347/reading/zab.pdf">Zab</a>,
     <a href="https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf">Raft</a>,
     and <a href="http://pmg.csail.mit.edu/papers/vr-revisited.pdf">Viewstamped Replication</a>.
     The most similar academic publication we are aware of to Kafka's actual implementation is
+    我们所知道的与 Kafka 实际执行情况最相似的学术刊物是来自微软的
     <a href="http://research.microsoft.com/apps/pubs/default.aspx?id=66814">PacificA</a> from Microsoft.
     <p>
     The downside of majority vote is that it doesn't take many failures to leave you with no electable leaders. To tolerate one failure requires three copies of the data, and to tolerate two failures requires five copies
@@ -354,23 +400,34 @@
     throughput, is not very practical for large volume data problems. This is likely why quorum algorithms more commonly appear for shared cluster configuration such as ZooKeeper but are less common for primary data
     storage. For example in HDFS the namenode's high-availability feature is built on a <a href="http://blog.cloudera.com/blog/2012/10/quorum-based-journaling-in-cdh4-1">majority-vote-based journal</a>, but this more
     expensive approach is not used for the data itself.
+    大多数投票的缺点是, 多次的节点 down 掉让你没有节点来选择 leader . 要冗余单点故障需要三份数据, 并且要冗余两个故障需要五份的数据. 根据我们的经验, 在一个系统中, 仅仅靠冗余来避免单点故障是不够的, 但是每写5次, 对磁盘空间需求是5倍, 
+    吞吐量下降到 1/5, 这对于处理海量数据问题是不切实际的.  这可能是为什么 quorum 算法更常用于共享集群配置(如 ZooKeeper ), 而不适用于原始数据存储的原因, 例如 HDFS 中 namenode 的高可用是建立在  
+    <a href="http://blog.cloudera.com/blog/2012/10/quorum-based-journaling-in-cdh4-1">majority-vote-based journal</a> , 这种代价高昂的存储方式不适用数据本身.
     <p>
     Kafka takes a slightly different approach to choosing its quorum set. Instead of majority vote, Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set
     are eligible for election as leader. A write to a Kafka partition is not considered committed until <i>all</i> in-sync replicas have received the write. This ISR set is persisted to ZooKeeper whenever it changes.
     Because of this, any replica in the ISR is eligible to be elected leader. This is an important factor for Kafka's usage model where there are many partitions and ensuring leadership balance is important.
     With this ISR model and <i>f+1</i> replicas, a Kafka topic can tolerate <i>f</i> failures without losing committed messages.
+    Kafka 采取了一种稍微不同的方法来选择它的 quorum 集. Kafka 不是多数投票. Kafka 动态维护了一个同步状态的副本的集合 (a set of in-sync replicas) , 简称ISR,在这个集合中的节点都是和leader保持高度一致的, 只有这个集合的成员才有资格被选举为 leader
+    一条消息必须被这个集合 <i>所有</i> 节点读取并追加到日志中了, 这条消息才能视为提交. ISR在ZooKeeper中维护下, 这个集合中的任何一个节点随时都可以被选为leader. 这对于 Kafka 使用模型中, 有很多分区和并确保随时都有leader 是很重要的.
+    因为 ISR 模型和 <i>f+1</i> 副本, 一个 Kafka topic 冗余 <i>f</i> 个节点故障而不会丢失任何已经提交的消息
     <p>
     For most use cases we hope to handle, we think this tradeoff is a reasonable one. In practice, to tolerate <i>f</i> failures, both the majority vote and the ISR approach will wait for the same number of replicas to
     acknowledge before committing a message (e.g. to survive one failure a majority quorum needs three replicas and one acknowledgement and the ISR approach requires two replicas and one acknowledgement).
     The ability to commit without the slowest servers is an advantage of the majority vote approach. However, we think it is ameliorated by allowing the client to choose whether they block on the message commit or not,
     and the additional throughput and disk space due to the lower required replication factor is worth it.
+    对于我们希望处理的大多数场景. 我们认为这种策略是合理的. 在实际中, 为了冗余 <i>f</i> 节点故障, 大多数投票和 ISR 都会在提交消息前会有相同数量的副本去确认(例如在一次故障生存之后, 大多数的 quorum
+    需要三个副本和一次确认, ISR 只需要两个副本和一次确认). 在没有最慢服务器的情况下, 多数投票方法的一个优点是提交的能力. 但是, 我们认为允许客户端去选择是否提交和低的副本数量, 能有效的提高磁盘吞吐量 . 
+
     <p>
     Another important design distinction is that Kafka does not require that crashed nodes recover with all their data intact. It is not uncommon for replication algorithms in this space to depend on the existence of
     "stable storage" that cannot be lost in any failure-recovery scenario without potential consistency violations. There are two primary problems with this assumption. First, disk errors are the most common problem we
     observe in real operation of persistent data systems and they often do not leave data intact. Secondly, even if this were not a problem, we do not want to require the use of fsync on every write for our consistency
     guarantees as this can reduce performance by two to three orders of magnitude. Our protocol for allowing a replica to rejoin the ISR ensures that before rejoining, it must fully re-sync again even if it lost unflushed
     data in its crash.
-
+    另一个重要的设计区别是, Kafka 不要求崩溃的节点恢复所有的数据. 在这个空间中的复制算法依赖于存在 "stable storage"  的情况并不少见, 在没有违反潜在的一致性的情况下, 出现任何故障恢复情况下都不会丢失.
+    这个假设有两个主要的问题. 首先，磁盘错误是我们在永久性数据系统的实际操作中观察到的最常见的问题, 并且它们通常不能保证数据保持完整. 其次, 即使这不是问题，我们也不希望在每次写入时都要求使用 fsync 来保证一致性, 
+    因为这会使性能降低两到三个数量级. 我们允许副本重新加入 ISR 的协议, 可以确保在副本重新加入之前，即使丢失未刷新的数据, 它也必须重新同步。
     <h4><a id="design_uncleanleader" href="#design_uncleanleader">Unclean leader election: What if they all die?</a></h4>
 
     Note that Kafka's guarantee with respect to data loss is predicated on at least one replica remaining in sync. If all the nodes replicating a partition die, this guarantee no longer holds.
