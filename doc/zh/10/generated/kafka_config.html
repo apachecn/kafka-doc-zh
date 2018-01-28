@@ -1,87 +1,82 @@
 <table class="data-table"><tbody>
 <tr>
-<th>Name</th>
-<th>Description</th>
-<th>Type</th>
-<th>Default</th>
-<th>Valid Values</th>
-<th>Importance</th>
+<th>名称</th>
+<th>描述</th>
+<th>类型</th>
+<th>默认值</th>
+<th>有效值</th>
+<th>重要性</th>
 </tr>
 <tr>
-<td>zookeeper.connect</td><td>Zookeeper host string</td><td>string</td><td></td><td></td><td>high</td></tr>
+<td>zookeeper.connect</td><td>Zookeeper主机地址</td><td>string</td><td></td><td></td><td>高</td></tr>
 <tr>
-<td>advertised.host.name</td><td>DEPRECATED: only used when `advertised.listeners` or `listeners` are not set. Use `advertised.listeners` instead. 
-Hostname to publish to ZooKeeper for clients to use. In IaaS environments, this may need to be different from the interface to which the broker binds. If this is not set, it will use the value for `host.name` if configured. Otherwise it will use the value returned from java.net.InetAddress.getCanonicalHostName().</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>advertised.host.name</td><td>不建议:仅在未设置`advertised.listeners` 或 `listeners`时使用。用`advertised.listeners`替换。
+主机名发布到zookeeper供客户端使用。在IaaS环境,这可能需要与broker绑定不通的端口。如果未设置,将使用`host.name`的值（如果已经配置）。否则，他将使用java.net.InetAddress.getCanonicalHostName()返回的值。</td><td>string</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>advertised.listeners</td><td>Listeners to publish to ZooKeeper for clients to use, if different than the `listeners` config property. In IaaS environments, this may need to be different from the interface to which the broker binds. If this is not set, the value for `listeners` will be used. Unlike `listeners` it is not valid to advertise the 0.0.0.0 meta-address.</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>advertised.listeners</td><td>监听器发布到ZooKeeper供客户端使用，如果与`listeners`配置不同。在IaaS环境,这可能需要与broker绑定不通的接口。如果没有设置，将使用`listeners`的配置。与`listeners`不同的是，配置0.0.0.0元地址是无效的。</td><td>string</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>advertised.port</td><td>DEPRECATED: only used when `advertised.listeners` or `listeners` are not set. Use `advertised.listeners` instead. 
-The port to publish to ZooKeeper for clients to use. In IaaS environments, this may need to be different from the port to which the broker binds. If this is not set, it will publish the same port that the broker binds to.</td><td>int</td><td>null</td><td></td><td>high</td></tr>
+<td>advertised.port</td><td>不建议:仅在未设置“advertised.listeners”或“listeners”时使用。使用`advertised.listeners`代替。
+这个端口发布到ZooKeeper供客户端使用。在IaaS环境，这可能需要与broker绑定不通的端口。如果没有设置，它将绑定和broker相同的端口。</td><td>int</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>auto.create.topics.enable</td><td>Enable auto creation of topic on the server</td><td>boolean</td><td>true</td><td></td><td>high</td></tr>
+<td>auto.create.topics.enable</td><td>是否允许在服务器上自动创建topic</td><td>boolean</td><td>true</td><td></td><td>高</td></tr>
 <tr>
-<td>auto.leader.rebalance.enable</td><td>Enables auto leader balancing. A background thread checks and triggers leader balance if required at regular intervals</td><td>boolean</td><td>true</td><td></td><td>high</td></tr>
+<td>auto.leader.rebalance.enable</td><td>是否允许leader平衡。后台线程会定期检查并触发leader平衡。</td><td>boolean</td><td>true</td><td></td><td>高</td></tr>
 <tr>
-<td>background.threads</td><td>The number of threads to use for various background processing tasks</td><td>int</td><td>10</td><td>[1,...]</td><td>high</td></tr>
+<td>background.threads</td><td>用于处理各种后台任务的线程数量</td><td>int</td><td>10</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>broker.id</td><td>The broker id for this server. If unset, a unique broker id will be generated.To avoid conflicts between zookeeper generated broker id's and user configured broker id's, generated broker ids start from reserved.broker.max.id + 1.</td><td>int</td><td>-1</td><td></td><td>high</td></tr>
+<td>broker.id</td><td>用于服务的broker id。如果没设置，将生存一个唯一broker id。为了避免ZooKeeper生成的id和用户配置的broker id相冲突，生成的id将在reserved.broker.max.id的值基础上加1。</td><td>int</td><td>-1</td><td></td><td>高</td></tr>
 <tr>
-<td>compression.type</td><td>Specify the final compression type for a given topic. This configuration accepts the standard compression codecs ('gzip', 'snappy', 'lz4'). It additionally accepts 'uncompressed' which is equivalent to no compression; and 'producer' which means retain the original compression codec set by the producer.</td><td>string</td><td>producer</td><td></td><td>high</td></tr>
+<td>compression.type</td><td>为特点的topic指定一个最终压缩类型。此配置接受的标准压缩编码方式有（'gzip', 'snappy', 'lz4'）。此外还有'uncompressed'相当于不压缩；'producer'意味着压缩类型由'producer'决定。</td><td>string</td><td>producer</td><td></td><td>高</td></tr>
 <tr>
-<td>delete.topic.enable</td><td>Enables delete topic. Delete topic through the admin tool will have no effect if this config is turned off</td><td>boolean</td><td>true</td><td></td><td>high</td></tr>
+<td>delete.topic.enable</td><td>是否允许删除topic。如果关闭此配置，通过管理工具删除topic将不再生效。</td><td>boolean</td><td>true</td><td></td><td>高</td></tr>
 <tr>
-<td>host.name</td><td>DEPRECATED: only used when `listeners` is not set. Use `listeners` instead. 
-hostname of broker. If this is set, it will only bind to this address. If this is not set, it will bind to all interfaces</td><td>string</td><td>""</td><td></td><td>high</td></tr>
+<td>host.name</td><td>不建议: 仅在未设置`listeners`时使用。使用`listeners`来代替。
+如果设置了broker主机名，则他只会当定到这个地址。如果没设置，将绑定到所有接口。</td><td>string</td><td>""</td><td></td><td>高</td></tr>
 <tr>
-<td>leader.imbalance.check.interval.seconds</td><td>The frequency with which the partition rebalance check is triggered by the controller</td><td>long</td><td>300</td><td></td><td>high</td></tr>
+<td>leader.imbalance.check.interval.seconds</td><td>由控制器触发分区重新平衡检查的频率设置</td><td>long</td><td>300</td><td></td><td>高</td></tr>
 <tr>
-<td>leader.imbalance.per.broker.percentage</td><td>The ratio of leader imbalance allowed per broker. The controller would trigger a leader balance if it goes above this value per broker. The value is specified in percentage.</td><td>int</td><td>10</td><td></td><td>high</td></tr>
+<td>leader.imbalance.per.broker.percentage</td><td>每个broker允许的不平衡的leader的百分比，如果高于这个比值将触发leader进行平衡。这个值用百分比来指定。</td><td>int</td><td>10</td><td></td><td>高</td></tr>
 <tr>
-<td>listeners</td><td>Listener List - Comma-separated list of URIs we will listen on and the listener names. If the listener name is not a security protocol, listener.security.protocol.map must also be set.
- Specify hostname as 0.0.0.0 to bind to all interfaces.
- Leave hostname empty to bind to default interface.
- Examples of legal listener lists:
- PLAINTEXT://myhost:9092,SSL://:9091
- CLIENT://0.0.0.0:9092,REPLICATION://localhost:9093
-</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>listeners</td><td>监听器列表 - 使用逗号分隔URI列表和监听器名称。如果侦听器名称不是安全协议，则还必须设置listener.security.protocol.map。指定主机名为0.0.0.0来绑定到所有接口。留空则绑定到默认接口上。合法监听器列表的示例：PLAINTEXT：// myhost：9092，SSL：//：9091 CLIENT：//0.0.0.0：9092，REPLICATION：// localhost：9093</td><td>string</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.dir</td><td>The directory in which the log data is kept (supplemental for log.dirs property)</td><td>string</td><td>/tmp/kafka-logs</td><td></td><td>high</td></tr>
+<td>log.dir</td><td>保存日志数据的目录（对log.dirs属性的补充）</td><td>string</td><td>/tmp/kafka-logs</td><td></td><td>高</td></tr>
 <tr>
-<td>log.dirs</td><td>The directories in which the log data is kept. If not set, the value in log.dir is used</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>log.dirs</td><td>保存日志数据的目录，如果未设置将使用log.dir的配置。</td><td>string</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.flush.interval.messages</td><td>The number of messages accumulated on a log partition before messages are flushed to disk </td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>high</td></tr>
+<td>log.flush.interval.messages</td><td>在将消息刷新到磁盘之前，在日志分区上累积的消息数量。</td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>log.flush.interval.ms</td><td>The maximum time in ms that a message in any topic is kept in memory before flushed to disk. If not set, the value in log.flush.scheduler.interval.ms is used</td><td>long</td><td>null</td><td></td><td>high</td></tr>
+<td>log.flush.interval.ms</td><td>在刷新到磁盘之前，任何topic中的消息保留在内存中的最长时间（以毫秒为单位）。如果未设置，则使用log.flush.scheduler.interval.ms中的值。</td><td>long</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.flush.offset.checkpoint.interval.ms</td><td>The frequency with which we update the persistent record of the last flush which acts as the log recovery point</td><td>int</td><td>60000</td><td>[0,...]</td><td>high</td></tr>
+<td>log.flush.offset.checkpoint.interval.ms</td><td>日志恢复点的最后一次持久化刷新记录的频率</td><td>int</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>log.flush.scheduler.interval.ms</td><td>The frequency in ms that the log flusher checks whether any log needs to be flushed to disk</td><td>long</td><td>9223372036854775807</td><td></td><td>high</td></tr>
+<td>log.flush.scheduler.interval.ms</td><td>日志刷新器检查是否需要将所有日志刷新到磁盘的频率（以毫秒为单位）</td><td>long</td><td>9223372036854775807</td><td></td><td>高</td></tr>
 <tr>
-<td>log.flush.start.offset.checkpoint.interval.ms</td><td>The frequency with which we update the persistent record of log start offset</td><td>int</td><td>60000</td><td>[0,...]</td><td>high</td></tr>
+<td>log.flush.start.offset.checkpoint.interval.ms</td><td>我们更新日志持久化记录开始偏移量的频率</td><td>int</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>log.retention.bytes</td><td>The maximum size of the log before deleting it</td><td>long</td><td>-1</td><td></td><td>high</td></tr>
+<td>log.retention.bytes</td><td>日志删除的大小阈值</td><td>long</td><td>-1</td><td></td><td>高</td></tr>
 <tr>
-<td>log.retention.hours</td><td>The number of hours to keep a log file before deleting it (in hours), tertiary to log.retention.ms property</td><td>int</td><td>168</td><td></td><td>high</td></tr>
+<td>log.retention.hours</td><td>日志删除的时间阈值（小时为单位）</td><td>int</td><td>168</td><td></td><td>高</td></tr>
 <tr>
-<td>log.retention.minutes</td><td>The number of minutes to keep a log file before deleting it (in minutes), secondary to log.retention.ms property. If not set, the value in log.retention.hours is used</td><td>int</td><td>null</td><td></td><td>high</td></tr>
+<td>log.retention.minutes</td><td>日志删除的时间阈值（分钟为单位），如果未设置，将使用log.retention.hours的值</td><td>int</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.retention.ms</td><td>The number of milliseconds to keep a log file before deleting it (in milliseconds), If not set, the value in log.retention.minutes is used</td><td>long</td><td>null</td><td></td><td>high</td></tr>
+<td>log.retention.ms</td><td>日志删除的时间阈值（毫秒为单位），如果未设置，将使用log.retention.minutes的值</td><td>long</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.roll.hours</td><td>The maximum time before a new log segment is rolled out (in hours), secondary to log.roll.ms property</td><td>int</td><td>168</td><td>[1,...]</td><td>high</td></tr>
+<td>log.roll.hours</td><td>新日志段轮转时间间隔（小时为单位），次要配置为log.roll.ms</td><td>int</td><td>168</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>log.roll.jitter.hours</td><td>The maximum jitter to subtract from logRollTimeMillis (in hours), secondary to log.roll.jitter.ms property</td><td>int</td><td>0</td><td>[0,...]</td><td>high</td></tr>
+<td>log.roll.jitter.hours</td><td>从logrolltimemillis（以小时计）中减去的最大抖动，次要配置log.roll.jitter.ms</td><td>int</td><td>0</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>log.roll.jitter.ms</td><td>The maximum jitter to subtract from logRollTimeMillis (in milliseconds). If not set, the value in log.roll.jitter.hours is used</td><td>long</td><td>null</td><td></td><td>high</td></tr>
+<td>log.roll.jitter.ms</td><td>从logrolltimemillis（以毫秒计）中减去的最大抖动，如果未设置，则使用log.roll.jitter.hours的配置</td><td>long</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.roll.ms</td><td>The maximum time before a new log segment is rolled out (in milliseconds). If not set, the value in log.roll.hours is used</td><td>long</td><td>null</td><td></td><td>high</td></tr>
+<td>log.roll.ms</td><td>新日志段轮转时间间隔（毫秒为单位），如果未设置，则使用log.roll.hours配置</td><td>long</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>log.segment.bytes</td><td>The maximum size of a single log file</td><td>int</td><td>1073741824</td><td>[14,...]</td><td>high</td></tr>
+<td>log.segment.bytes</td><td>单个日志段文件最大大小</td><td>int</td><td>1073741824</td><td>[14,...]</td><td>高</td></tr>
 <tr>
-<td>log.segment.delete.delay.ms</td><td>The amount of time to wait before deleting a file from the filesystem</td><td>long</td><td>60000</td><td>[0,...]</td><td>high</td></tr>
+<td>log.segment.delete.delay.ms</td><td>从文件系统中删除一个日志段文件前的保留时间</td><td>long</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>message.max.bytes</td><td><p>The largest record batch size allowed by Kafka. If this is increased and there are consumers older than 0.10.2, the consumers' fetch size must also be increased so that the they can fetch record batches this large.</p><p>In the latest message format version, records are always grouped into batches for efficiency. In previous message format versions, uncompressed records are not grouped into batches and this limit only applies to a single record in that case.</p><p>This can be set per topic with the topic level <code>max.message.bytes</code> config.</p></td><td>int</td><td>1000012</td><td>[0,...]</td><td>high</td></tr>
+<td>message.max.bytes</td><td><p>kafka允许的最大的一个批次的消息大小。 如果这个数字增加，且有0.10.2版本以下的消费者，那么消费者的提取大小也必须增加，以便他们可以取得这么大的记录批次。
+ 在最新的消息格式版本中，记录总是被组合到一个批次以提高效率。 在以前的消息格式版本中，未压缩的记录不会分组到批次中，并且此限制仅适用于该情况下的单个记录。</p><p>可以使用topic设置`max.message.bytes`来设置每个topic。 <code>max.message.bytes</code>.</p></td><td>int</td><td>1000012</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>min.insync.replicas</td><td>When a producer sets acks to "all" (or "-1"), min.insync.replicas specifies the minimum number of replicas that must acknowledge a write for the write to be considered successful. If this minimum cannot be met, then the producer will raise an exception (either NotEnoughReplicas or NotEnoughReplicasAfterAppend).<br>When used together, min.insync.replicas and acks allow you to enforce greater durability guarantees. A typical scenario would be to create a topic with a replication factor of 3, set min.insync.replicas to 2, and produce with acks of "all". This will ensure that the producer raises an exception if a majority of replicas do not receive a write.</td><td>int</td><td>1</td><td>[1,...]</td><td>high</td></tr>
+<td>min.insync.replicas</td><td>当生产者将ack设置为“全部”（或“-1”）时，min.insync.replicas指定了被认为写入成功的最小副本数。如果这个最小值不能满足，那么生产者将会引发一个异常（NotEnoughReplicas或NotEnoughReplicasAfterAppend）。当一起使用时，min.insync.replicas和acks允许您强制更大的耐久性保证。 一个经典的情况是创建一个复本数为3的topic，将min.insync.replicas设置为2，并且生产者使用“all”选项。 这将确保如果大多数副本没有写入生产者则抛出异常。</td><td>int</td><td>1</td><td>[1,...]</td><td>高</td></tr>
 <tr>
 <td>num.io.threads</td><td>The number of threads that the server uses for processing requests, which may include disk I/O</td><td>int</td><td>8</td><td>[1,...]</td><td>high</td></tr>
 <tr>

@@ -16,18 +16,18 @@
 -->
 
 <script id="configuration-template" type="text/x-handlebars-template">
-  Kafka uses key-value pairs in the <a href="http://en.wikipedia.org/wiki/.properties">property file format</a> for configuration. These values can be supplied either from a file or programmatically.
+  Kafkas使用<a href="http://en.wikipedia.org/wiki/.properties">property文件格式</a>的键值对来配置程序。这些键值对配置既可以来自property文件也可以来程序内部。
 
-  <h3><a id="brokerconfigs" href="#brokerconfigs">3.1 Broker Configs</a></h3>
+  <h3><a id="brokerconfigs" href="#brokerconfigs">3.1 Broker 配置</a></h3>
 
-  The essential configurations are the following:
+  核心基础配置如下:
   <ul>
       <li><code>broker.id</code>
       <li><code>log.dirs</code>
       <li><code>zookeeper.connect</code>
   </ul>
 
-  Topic-level configurations and defaults are discussed in more detail <a href="#topicconfigs">below</a>.
+  Topic-level配置及其默认值在<a href="#topicconfigs">下面</a>有更详尽的讨论。
   
   @@include('generated/kafka_config.html')
   <!--#include virtual="generated/kafka_config.html" -->
