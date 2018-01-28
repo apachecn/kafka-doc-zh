@@ -34,30 +34,30 @@
 
   <p>More details about broker configuration can be found in the scala class <code>kafka.server.KafkaConfig</code>.</p>
 
-  <h3><a id="topicconfigs" href="#topicconfigs">3.2 Topic-Level Configs</a></h3>
+  <h3><a id="topicconfigs" href="#topicconfigs">3.2 Topic级别配置</a></h3>
 
-  Configurations pertinent to topics have both a server default as well an optional per-topic override. If no per-topic configuration is given the server default is used. The override can be set at topic creation time by giving one or more <code>--config</code> options. This example creates a topic named <i>my-topic</i> with a custom max message size and flush rate:
+  与Topic相关的配置既包含服务器默认值，也包含可选的每个Topic覆盖值。 如果没有给出每个Topic的配置，那么服务器默认值就会被使用。 通过提供一个或多个 <code>--config</code> 选项，可以在创建Topic时设置覆盖值。 本示例使用自定义的最大消息大小和刷新率创建了一个名为 <i>my-topic</i> 的topic:
   <pre class="brush: bash;">
   &gt; bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic my-topic --partitions 1
       --replication-factor 1 --config max.message.bytes=64000 --config flush.messages=1
   </pre>
-  Overrides can also be changed or set later using the alter configs command. This example updates the max message size for <i>my-topic</i>:
+  也可以在使用alter configs命令之后更改或设置覆盖值. 本示例更新了 <i>my-topic</i> 的最大消息大小:
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic
       --alter --add-config max.message.bytes=128000
   </pre>
 
-  To check overrides set on the topic you can do
+  要检查Topic上设置的覆盖值，你可以执行操作
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic --describe
   </pre>
 
-  To remove an override you can do
+  要删除一个覆盖值，你可以执行操作
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181  --entity-type topics --entity-name my-topic --alter --delete-config max.message.bytes
   </pre>
 
-  The following are the topic-level configurations. The server's default configuration for this property is given under the Server Default Property heading. A given server default config value only applies to a topic if it does not have an explicit topic config override.
+  以下是Topic级别配置。 该属性的服务器默认配置在“服务器默认属性”标题底下给出。 一个Topic如果没有明确给出一个覆盖值，给定的服务器默认配置就会应用在该Topic上。
   @@include('generated/topic_config.html')
   <!--#include virtual="generated/topic_config.html" -->
 
