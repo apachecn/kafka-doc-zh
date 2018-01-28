@@ -540,7 +540,7 @@
   <p>
   这种部署模式允许数据中心充当一个独立的实体，并允许我们能够集中的管理和调节数据中心之间的复制。在这种部署模式下，即使数据中心间的链路不可用，每个设施也可以独立运行：当发生这种情况时，镜像会落后，直到链路恢复正常并追上时为止。
   <p>
-    对于需要所有数据的全局视图的应用程序，你可以使用镜像来提供具有来自所有<i>数据中心</i>的本地集群镜像的聚合数据的集群。聚合集群用于需要全部数据集的应用程序读取。
+  如果应用程序需要所有数据的全局视图，你可以提供一个聚合数据的集群，使用镜像将所有数据中心的本地集群镜像聚合起来。聚合集群用于需要全部数据集的应用程序读取。
   <p>
   这并是不唯一的部署模式，可以通过广域网读取或者写入到远程的Kafka集群，但是这显然会增加获取集群的延时。
   <p>
@@ -551,20 +551,20 @@
   <h3><a id="config" href="#config">6.3 Kafka 配置</a></h3>
 
   <h4><a id="clientconfig" href="#clientconfig">重要的客户端配置</a></h4>
-  最重要的旧scala producer configurations control
+  最重要的老的 scala 版本的 producer 配置
   <ul>
       <li>acks</li>
       <li>compression</li>
       <li>sync vs async production</li>
       <li>batch size (for async producers)</li>
   </ul>
-  最重要的新 Java producer configurations control
+  最重要的新的 Java 版本的 producer 配置
   <ul>
       <li>acks</li>
       <li>compression</li>
       <li>batch size</li>
   </ul>
-  最重要的消费端配置是 fetch size。
+  最重要的 consumer 配置是 fetch size。
   <p>
   所有的配置请查阅 <a href="#configuration">configuration</a> 章节。
   <p>
@@ -655,7 +655,7 @@
 
   <h4><a id="linuxflush" href="#linuxflush">理解Linux操作系统刷新行为</a></h4>
 
-  在Linux中，写入文件系统的数据在<a href="http://en.wikipedia.org/wiki/Page_cache">页面缓存</a>中保存，直到必须写入磁盘（由于应用程序级别的fsync或操作系统自己的刷新策略）。数据的刷新是通过一组叫做pdflush的后台线程来完成的（或者在2.6.32内核中的“flusher threads”）。
+  在Linux中，写入文件系统的数据在<a href="http://en.wikipedia.org/wiki/Page_cache">pagecache</a>中保存，直到必须写入磁盘（由于应用程序级别的fsync或操作系统自己的刷新策略）。数据的刷新是通过一组叫做pdflush的后台线程来完成的（或者在2.6.32内核中的“flusher threads”）。
   <p>
   pdflush有一个可配置的策略，可以控制在缓存中可以维护多少脏数据，以及多久时间之前必须将数据写回到磁盘。
   该策略详情请参阅<a href="http://web.archive.org/web/20160518040713/http://www.westnet.com/~gsmith/content/linux-pdflush.htm">这里</a>。
@@ -665,7 +665,7 @@
   <pre class="brush: bash;"> &gt; cat /proc/meminfo </pre>
   这些值的含义在上面的链接中有描述。
     <p>
-  相对于进程内缓存，使用页面缓存来存储将被写入到磁盘的数据有几个优势：
+  相对于进程内缓存，使用 pagecache 来存储将被写入到磁盘的数据有几个优势：
   <ul>
     <li>I/O 调度器将一批连续的小写入转换成为更大的物理写入，从而提高吞吐量。
     <li>I/O调度器将尝试重新排序写入操作，以尽量减少磁盘磁头的移动，从而提高吞吐量I/O
