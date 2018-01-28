@@ -229,34 +229,33 @@
             href="#security_jaas_broker">Kafka brokers 的 JAAS 的配置</a></h5>
 
             <p><tt>KafkaServer</tt> 是每一个 KafkaServer/Broker 的 JASS 文件里面的节点名称。
-                在这个节点中，提供了 brokers 之间通信的 SASL 客户端的连接的 SASL 的配置选项。</p>
+                在这个节点中，提供了用于所有 brokers 之间通信的 SASL 客户端连接的 SASL 配置选项。</p>
 
             <p><tt>Client</tt> 节点是用于认证 SASL 与 zookeeper 之间的连接。它也允许 brokers 通过设定 zookeeper 节点中 SASL ACL
                 来锁定这些节点 从而确定这些节点不被其他 broker 修改。
-                在所有的 broker 中都必须使用相同的名称。 如果您想使用客户端以外名称, 请设置系统属性
-                <tt>zookeeper.sasl.clientconfig</tt> 中设置合适的名称
+                在所有的 broker 中都必须使用相同的名称。 如果您想使用 Client 以外名称, 请设置系统属性
+                <tt>zookeeper.sasl.clientconfig</tt> 中填写合适的名称
                 (<i>e.g.</i>, <tt>-Dzookeeper.sasl.clientconfig=ZkClient</tt>).</p>
 
             <p>ZooKeeper 使用 "zookeeper" 作为默认的名称. 如果您想改变它的话, 请设置系统属性
-            <tt>zookeeper.sasl.client.username</tt> 中设置合适的名称
+            <tt>zookeeper.sasl.client.username</tt> 中填写合适的名称
             (<i>e.g.</i>, <tt>-Dzookeeper.sasl.client.username=zk</tt>).</p></li>
 
         <li><h5><a id="security_jaas_client"
             href="#security_jaas_client">Kafka clients 的 JAAS 的配置</a></h5>
 
-            <p>客户通过客户端属性的配置<a href="#security_client_dynamicjaas">sasl.jaas.config</a>
-                或者通过与 brokers 相似的方法来配置 JAAS <a href="#security_client_staticjaas">static JAAS config file</a>
+            <p>Client 通过配置客户端属性 <a href="#security_client_dynamicjaas">sasl.jaas.config</a>
+                或者通过与 brokers 相似的方法来配置 JAAS （<a href="#security_client_staticjaas">static JAAS config file</a>）
             </p>
 
             <ol>
             <li><h6><a id="security_client_dynamicjaas"
                 href="#security_client_dynamicjaas">通过客户端配置属性来配置JAAS</a></h6>
-                <p>客户无需创建物理文件来配置角色 只需要通过在JASS配置中指定 producer 或者 consumer。
-                    这种模式通过为每个客户端指定不同的属性来使用不同的凭证 确保可以在在同一个 JVM 中使用不同的 producers
-                    and consumers。如果静态JAAS配置系统属性
-                <code>java.security.auth.login.config</code> 和客户端属性 <code>sasl.jaas.config</code>
-              同时被配置, 客户端配置将会被使用.</p>
-
+                <p>客户无需创建物理文件来配置角色 只需要在 JASS 配置中指定 producer 或者 consumer。
+                    这种模式通过为每个客户端指定不同的属性来使用不同的凭证，从而确保可以在在同一个 JVM 中使用不同的 producers
+                    和 consumers。如果静态JAAS配置系统属性的方法
+                <code>java.security.auth.login.config</code> 和配置客户端属性 <code>sasl.jaas.config</code>的方法
+              同时被使用, 客户端的配置将会被使用.</p>
                 <p>请看 <a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
                 <a href="#security_sasl_plain_clientconfig">PLAIN</a> or
                 <a href="#security_sasl_scram_clientconfig">SCRAM</a> 中的示例配置。</p></li>
@@ -264,7 +263,7 @@
                 <li><h6><a id="security_client_staticjaas" href="#security_client_staticjaas">通过静态配置文件来配置 JAAS</a></h6>
                     使用静态 JAAS 配置文件 来配置 SASL 的客户端认证服务：
                 <ol>
-                <li>添加一个名为 <tt>KafkaClient</tt>客户端的登陆节点.在<tt>KafkaClient</tt>为所选机制来配置一个登陆模块
+                <li>添加一个名为 <tt>KafkaClient</tt> 客户端的登陆节点，同时为 <tt>KafkaClient</tt> 中所选机制来配置一个登陆模块
                     如设置<a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
                     <a href="#security_sasl_plain_clientconfig">PLAIN</a> 或者
                     <a href="#security_sasl_scram_clientconfig">SCRAM</a>。
@@ -288,49 +287,40 @@
         </ol>
     </li>
     <li><h4><a id="security_sasl_config"
-        href="#security_sasl_config">SASL configuration</a></h4>
+               href="#security_sasl_config">SASL 的配置</a></h4>
 
-        <p>SASL may be used with PLAINTEXT or SSL as the transport layer using the
-        security protocol SASL_PLAINTEXT or SASL_SSL respectively. If SASL_SSL is
-        used, then <a href="#security_ssl">SSL must also be configured</a>.</p>
+        <p> SASL 可以使用 PLAINTEXT 或者 SSL 协议作为传输层，相对应的就是使用 SASL_PLAINTEXT 或者 SASL_SSL 安全协议。
+            如果使用 SASL_SSL 安全协议，必须配置 <a href="#security_ssl">SSL证书</a>。</p>
 
         <ol>
-        <li><h5><a id="security_sasl_mechanism"
-            href="#security_sasl_mechanism">SASL mechanisms</a></h5>
-            Kafka supports the following SASL mechanisms:
-            <ul>
-                <li><a href="#security_sasl_kerberos">GSSAPI</a> (Kerberos)</li>
-                <li><a href="#security_sasl_plain">PLAIN</a></li>
-                <li><a href="#security_sasl_scram">SCRAM-SHA-256</a></li>
-                <li><a href="#security_sasl_scram">SCRAM-SHA-512</a></li>
-            </ul>
-        </li>
-        <li><h5><a id="security_sasl_brokerconfig"
-            href="#security_sasl_brokerconfig">SASL configuration for Kafka brokers</a></h5>
-            <ol>
-            <li>Configure a SASL port in server.properties, by adding at least one of
-                SASL_PLAINTEXT or SASL_SSL to the <i>listeners</i> parameter, which
-                contains one or more comma-separated values:
-                <pre>    listeners=SASL_PLAINTEXT://host.name:port</pre>
-                If you are only configuring a SASL port (or if you want
-                the Kafka brokers to authenticate each other using SASL) then make sure
-                you set the same SASL protocol for inter-broker communication:
-                <pre>    security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)</pre></li>
-            <li>Select one or more  <a href="#security_sasl_mechanism">supported mechanisms</a>
-                to enable in the broker and follow the steps to configure SASL for the mechanism.
-                To enable multiple mechanisms in the broker, follow the steps
-                <a href="#security_sasl_multimechanism">here</a>.</li>
-            </ol>
-        </li>
-        <li><h5><a id="security_sasl_clientconfig"
-            href="#security_sasl_clientconfig">SASL configuration for Kafka clients</a></h5>
-            <p>SASL authentication is only supported for the new Java Kafka producer and
-            consumer, the older API is not supported.</p>
+            <li><h5><a id="security_sasl_mechanism"
+                       href="#security_sasl_mechanism">SASL 安全机制</a></h5>
+                Kafka 支持以下的四个 SASL 机制:
+                <ul>
+                    <li><a href="#security_sasl_kerberos">GSSAPI</a> (Kerberos)</li>
+                    <li><a href="#security_sasl_plain">PLAIN</a></li>
+                    <li><a href="#security_sasl_scram">SCRAM-SHA-256</a></li>
+                    <li><a href="#security_sasl_scram">SCRAM-SHA-512</a></li>
+                </ul>
+            </li>
+            <li><h5><a id="security_sasl_brokerconfig"
+                       href="#security_sasl_brokerconfig">Kafka brokers 的SASL配置</a></h5>
+                <ol>
+                    <li>在 server.properties 文件中配置一个 SASL 端口， 要为 <i>listeners</i> 添加其中至少一个参数（SASL_PLAINTEXT 或者 SASL_SSL）：
+                        <pre>    listeners=SASL_PLAINTEXT://host.name:port</pre>
+                        如果您只配置一个 SASL 端口 （或者您只想希望在 Kafka brokersz 之间使用 SASL 协议相互认证的话）您需要确保您在 borker 之间通信中 使用了了相同的 SASL 协议。
+                        <pre>    security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)</pre></li>
+                    <li>选择一个或者多个 <a href="#security_sasl_mechanism">支持的安全机制</a>
+                        然后按照所给的步骤来为所选的安全机制配置 SASL 协议。 如果您想在 broker 中启用多个安全机制， 请根据<a href="#security_sasl_multimechanism">此处</a>步骤操作。
+                </ol>
+            </li>
+            <li><h5><a id="security_sasl_clientconfig"
+                       href="#security_sasl_clientconfig">Kafka 客户端配置 SASL</a></h5>
+                <p> SASL 授权只在新的 Java Kafka producer and consumer API 中被支持。之前的API并不支持</p>
 
-            <p>To configure SASL authentication on the clients, select a SASL
-            <a href="#security_sasl_mechanism">mechanism</a> that is enabled in
-            the broker for client authentication and follow the steps to configure SASL
-            for the selected mechanism.</p></li>
+                <p>要在客户端配置 SASL 授权， 需在 broker 中选择一个已启用的<a href="#security_sasl_mechanism">SASL 机制</a>用于客户端授权
+                    并且根据下面的步骤为所选的安全机制配置 SASL 协议。</p>
+            </li>
         </ol>
     </li>
     <li><h4><a id="security_sasl_kerberos" href="#security_sasl_kerberos">Authentication using SASL/Kerberos</a></h4>
