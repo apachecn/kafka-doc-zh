@@ -18,7 +18,7 @@
 <script id="implementation-template" type="text/x-handlebars-template">
     <h3><a id="networklayer" href="#networklayer">5.1 网络层</a></h3>
     <p>
-    网络层简单来说就是一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 是通过实现 <code>MessageSet</code> 的接口 <code>writeTo</code> 方法来完成.这样的机制允许消息数据集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
+    网络层简单来说就是一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 实现是通过 <code>MessageSet</code> 接口的 <code>writeTo</code> 方法完成的.这样的机制允许消息数据集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
     </p>
     <h3><a id="messages" href="#messages">5.2 消息</a></h3>
     <p>
