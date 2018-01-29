@@ -155,13 +155,13 @@
             ssl.truststore.location=/var/private/ssl/server.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: ssl.truststore.password 在技术上是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问信任存储区 (truststore), 但是不能进行完整性检查.
+            Note: ssl.truststore.password 严格来讲是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问信任存储区 (truststore), 但是不能进行真实性检查.
 
             值得考虑的可选配置:
             <ol>
                 <li>ssl.client.auth=none ("required" => 客户端认证是必须的, "requested" => 客户端认证是需要的, 但是没有证书依然可以连接.
                         因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
-                <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list )</li>
+                <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list)</li>
                 <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1 (列出你将要从客户端接收的 SSL 协议. 注意, SSL 已经废弃, 支持 TLS, 并且不建议在生产环境中使用 SSL.)</li>
                 <li>ssl.keystore.type=JKS</li>
                 <li>ssl.truststore.type=JKS</li>
@@ -199,32 +199,33 @@
             issuer=/C=US/ST=CA/L=Santa Clara/O=org/OU=org/CN=kafka/emailAddress=test@test.com</pre>
             如果没有显示证书信息, 或者有任何其他错误信息, 那么你的 keystore 设置不正确。</li>
 
-        <li><h4><a id="security_configclients" href="#security_configclients">Configuring Kafka Clients</a></h4>
-            SSL is supported only for the new Kafka Producer and Consumer, the older API is not supported. The configs for SSL will be the same for both producer and consumer.<br>
-            If client authentication is not required in the broker, then the following is a minimal configuration example:
+        <li><h4><a id="security_configclients" href="#security_configclients">配置 Kafka 客户端</a></h4>
+            只有新的 Kafka Producer 和 Consumer 支持 SSL, 旧的 API 不支持 SSL. Producer 和 Consumer 的 SSL 的配置相同.
+            <br>
+            如果在 broker 中不需要客户端认证, 那么下面是最小的配置的例子:
             <pre class="brush: text;">
             security.protocol=SSL
             ssl.truststore.location=/var/private/ssl/client.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: ssl.truststore.password is technically optional but highly recommended. If a password is not set access to the truststore is still available, but integrity checking is disabled.
+            Note: ssl.truststore.password 严格来讲是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问 truststore, 但是不能进行真实性检查.
 
-            If client authentication is required, then a keystore must be created like in step 1 and the following must also be configured:
+            如果要求客户端认证, 必须像第一步一样创建一个 keystore, 和配置下面这些信息:
             <pre class="brush: text;">
             ssl.keystore.location=/var/private/ssl/client.keystore.jks
             ssl.keystore.password=test1234
             ssl.key.password=test1234</pre>
 			
-            Other configuration settings that may also be needed depending on our requirements and the broker configuration:
+            根据我们的需求和 broker 的配置, 也需要设置其他的配置:
                 <ol>
-                    <li>ssl.provider (Optional). The name of the security provider used for SSL connections. Default value is the default security provider of the JVM.</li>
-                    <li>ssl.cipher.suites (Optional). A cipher suite is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol.</li>
-                    <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1. It should list at least one of the protocols configured on the broker side</li>
+                    <li>ssl.provider (可选的). 用于 SSL 连接的安全提供程序名称. 默认值是 JVM 的默认安全提供程序.</li>
+                    <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置.</li>
+                    <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1. 需要列出至少一个在 broker 端配置的协议</li>
                     <li>ssl.truststore.type=JKS</li>
                     <li>ssl.keystore.type=JKS</li>
                 </ol>
     <br>
-            Examples using console-producer and console-consumer:
+            使用 console-producer 和 console-consumer 的例子:
             <pre class="brush: bash;">
             kafka-console-producer.sh --broker-list localhost:9093 --topic test --producer.config client-ssl.properties
             kafka-console-consumer.sh --bootstrap-server localhost:9093 --topic test --consumer.config client-ssl.properties</pre>
