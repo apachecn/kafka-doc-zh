@@ -40,9 +40,9 @@
 <tr>
 <td>linger.ms</td><td>producer 会将两个请求发送时间间隔内到达的记录合并到一个单独的批处理请求中。通常只有当记录到达的速度超过了发送的速度时才会出现这种情况。然而，在某些场景下，即使处于可接受的负载下，客户端也希望能减少请求的数量。这个设置是通过添加少量的人为延迟来实现的&mdash；即，与其立即发送记录， producer 将等待给定的延迟时间，以便将等待过程中到达的其他记录能合并到本批次的处理中。这可以认为是与 TCP 中的 Nagle 算法类似。这个设置为批处理的延迟提供了上限:一旦我们接受到记录超过了分区的 batch.size ，Producer 会忽略这个参数，立刻发送数据。但是如果累积的字节数少于 batch.size ，那么我们将在指定的时间内“逗留”(linger)，以等待更多的记录出现。这个设置默认为0(即没有延迟)。例如：如果设置<code>linger.ms=5</code> ，则发送的请求会减少并降低部分负载，但同时会增加5毫秒的延迟。</td><td>long</td><td>0</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>max.block.ms</td><td>The configuration controls how long <code>KafkaProducer.send()</code> and <code>KafkaProducer.partitionsFor()</code> will block.These methods can be blocked either because the buffer is full or metadata unavailable.Blocking in the user-supplied serializers or partitioner will not be counted against this timeout.</td><td>long</td><td>60000</td><td>[0,...]</td><td>medium</td></tr>
+<td>max.block.ms</td><td>该配置控制<code> KafkaProducer.send()</code>和<code> KafkaProducer.partitionsFor()> </code>允许被阻塞的时长。这些方法可能因为缓冲区满了或者元数据不可用而被阻塞。用户提供的序列化程序或分区程序的阻塞将不会被计算到这个超时。</td><td>long</td><td>60000</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>max.request.size</td><td>The maximum size of a request in bytes. This setting will limit the number of record batches the producer will send in a single request to avoid sending huge requests. This is also effectively a cap on the maximum record batch size. Note that the server has its own cap on record batch size which may be different from this.</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
+<td>max.request.size</td><td>请求的最大字节数。这个设置将限制 Producer 在单个请求中发送的记录批量的数量，以避免发送巨大的请求。这实际上也等同于批次的最大记录数的限制。请注意，服务器对批次的大小有自己的限制，这可能与此不同。</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
 <td>partitioner.class</td><td>Partitioner class that implements the <code>org.apache.kafka.clients.producer.Partitioner</code> interface.</td><td>class</td><td>org.apache.kafka.clients.producer.internals.DefaultPartitioner</td><td></td><td>medium</td></tr>
 <tr>
