@@ -431,39 +431,53 @@
     <h4><a id="design_uncleanleader" href="#design_uncleanleader">Unclean leader election: What if they all die?</a></h4>
 
     Note that Kafka's guarantee with respect to data loss is predicated on at least one replica remaining in sync. If all the nodes replicating a partition die, this guarantee no longer holds.
+    请注意, Kafka对于数据不会丢失的保证, 是基于至少一个节点是存活的, 一旦所有节点都挂了, 这个就不能保证了.
     <p>
     However a practical system needs to do something reasonable when all the replicas die. If you are unlucky enough to have this occur, it is important to consider what will happen. There are two behaviors that could be
     implemented:
+    但是, 实际在运行的系统需要去考虑假设一旦所有的副本都挂了, 怎么去保证数据不会丢失, 这里有两种实现的方法
     <ol>
-        <li>Wait for a replica in the ISR to come back to life and choose this replica as the leader (hopefully it still has all its data).
-        <li>Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.
+        <li>Wait for a replica in the ISR to come back to life and choose this replica as the leader (hopefully it still has all its data). 等待一个 ISR 的副本重新恢复正常服务，并选择这个副本作为领 leader (它有极大可能拥有全部数据).
+        <li>Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.选择第一个恢复正常服务的副本（不一定是 ISR 中的）作为leader
     </ol>
     <p>
     This is a simple tradeoff between availability and consistency. If we wait for replicas in the ISR, then we will remain unavailable as long as those replicas are down. If such replicas were destroyed or their data
     was lost, then we are permanently down. If, on the other hand, a non-in-sync replica comes back to life and we allow it to become leader, then its log becomes the source of truth even though it is not guaranteed to
     have every committed message. By default, Kafka chooses the second strategy and favor choosing a potentially inconsistent replica when all replicas in the ISR are dead. This behavior can be disabled using
     configuration property unclean.leader.election.enable, to support use cases where downtime is preferable to inconsistency.
+    这是可用性和一致性之间的简单妥协, 如果我在只等待 ISR 的副本, 那么只要 ISR 副本都挂了, 我们的服务将一直会不可用, 如果它们的数据损坏了或者丢失了, 那就会是长久的宕机.
+    另一方面, 如果不是 ISR 中的副本恢复服务并且我们也许它成为leader, 那么它的数据就是可信的源头, 即便它不能保证记录了每一个已经提交的消息. kafka 默认选择第二种策略,  当所有的 ISR 副本都挂掉时, 会选择一个可能不同步的副本作为 leader ,
+    可以配置属性 unclean.leader.election.enable 禁用此策略, 那么就会使用第一种策略即停机时间优于不同步的副本.
+    这是可用性和一致性之间的简单折衷。 如果我们在ISR中等待副本，那么只要这些副本停机，我们将保持不可用状态。
     <p>
     This dilemma is not specific to Kafka. It exists in any quorum-based scheme. For example in a majority voting scheme, if a majority of servers suffer a permanent failure, then you must either choose to lose 100% of
     your data or violate consistency by taking what remains on an existing server as your new source of truth.
-
-
+    这种困境不只有 Kafka 遇到, 它存在于任何 quorum-based 规则中. 例如, 在大多数投票算法当中, 如果大多数服务器永久性的挂了, 那么您要么选择丢失100%的数据, 要么违背数据的一致性选择一个正常的服务器作为数据可信的来源.
     <h4><a id="design_ha" href="#design_ha">Availability and Durability Guarantees</a></h4>
 
     When writing to Kafka, producers can choose whether they wait for the message to be acknowledged by 0,1 or all (-1) replicas.
     Note that "acknowledgement by all replicas" does not guarantee that the full set of assigned replicas have received the message. By default, when acks=all, acknowledgement happens as soon as all the current in-sync
     replicas have received the message. For example, if a topic is configured with only two replicas and one fails (i.e., only one in sync replica remains), then writes that specify acks=all will succeed. However, these
     writes could be lost if the remaining replica also fails.
-
+    向 Kafka 写数据时, producers 设置 ack 是否提交完成, 0：不等待broker返回确认消息,1: leader保存成功返回或 -1(all): 所有副本都保存成功返回.
+    请注意. 设置 "ack = all" 并不能保证所有的副本都写入了消息. 默认情况下, 当 acks = all 时, 只要 ISR 副本同步完成, 就会返回消息已经写入. 
+    例如, 一个 topic 仅仅设置了两个副本, 那么只有一个 ISR 副本, 那么acks = all的返回写入成功时, 剩下了的那个副本数据也可能数据没有写入.  
     Although this ensures maximum availability of the partition, this behavior may be undesirable to some users who prefer durability over availability. Therefore, we provide two topic-level configurations that can be
     used to prefer message durability over availability:
+    尽管这确保了分区的最大可用性, 但是对于偏好数据持久性而不是可用性的一些用户, 可能不想用这种策略, 因此, 我们提供了两个topic 配置, 可用于优先配置消息的数据持久性:
     <ol>
         <li> Disable unclean leader election - if all replicas become unavailable, then the partition will remain unavailable until the most recent leader becomes available again. This effectively prefers unavailability
-        over the risk of message loss. See the previous section on Unclean Leader Election for clarification. </li>
+        over the risk of message loss. See the previous section on Unclean Leader Election for clarification. 
+        禁用 unclean leader 机制, 如果所有的副本挂了, 分区就会不可用, 直到最近的 leader 可用. 这中策略优先于数据丢失的风险, 参看上一节的 unclean leader 选举机制.
+    </li>
         <li> Specify a minimum ISR size - the partition will only accept writes if the size of the ISR is above a certain minimum, in order to prevent the loss of messages that were written to just a single replica,
         which subsequently becomes unavailable. This setting only takes effect if the producer uses acks=all and guarantees that the message will be acknowledged by at least this many in-sync replicas.
     This setting offers a trade-off between consistency and availability. A higher setting for minimum ISR size guarantees better consistency since the message is guaranteed to be written to more replicas which reduces
-    the probability that it will be lost. However, it reduces availability since the partition will be unavailable for writes if the number of in-sync replicas drops below the minimum threshold. </li>
+    the probability that it will be lost. However, it reduces availability since the partition will be unavailable for writes if the number of in-sync replicas drops below the minimum threshold.
+    指定最小的 ISR 集合大小, 只有当 ISR 的大小大于最小值，分区才能接受写入操作, 以防止仅写入单个副本的消息丢失造成消息不可用的情况, 
+    这个设置只有在生产者使用 acks = all 的情况下才会生效，这至少保证消息被 ISR 副本写入. 此设置是一致性和可用性之间的折衷, 对于最小的ISR大小，更大的最小值保证了更高的一致性，因为它保证将消息被写入了更多的副本，减少了消息丢失的可能性. 
+    但是, 这会降低可用性，因为如果 ISR 副本的数量低于最小阈值, 那么分区将无法写入.
+   </li>
     </ol>
 
 
@@ -472,12 +486,15 @@
     The above discussion on replicated logs really covers only a single log, i.e. one topic partition. However a Kafka cluster will manage hundreds or thousands of these partitions. We attempt to balance partitions
     within a cluster in a round-robin fashion to avoid clustering all partitions for high-volume topics on a small number of nodes. Likewise we try to balance leadership so that each node is the leader for a proportional
     share of its partitions.
+    以上关于复制日志的讨论只涉及单个日志，即一个 topic 分区, 事实上, 一个Kafka集群管理着成百上千个这样的分区.  我们尝试以轮训调度的方式将集群内的分区负载均衡, 避免大量的 topic 所有分区集中在
+    少数几个节点上. 同样, 我们也试图让每个节点都是 topic 分区 leader .
     <p>
     It is also important to optimize the leadership election process as that is the critical window of unavailability. A naive implementation of leader election would end up running an election per partition for all
     partitions a node hosted when that node failed. Instead, we elect one of the brokers as the "controller". This controller detects failures at the broker level and is responsible for changing the leader of all
     affected partitions in a failed broker. The result is that we are able to batch together many of the required leadership change notifications which makes the election process far cheaper and faster for a large number
     of partitions. If the controller fails, one of the surviving brokers will become the new controller.
-
+    优化领导层选举过程也是重要的，因为这是不可用的关键窗口. leader 的选举就是为了当 leader 挂了后, 能够有节点管理的分区. 我们选择一个 brokers 作为 "controller". controller 负责
+    检测 brokers 级别, 并负责当一个 broker 挂了, 通知受到次影响的分区的 leader. 它可以批量的通知leadership的变化，从而使得选举过程成本更低,如果 controller 挂了，所有其他 broker 都可能成为新的 controller .      
     <h3><a id="compaction" href="#compaction">4.8 Log Compaction</a></h3>
 
     Log compaction ensures that Kafka will always retain at least the last known value for each message key within the log of data for a single topic partition.  It addresses use cases and scenarios such as restoring
