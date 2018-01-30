@@ -22,15 +22,15 @@
 <tr>
 <td>retries</td><td>设置大于0的值将导致客户端重新发送任何发送失败的记录，而这些记录有可能是暂时的错误。请注意，这种 retry 与客户端收到错误信息之后重新发送记录并无区别。允许 retries 并且没有设置<code>max.in.flight.requests.per.connection</code> 为1时，记录的顺序可能会被改变。比如：当两个批次都被发送到同一个 partition ，第一个批次发生错误并发生 retries 而第二个批次已经成功，则第二个批次的记录就会先于第一个批次出现。</td><td>int</td><td>0</td><td>[0,...,2147483647]</td><td>high</td></tr>
 <tr>
-<td>ssl.key.password</td><td>The password of the private key in the key store file. This is optional for client.</td><td>password</td><td>null</td><td></td><td>high</td></tr>
+<td>ssl.key.password</td><td>key store 文件中私钥的密码。这对于客户端来说是可选的。</td><td>password</td><td>null</td><td></td><td>high</td></tr>
 <tr>
-<td>ssl.keystore.location</td><td>The location of the key store file. This is optional for client and can be used for two-way authentication for client.</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>ssl.keystore.location</td><td>key store 文件的位置。这对于客户端来说是可选的，可用于客户端的双向身份验证。</td><td>string</td><td>null</td><td></td><td>high</td></tr>
 <tr>
-<td>ssl.keystore.password</td><td>The store password for the key store file. This is optional for client and only needed if ssl.keystore.location is configured. </td><td>password</td><td>null</td><td></td><td>high</td></tr>
+<td>ssl.keystore.password</td><td>key store 文件的存储密码。这对于客户端是可选的，只有配置了 ssl.keystore.location 才需要配置该选项。</td><td>password</td><td>null</td><td></td><td>high</td></tr>
 <tr>
-<td>ssl.truststore.location</td><td>The location of the trust store file. </td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<td>ssl.truststore.location</td><td>trust store文件的位置。 </td><td>string</td><td>null</td><td></td><td>high</td></tr>
 <tr>
-<td>ssl.truststore.password</td><td>The password for the trust store file. If a password is not set access to the truststore is still available, but integrity checking is disabled.</td><td>password</td><td>null</td><td></td><td>high</td></tr>
+<td>ssl.truststore.password</td><td>trust store 文件的密码。如果一个密码没有设置到 trust store ，这个密码仍然是可用的，但是完整性检查是禁用的。</td><td>password</td><td>null</td><td></td><td>high</td></tr>
 <tr>
 <td>batch.size</td><td>The producer will attempt to batch records together into fewer requests whenever multiple records are being sent to the same partition. This helps performance on both the client and the server. This configuration controls the default batch size in bytes. <p>No attempt will be made to batch records larger than this size. <p>Requests sent to brokers will contain multiple batches, one for each partition with data available to be sent. <p>A small batch size will make batching less common and may reduce throughput (a batch size of zero will disable batching entirely). A very large batch size may use memory a bit more wastefully as we will always allocate a buffer of the specified batch size in anticipation of additional records.</td><td>int</td><td>16384</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
