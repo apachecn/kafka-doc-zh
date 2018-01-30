@@ -44,29 +44,29 @@
 <tr>
 <td>max.request.size</td><td>请求的最大字节数。这个设置将限制 Producer 在单个请求中发送的记录批量的数量，以避免发送巨大的请求。这实际上也等同于批次的最大记录数的限制。请注意，服务器对批次的大小有自己的限制，这可能与此不同。</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>partitioner.class</td><td>Partitioner class that implements the <code>org.apache.kafka.clients.producer.Partitioner</code> interface.</td><td>class</td><td>org.apache.kafka.clients.producer.internals.DefaultPartitioner</td><td></td><td>medium</td></tr>
+<td>partitioner.class</td><td>指定计算分区的类，类必须实现 <code>org.apache.kafka.clients.producer.Partitioner</code> 接口。</td><td>class</td><td>org.apache.kafka.clients.producer.internals.DefaultPartitioner</td><td></td><td>medium</td></tr>
 <tr>
-<td>receive.buffer.bytes</td><td>The size of the TCP receive buffer (SO_RCVBUF) to use when reading data. If the value is -1, the OS default will be used.</td><td>int</td><td>32768</td><td>[-1,...]</td><td>medium</td></tr>
+<td>receive.buffer.bytes</td><td>定义读取数据时 TCP 接收缓冲区（SO_RCVBUF）的大小，如果设置为-1，则使用系统默认值。</td><td>int</td><td>32768</td><td>[-1,...]</td><td>medium</td></tr>
 <tr>
-<td>request.timeout.ms</td><td>The configuration controls the maximum amount of time the client will wait for the response of a request. If the response is not received before the timeout elapses the client will resend the request if necessary or fail the request if retries are exhausted. This should be larger than replica.lag.time.max.ms (a broker configuration) to reduce the possibility of message duplication due to unnecessary producer retries.</td><td>int</td><td>30000</td><td>[0,...]</td><td>medium</td></tr>
+<td>request.timeout.ms</td><td>客户端等待请求响应的最大时长。如果超时未收到响应，则客户端将在必要时重新发送请求，如果重试的次数达到允许的最大重试次数，则请求失败。这个参数应该比 replica.lag.time.max.ms （Broker 的一个参数）更大。ms(代理配置)以降低由于不必要的重试而导致的消息重复的可能性。</td><td>int</td><td>30000</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>sasl.jaas.config</td><td>JAAS login context parameters for SASL connections in the format used by JAAS configuration files. JAAS configuration file format is described <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/LoginConfigFile.html">here</a>. The format for the value is: '<loginModuleClass> <controlFlag> (<optionName>=<optionValue>)*;'</td><td>password</td><td>null</td><td></td><td>medium</td></tr>
+<td>sasl.jaas.config</td><td>SASL 连接使用的 JAAS 登陆上下文参数，以 JAAS 配置文件的格式进行配置。 JAAS 配置文件格式可参考<a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/LoginConfigFile.html">这里</a>。值的格式: '<loginModuleClass> <controlFlag> (<optionName>=<optionValue>)*;'</td><td>password</td><td>null</td><td></td><td>medium</td></tr>
 <tr>
-<td>sasl.kerberos.service.name</td><td>The Kerberos principal name that Kafka runs as. This can be defined either in Kafka's JAAS config or in Kafka's config.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.service.name</td><td>Kafka 运行时的 Kerberos 主体名称。可以在 Kafka 的 JAAS 配置文件或者 Kafka 的配置文件中配置。</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
 <tr>
-<td>sasl.mechanism</td><td>SASL mechanism used for client connections. This may be any mechanism for which a security provider is available. GSSAPI is the default mechanism.</td><td>string</td><td>GSSAPI</td><td></td><td>medium</td></tr>
+<td>sasl.mechanism</td><td>用于客户端连接的 SASL 机制。可以是任意安全可靠的机制。默认是 GSSAPI 机制。</td><td>string</td><td>GSSAPI</td><td></td><td>medium</td></tr>
 <tr>
-<td>security.protocol</td><td>Protocol used to communicate with brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.</td><td>string</td><td>PLAINTEXT</td><td></td><td>medium</td></tr>
+<td>security.protocol</td><td>与 brokers 通讯的协议。可配置的值有: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.</td><td>string</td><td>PLAINTEXT</td><td></td><td>medium</td></tr>
 <tr>
-<td>send.buffer.bytes</td><td>The size of the TCP send buffer (SO_SNDBUF) to use when sending data. If the value is -1, the OS default will be used.</td><td>int</td><td>131072</td><td>[-1,...]</td><td>medium</td></tr>
+<td>send.buffer.bytes</td><td>定义发送数据时的 TCP 发送缓冲区（SO_SNDBUF）的大小。如果设置为-1，则使用系统默认值。</td><td>int</td><td>131072</td><td>[-1,...]</td><td>medium</td></tr>
 <tr>
-<td>ssl.enabled.protocols</td><td>The list of protocols enabled for SSL connections.</td><td>list</td><td>TLSv1.2,TLSv1.1,TLSv1</td><td></td><td>medium</td></tr>
+<td>ssl.enabled.protocols</td><td>可用于 SSL 连接的协议列表。</td><td>list</td><td>TLSv1.2,TLSv1.1,TLSv1</td><td></td><td>medium</td></tr>
 <tr>
-<td>ssl.keystore.type</td><td>The file format of the key store file. This is optional for client.</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
+<td>ssl.keystore.type</td><td>key store 文件的文件格式。这对于客户端来说是可选的。</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
 <tr>
-<td>ssl.protocol</td><td>The SSL protocol used to generate the SSLContext. Default setting is TLS, which is fine for most cases. Allowed values in recent JVMs are TLS, TLSv1.1 and TLSv1.2. SSL, SSLv2 and SSLv3 may be supported in older JVMs, but their usage is discouraged due to known security vulnerabilities.</td><td>string</td><td>TLS</td><td></td><td>medium</td></tr>
+<td>ssl.protocol</td><td>用于生成SSLContext的SSL协议。默认设置是TLS，大多数情况下不会有问题。在最近的jvm版本中，允许的值是TLS、tlsv1.1和TLSv1.2。在旧的jvm中可能会支持SSL、SSLv2和SSLv3，但是由于存在已知的安全漏洞，因此不建议使用。</td><td>string</td><td>TLS</td><td></td><td>medium</td></tr>
 <tr>
-<td>ssl.provider</td><td>The name of the security provider used for SSL connections. Default value is the default security provider of the JVM.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.provider</td><td>SSL 连接的security provider 的名称。默认值是当前 JVM 版本的默认 security provider 。</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
 <tr>
 <td>ssl.truststore.type</td><td>The file format of the trust store file.</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
 <tr>
