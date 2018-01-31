@@ -92,7 +92,7 @@
     We have also found, from experience building and running a number of similar systems, that efficiency is a key to effective multi-tenant operations. If the downstream infrastructure service can easily become a
     bottleneck due to a small bump in usage by the application, such small changes will often create problems. By being very fast we help ensure that the application will tip-over under load before the infrastructure.
     This is particularly important when trying to run a centralized service that supports dozens or hundreds of applications on a centralized cluster as changes in usage patterns are a near-daily occurrence.
-    我们还发现, 从经验上看, 建设和运行许多类似的系统,多租户(技术)运行的关键是性能. 如果下游的基础设施服务很轻易被应用程序冲击形成瓶颈,那么这种情况会经常导致问题. 通过非常快的(缓存)技术, 我们能确保应用程序能冲击基础设施之前, 将负载卸下.
+    我们还发现, 从经验上看, 建设和运行许多类似的系统,多租户(技术)运行的关键是性能. 如果下游的基础设施服务很轻易被应用程序冲击形成瓶颈, 那么这种情况会经常导致问题. 通过非常快的(缓存)技术, 我们能确保应用程序能冲击基础设施之前, 将负载稳定下来.
     当尝试去运行支持集中式集群上成百上千个应用程序的集中式服务时, 这一点很重要, 因为应用程序使用方式几乎每天都会发生变化.
     <p>
     We discussed disk efficiency in the previous section. Once poor disk access patterns have been eliminated, there are two common causes of inefficiency in this type of system: too many small I/O operations, and
@@ -104,35 +104,35 @@
     <p>
     To avoid this, our protocol is built around a "message set" abstraction that naturally groups messages together. This allows network requests to group messages together and amortize the overhead of the network
     roundtrip rather than sending a single message at a time. The server in turn appends chunks of messages to its log in one go, and the consumer fetches large linear chunks at a time.
-    为了避免这种情况, 我们的协议是建立在一个 "message set" 抽象的基础上, 自然将消息分组在一起, 这允许网络请求将消息分组在一起并分摊网络的开销往返而不是一次发送一条消息. 服务端依次将消息块一次加载到它的日志中, consumer 一次获取大的有顺序
+    为了避免这种情况, 我们的协议是建立在一个 "message set" 抽象的基础上, 合理将消息分组在一起, 这使得网络请求将消息分组在一起并分摊网络的开销往返而不是一次发送一条消息. 服务端依次将消息块一次加载到它的日志中, consumer 一次获取大的有顺序
     的消息块. 
     <p>
     This simple optimization produces orders of magnitude speed up. Batching leads to larger network packets, larger sequential disk operations, contiguous memory blocks, and so on, all of which allows Kafka to turn
     a bursty stream of random message writes into linear writes that flow to the consumers.
-    这个简单的优化将速度产生数量级的提升. 批处理允许更大的网络数据包, 更大的顺序磁盘操作, 连续的内存块等等, 所有这些都使 KafKa 将随机流消息顺序写入, 再流向 consumers .
+    这个简单的优化将速度提升了数量级. 批处理允许更大的网络数据包, 更大的顺序读写磁盘操作, 连续的内存块等等, 所有这些都使 KafKa 将随机流消息顺序写入, 再流向 consumers .
     <p>
     The other inefficiency is in byte copying. At low message rates this is not an issue, but under load the impact is significant. To avoid this we employ a standardized binary message format that is shared by the
     producer, the broker, and the consumer (so data chunks can be transferred without modification between them).
-    另一个低效率的操作是字节复制, 在消息量少时, 这不是问题. 但是在高负载额情况下, 影响还是挺大的. 为了避免这种情况, 我们使用一个producer , broker , 和 consumer 都能用的标准化的二进制消息格式, 这样数据不用修改就能在他们之间传递. 
+    另一个低效率的操作是字节复制, 在消息量少时, 这不是问题. 但是在高负载情况下, 影响还是挺大的. 为了避免这种情况, 我们使用一个producer , broker , 和 consumer 都能用的标准化的二进制消息格式, 这样数据不用修改就能在他们之间传递. 
     <p>
     The message log maintained by the broker is itself just a directory of files, each populated by a sequence of message sets that have been written to disk in the same format used by the producer and consumer.
     Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data
     out of pagecache to a socket; in Linux this is done with the <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>. 
-    broker 维护的消息日志本身就是一个文件目录, 每个文件都是序列化的 message sets, 以 producer 和 consumer 所使用格式写入到磁盘. 保持这种通用格式能进行最重要优化方式: 持久日志块的网络传输. 
+    broker 维护的消息日志本身就是一个文件目录, 每个文件都是序列化的 message sets, 以 producer 和 consumer 所使用格式写入到磁盘. 保持这种通用格式能得到最重要优化方式: 持久日志块的网络传输. 
     现代的 unix 操作系统提供了一个高度优化的编码路径,用于将数据从页面缓存转移到套接字; Linux 是这样做的 <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
     <p>
     To understand the impact of sendfile, it is important to understand the common data path for transfer of data from file to socket:
     为了理解 sendfile 的意义, 了解数据从文件传输到套接字的常见数据路径非常重要: 
     <ol>
-        <li>The operating system reads data from the disk into pagecache in kernel space 操作系统从磁盘读取数据到内核空间的pagecache</li>
+        <li>The operating system reads data from the disk into pagecache in kernel space 操作系统从磁盘读取数据到内核空间的 pagecache </li>
         <li>The application reads the data from kernel space into a user-space buffer  应用程序读取内核空间的数据到用户空间的缓冲区</li>
         <li>The application writes the data back into kernel space into a socket buffer  应用程序将数据(用户空间的缓冲区)写回内核空间到套接字缓冲区(内核空间)</li>
-        <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network 操作系统将数据从套接字缓冲区(内核空间)复制到通过网络发送的NIC缓冲区 </li>
+        <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network 操作系统将数据从套接字缓冲区(内核空间)复制到通过网络发送的 NIC 缓冲区 </li>
     </ol>
     <p>
     This is clearly inefficient, there are four copies and two system calls. Using sendfile, this re-copying is avoided by allowing the OS to send the data from pagecache to the network directly. So in this optimized
     path, only the final copy to the NIC buffer is needed.
-    这显然是低效的, 有四个副本和两个系统调用. 使用 sendfile, 通过允许操作系统将数据从 pagecache 直接发送到网络,这样避免重新复制数据. 所以在这个优化路径,只需要将最终拷贝到NIC缓冲区.
+    这显然是低效的, 有四个副本和两次系统调用. 使用 sendfile , 通过允许操作系统将数据从 pagecache 直接发送到网络, 这样避免重新复制数据. 所以在这个优化路径,只需要最后将数据拷贝到 NIC 缓冲区.
     <p>
     We expect a common use case to be multiple consumers on a topic. Using the zero-copy optimization above, data is copied into pagecache exactly once and reused on each consumption instead of being stored in memory
     and copied out to user-space every time it is read. This allows messages to be consumed at a rate that approaches the limit of the network connection. 
@@ -150,11 +150,11 @@
     the user can always compress its messages one at a time without any support needed from Kafka, but this can lead to very poor compression ratios as much of the redundancy is due to repetition between messages of
     the same type (e.g. field names in JSON or user agents in web logs or common string values). Efficient compression requires compressing multiple messages together rather than compressing each message individually.
     在某些情况下, 数据传输的瓶颈不是 CPU 或 磁盘, 而是网络带宽. 对于需要通过广域网在数据中心之间发送消息的数据管道尤其如此. 当然, 用户可以在不需要 Kakfa 支持下一个一个的压缩消息. 但是这样会造成非常差的压缩比, 和消息重复类型的冗余, 比如
-    JSON 中的字段名称或者是或Web日志中的用户代理或公共字符串值. 高性能的压缩是一次压缩多个消息, 而不是压缩单个消息.
+    JSON 中的字段名称或者是或 Web 日志中的用户代理或公共字符串值. 高性能的压缩是一次压缩多个消息, 而不是压缩单个消息.
     <p>
     Kafka supports this with an efficient batching format. A batch of messages can be clumped together compressed and sent to the server in this form. This batch of messages will be written in compressed form and will
     remain compressed in the log and will only be decompressed by the consumer.
-    Kafka 以高效的批处理格式支持这一点. 一批消息可以压缩在一起发送到服务器. 这批消息将以压缩格式写入, 并且在日志中保持压缩, 只会在 consumer 消费时解压缩.
+    Kafka 以高效的批处理格式支持一批消息可以压缩在一起发送到服务器. 这批消息将以压缩格式写入, 并且在日志中保持压缩, 只会在 consumer 消费时解压缩.
     <p>
     Kafka supports GZIP, Snappy and LZ4 compression protocols. More details on compression can be found <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">here</a>.
     Kafka 支持 GZIP, Snappy 和 LZ4 压缩协议. 更多有关压缩的资料参看 <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">这里</a>.
@@ -305,7 +305,7 @@
     <p>
     Kafka replicates the log for each topic's partitions across a configurable number of servers (you can set this replication factor on a topic-by-topic basis). This allows automatic failover to these replicas when a
     server in the cluster fails so messages remain available in the presence of failures.
-    Kafka 允许 topic 的分区拥有若干副本, 这个数量是可以配置的, 您可以为每个topic 配置副本的数量. Kafka会自动在每个个副本上备份数据, 所以当一个节点 down 掉时数据依然是可用的. 
+    Kafka 允许 topic 的分区拥有若干备份, 这个数量是可以配置的, 您可以为每个topic 配置备份的数量. 当集群中的节点出现故障时, 能进行故障转移, 数据依然是可用的. 
     <p>
     Other messaging systems provide some replication-related features, but, in our (totally biased) opinion, this appears to be a tacked-on thing, not heavily used, and with large downsides: slaves are inactive,
     throughput is heavily impacted, it requires fiddly manual configuration, etc. Kafka is meant to be used with replication by default&mdash;in fact we implement un-replicated topics as replicated topics where the
