@@ -76,27 +76,27 @@
 <tr>
 <td>max.in.flight.requests.per.connection</td><td>在阻塞之前，允许客户端在一个连接上发送的未确认请求的最大数量。注意，如果这个设置大于1，并且有失败的发送，则消息可能会由于重试而导致重新排序(如果重试是启用的话)。</td><td>int</td><td>5</td><td>[1,...]</td><td>low</td></tr>
 <tr>
-<td>metadata.max.age.ms</td><td>The period of time in milliseconds after which we force a refresh of metadata even if we haven't seen any partition leadership changes to proactively discover any new brokers or partitions.</td><td>long</td><td>300000</td><td>[0,...]</td><td>low</td></tr>
+<td>metadata.max.age.ms</td><td>刷新元数据的时间间隔，单位毫秒。即使没有发现任何分区的 leadership 发生变更也会强制刷新以便能主动发现新的 Broker 或者新的分区。</td><td>long</td><td>300000</td><td>[0,...]</td><td>low</td></tr>
 <tr>
-<td>metric.reporters</td><td>A list of classes to use as metrics reporters. Implementing the <code>org.apache.kafka.common.metrics.MetricsReporter</code> interface allows plugging in classes that will be notified of new metric creation. The JmxReporter is always included to register JMX statistics.</td><td>list</td><td>""</td><td></td><td>low</td></tr>
+<td>metric.reporters</td><td>用于指标监控报表的类清单。实现<code>org.apache.kafka.common.metrics.MetricsReporter</code>接口之后允许插入能够通知新的创建度量的类。JmxReporter 总是包含在注册的 JMX 统计信息中。</td><td>list</td><td>""</td><td></td><td>low</td></tr>
 <tr>
-<td>metrics.num.samples</td><td>The number of samples maintained to compute metrics.</td><td>int</td><td>2</td><td>[1,...]</td><td>low</td></tr>
+<td>metrics.num.samples</td><td>计算 metrics 所需要维持的样本数量。</td><td>int</td><td>2</td><td>[1,...]</td><td>low</td></tr>
 <tr>
-<td>metrics.recording.level</td><td>The highest recording level for metrics.</td><td>string</td><td>INFO</td><td>[INFO, DEBUG]</td><td>low</td></tr>
+<td>metrics.recording.level</td><td>metrics 的最高纪录级别。</td><td>string</td><td>INFO</td><td>[INFO, DEBUG]</td><td>low</td></tr>
 <tr>
-<td>metrics.sample.window.ms</td><td>The window of time a metrics sample is computed over.</td><td>long</td><td>30000</td><td>[0,...]</td><td>low</td></tr>
+<td>metrics.sample.window.ms</td><td>计算 metrics 样本的时间窗口。</td><td>long</td><td>30000</td><td>[0,...]</td><td>low</td></tr>
 <tr>
-<td>reconnect.backoff.max.ms</td><td>The maximum amount of time in milliseconds to wait when reconnecting to a broker that has repeatedly failed to connect. If provided, the backoff per host will increase exponentially for each consecutive connection failure, up to this maximum. After calculating the backoff increase, 20% random jitter is added to avoid connection storms.</td><td>long</td><td>1000</td><td>[0,...]</td><td>low</td></tr>
+<td>reconnect.backoff.max.ms</td><td>当重新连接到一台多次连接失败的 Broker 时允许等待的最大毫秒数。如果配置该参数，则每台主机的 backoff 将呈指数级增长直到达到配置的最大值。当统计到 backoff 在增长，系统会增加20%的随机波动以避免大量的连接失败。</td><td>long</td><td>1000</td><td>[0,...]</td><td>low</td></tr>
 <tr>
-<td>reconnect.backoff.ms</td><td>The base amount of time to wait before attempting to reconnect to a given host. This avoids repeatedly connecting to a host in a tight loop. This backoff applies to all connection attempts by the client to a broker.</td><td>long</td><td>50</td><td>[0,...]</td><td>low</td></tr>
+<td>reconnect.backoff.ms</td><td>在尝试重新连接到给定的主机之前，需要等待的基本时间。这避免了在一个紧凑的循环中反复连接到同一个主机。这个 backoff 机制应用于客户端到 Broker 的所有连接尝试。</td><td>long</td><td>50</td><td>[0,...]</td><td>low</td></tr>
 <tr>
-<td>retry.backoff.ms</td><td>The amount of time to wait before attempting to retry a failed request to a given topic partition. This avoids repeatedly sending requests in a tight loop under some failure scenarios.</td><td>long</td><td>100</td><td>[0,...]</td><td>low</td></tr>
+<td>retry.backoff.ms</td><td>在尝试将一个失败的请求重试到给定的 topic 分区之前需要等待的时间。这避免在某些失败场景下在紧凑的循环中重复发送请求。</td><td>long</td><td>100</td><td>[0,...]</td><td>low</td></tr>
 <tr>
-<td>sasl.kerberos.kinit.cmd</td><td>Kerberos kinit command path.</td><td>string</td><td>/usr/bin/kinit</td><td></td><td>low</td></tr>
+<td>sasl.kerberos.kinit.cmd</td><td>Kerberos kinit 命令的路径。</td><td>string</td><td>/usr/bin/kinit</td><td></td><td>low</td></tr>
 <tr>
-<td>sasl.kerberos.min.time.before.relogin</td><td>Login thread sleep time between refresh attempts.</td><td>long</td><td>60000</td><td></td><td>low</td></tr>
+<td>sasl.kerberos.min.time.before.relogin</td><td>登陆线程重新尝试登陆之前的休眠时间。</td><td>long</td><td>60000</td><td></td><td>low</td></tr>
 <tr>
-<td>sasl.kerberos.ticket.renew.jitter</td><td>Percentage of random jitter added to the renewal time.</td><td>double</td><td>0.05</td><td></td><td>low</td></tr>
+<td>sasl.kerberos.ticket.renew.jitter</td><td>随机抖动增加到更新时间的百分比。</td><td>double</td><td>0.05</td><td></td><td>low</td></tr>
 <tr>
 <td>sasl.kerberos.ticket.renew.window.factor</td><td>Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket.</td><td>double</td><td>0.8</td><td></td><td>low</td></tr>
 <tr>
