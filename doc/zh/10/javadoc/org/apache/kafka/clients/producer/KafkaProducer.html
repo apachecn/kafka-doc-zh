@@ -213,7 +213,7 @@ implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.ht
   当指定 <code>transactional.id</code> 时，producer 发送的所有消息都必须是事务的一部分。
  </p>
  <p>
-  The transactional producer 使用异常来传递错误状态。特别是，它不需要为 <code>producer.send()</code> 指定回调或在返回的未来调用 <code>.get()</code>：如果任何 <code>producer.send()</code> 或事务性调用在事务过程中遇到不可恢复的错误，则会抛出 <code>KafkaException</code>。
+  The transactional producer 使用异常来传递错误状态。特别是，它不需要为 <code>producer.send()</code> 指定回调或在返回的 Future 上调用 <code>.get()</code> 方法：如果任何 <code>producer.send()</code> 或事务性调用在事务过程中遇到不可恢复的错误，则会抛出 <code>KafkaException</code>。
   有关从事务性发送检测错误的详细信息，请参阅 <a href="../../../../../org/apache/kafka/clients/producer/KafkaProducer.html#send-org.apache.kafka.clients.producer.ProducerRecord-"><code>send(ProducerRecord)</code></a> 文档。
  </p>
  </p>通过在接收到 <code>KafkaException</code> 时调用 <code>producer.abortTransaction()</code>，我们可以确保任何成功的写入都被标记为中止，从而保持事务担保。
