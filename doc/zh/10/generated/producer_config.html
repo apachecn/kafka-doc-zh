@@ -68,13 +68,13 @@
 <tr>
 <td>ssl.provider</td><td>SSL 连接的security provider 的名称。默认值是当前 JVM 版本的默认 security provider 。</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
 <tr>
-<td>ssl.truststore.type</td><td>The file format of the trust store file.</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
+<td>ssl.truststore.type</td><td> truststore 文件的格式。</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
 <tr>
-<td>enable.idempotence</td><td>When set to 'true', the producer will ensure that exactly one copy of each message is written in the stream. If 'false', producer retries due to broker failures, etc., may write duplicates of the retried message in the stream. Note that enabling idempotence requires <code>max.in.flight.requests.per.connection</code> to be less than or equal to 5, <code>retries</code> to be greater than 0 and acks must be 'all'. If these values are not explicitly set by the user, suitable values will be chosen. If incompatible values are set, a ConfigException will be thrown.</td><td>boolean</td><td>false</td><td></td><td>low</td></tr>
+<td>enable.idempotence</td><td>当设置为true时， Producer 将确保每个消息在 Stream 中只写入一个副本。如果为false，由于 Broker 故障导致 Producer 进行重试之类的情况可能会导致消息重复写入到 Stream 中。请注意,启用幂等性需要确保<code> max.in.flight.requests.per.connection</code>小于或等于5，<code>retries</code> 大于等于0，并且<code>ack</code>必须设置为all 。如果这些值不是由用户明确设置的，那么将自动选择合适的值。如果设置了不兼容的值，则将抛出一个ConfigException的异常。</td><td>boolean</td><td>false</td><td></td><td>low</td></tr>
 <tr>
-<td>interceptor.classes</td><td>A list of classes to use as interceptors. Implementing the <code>org.apache.kafka.clients.producer.ProducerInterceptor</code> interface allows you to intercept (and possibly mutate) the records received by the producer before they are published to the Kafka cluster. By default, there are no interceptors.</td><td>list</td><td>null</td><td></td><td>low</td></tr>
+<td>interceptor.classes</td><td>配置 interceptor 类的列表。实现<code> org.apache.kafka.clients.producer.ProducerInterceptor</code>接口之后可以拦截(并可能改变)生产者在发布到卡夫卡集群之前收到的记录。默认情况下，没有 interceptor 。</td><td>list</td><td>null</td><td></td><td>low</td></tr>
 <tr>
-<td>max.in.flight.requests.per.connection</td><td>The maximum number of unacknowledged requests the client will send on a single connection before blocking. Note that if this setting is set to be greater than 1 and there are failed sends, there is a risk of message re-ordering due to retries (i.e., if retries are enabled).</td><td>int</td><td>5</td><td>[1,...]</td><td>low</td></tr>
+<td>max.in.flight.requests.per.connection</td><td>在阻塞之前，允许客户端在一个连接上发送的未确认请求的最大数量。注意，如果这个设置大于1，并且有失败的发送，则消息可能会由于重试而导致重新排序(如果重试是启用的话)。</td><td>int</td><td>5</td><td>[1,...]</td><td>low</td></tr>
 <tr>
 <td>metadata.max.age.ms</td><td>The period of time in milliseconds after which we force a refresh of metadata even if we haven't seen any partition leadership changes to proactively discover any new brokers or partitions.</td><td>long</td><td>300000</td><td>[0,...]</td><td>low</td></tr>
 <tr>
