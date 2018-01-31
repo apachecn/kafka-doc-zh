@@ -696,13 +696,13 @@
     <li>delalloc: Delayed allocation means that the filesystem avoid allocating any blocks until the physical write occurs. This allows ext4 to allocate a large extent instead of smaller pages and helps ensure the data is written sequentially. This feature is great for throughput. It does seem to involve some locking in the filesystem which adds a bit of latency variance.
   </ul>
 
-  <h3><a id="monitoring" href="#monitoring">6.6 Monitoring</a></h3>
+  <h3><a id="monitoring" href="#monitoring">6.6 监控</a></h3>
 
-  Kafka uses Yammer Metrics for metrics reporting in the server and Scala clients. The Java clients use Kafka Metrics, a built-in metrics registry that minimizes transitive dependencies pulled into client applications. Both expose metrics via JMX and can be configured to report stats using pluggable stats reporters to hook up to your monitoring system.
+  Kafka在服务器和Scala客户端使用Yammer Metrics输出指标报告。 Java客户端通过使用Kafka Metrics，一个内置的指标注册表，最大限度地减少了传递到客户端应用程序的依赖关系。两者都通过JMX公开指标，并且可以配置为使用可插拔的统计记录器，连接到您的监控系统来生成统计报告。
   <p>
-  The easiest way to see the available metrics is to fire up jconsole and point it at a running kafka client or server; this will allow browsing all metrics with JMX.
+    查看可用指标的最简单方法是启动jconsole并将其指向正在运行的kafka客户端或服务器;这样你就能浏览JMX的所有指标。
   <p>
-  We do graphing and alerting on the following metrics:
+    我们对以下指标进行图形化和提醒：
   <table class="data-table">
   <tbody><tr>
         <th>Description</th>
@@ -877,9 +877,9 @@
       </tr>
   </tbody></table>
 
-  <h4><a id="selector_monitoring" href="#selector_monitoring">Common monitoring metrics for producer/consumer/connect/streams</a></h4>
+  <h4><a id="selector_monitoring" href="#selector_monitoring">producer/consumer/connect/streams的通用监控指标</a></h4>
 
-  The following metrics are available on producer/consumer/connector/streams instances.  For specific metrics, please see following sections.
+  以下指标可用于 producer/consumer/connector/streams 实例。有关具体指标，请参阅以下部分。
 
   <table class="data-table">
     <tbody>
@@ -966,9 +966,9 @@
     </tbody>
   </table>
 
-  <h4><a id="common_node_monitoring" href="#common_node_monitoring">Common Per-broker metrics for producer/consumer/connect/streams</a></h4>
+  <h4><a id="common_node_monitoring" href="#common_node_monitoring">producer/consumer/connect/streams对应的每个broker的通用指标</a></h4>
 
-  The following metrics are available on producer/consumer/connector/streams instances.  For specific metrics, please see following sections.
+  以下指标可用于 producer/consumer/connector/streams 实例。有关具体指标，请参阅以下部分。
 
   <table class="data-table">
     <tbody>
@@ -1020,9 +1020,9 @@
     </tbody>
   </table>
 
-  <h4><a id="producer_monitoring" href="#producer_monitoring">Producer monitoring</a></h4>
+  <h4><a id="producer_monitoring" href="#producer_monitoring">Producer 监控</a></h4>
 
-  The following metrics are available on producer instances.
+  以下指标可用于 producer 实例。
 
   <table class="data-table">
   <tbody><tr>
@@ -1053,14 +1053,14 @@
 
   </tbody></table>
 
-  <h5><a id="producer_sender_monitoring" href="#producer_sender_monitoring">Producer Sender Metrics</a></h5>
+  <h5><a id="producer_sender_monitoring" href="#producer_sender_monitoring">Producer 发送人指标</a></h5>
 
   <!--#include virtual="generated/producer_metrics.html" -->
 
 
-  <h4><a id="new_consumer_monitoring" href="#new_consumer_monitoring">New consumer monitoring</a></h4>
+  <h4><a id="new_consumer_monitoring" href="#new_consumer_monitoring">新的 consumer 监控</a></h4>
 
-  The following metrics are available on new consumer instances.
+  以下指标可用于新的 consumer 实例。
 
   <h5><a id="new_consumer_group_monitoring" href="#new_consumer_group_monitoring">Consumer Group Metrics</a></h5>
   <table class="data-table">
@@ -1142,32 +1142,27 @@
 
   <!--#include virtual="generated/consumer_metrics.html" -->
 
-  <h4><a id="connect_monitoring" href="#connect_monitoring">Connect Monitoring</a></h4>
+  <h4><a id="connect_monitoring" href="#connect_monitoring">Connect监控</a></h4>
 
-  A Connect worker process contains all the producer and consumer metrics as well as metrics specific to Connect.
-  The worker process itself has a number of metrics, while each connector and task have additional metrics.
+  一个Connect工作进程包含所有的producer和consumer指标以及特定于Connect的指标。这个工作进程本身有许多指标，而每个连接器和任务都还有额外的指标。
 
   <!--#include virtual="generated/connect_metrics.html" -->
 
-  <h4><a id="kafka_streams_monitoring" href="#kafka_streams_monitoring">Streams Monitoring</a></h4>
+  <h4><a id="kafka_streams_monitoring" href="#kafka_streams_monitoring">Streams监控</a></h4>
 
-  A Kafka Streams instance contains all the producer and consumer metrics as well as additional metrics specific to streams.
-  By default Kafka Streams has metrics with two recording levels: debug and info. The debug level records all metrics, while
-  the info level records only the thread-level metrics.
+  一个Kafka Streams实例包含所有的producer和consumer指标以及特定于streams的额外指标。
+  默认情况下，Kafka Streams有两个记录级别的指标：debug和info。debug级别记录所有的度量，而info级别只记录线程级别的度量。
 
   <p>
-    Note that the metrics have a 3-layer hierarchy. At the top level there are per-thread metrics. Each thread has tasks, with their
-    own metrics. Each task has a number of processor nodes, with their own metrics. Each task also has a number of state stores
-    and record caches, all with their own metrics.
+    注意，这些指标有一个3层的层次结构。在顶层，有每个线程的指标。每个线程都有任务，并有自己的指标。每个任务都有许多处理器节点，并有自己的指标。每个任务都有许多状态存储和记录缓存，所有这些都有自己的指标。
   </p>
-  
-  Use the following configuration option to specify which metrics
-  you want collected:
+
+  使用以下配置选项指定要收集哪些指标：
 
 <pre>metrics.recording.level="info"</pre>
 
-<h5><a id="kafka_streams_thread_monitoring" href="#kafka_streams_thread_monitoring">Thread Metrics</a></h5>
-All the following metrics have a recording level of ``info``:
+<h5><a id="kafka_streams_thread_monitoring" href="#kafka_streams_thread_monitoring">Thread指标</a></h5>
+  以下所有指标的记录级别都是``info``:
 <table class="data-table">
     <tbody>
       <tr>
@@ -1253,8 +1248,8 @@ All the following metrics have a recording level of ``info``:
  </tbody>
 </table>
 
-<h5><a id="kafka_streams_task_monitoring" href="#kafka_streams_task_monitoring">Task Metrics</a></h5>
-All the following metrics have a recording level of ``debug``:
+<h5><a id="kafka_streams_task_monitoring" href="#kafka_streams_task_monitoring">Task指标</a></h5>
+  以下所有指标的记录级别都是``debug``:
  <table class="data-table">
       <tbody>
       <tr>
@@ -1280,8 +1275,8 @@ All the following metrics have a recording level of ``debug``:
  </tbody>
 </table>
 
- <h5><a id="kafka_streams_node_monitoring" href="#kafka_streams_node_monitoring">Processor Node Metrics</a></h5>
-All the following metrics have a recording level of ``debug``:
+ <h5><a id="kafka_streams_node_monitoring" href="#kafka_streams_node_monitoring">Processor Node指标</a></h5>
+  以下所有指标的记录级别都是``debug``:
  <table class="data-table">
       <tbody>
       <tr>
@@ -1357,8 +1352,8 @@ All the following metrics have a recording level of ``debug``:
  </tbody>
  </table>
 
- <h5><a id="kafka_streams_store_monitoring" href="#kafka_streams_store_monitoring">State Store Metrics</a></h5>
-All the following metrics have a recording level of ``debug``:
+ <h5><a id="kafka_streams_store_monitoring" href="#kafka_streams_store_monitoring">State Store指标</a></h5>
+  以下所有指标的记录级别都是``debug``:
 
  <table class="data-table">
       <tbody>
@@ -1505,8 +1500,8 @@ All the following metrics have a recording level of ``debug``:
     </tbody>
  </table>
 
-  <h5><a id="kafka_streams_cache_monitoring" href="#kafka_streams_cache_monitoring">Record Cache Metrics</a></h5>
-All the following metrics have a recording level of ``debug``:
+  <h5><a id="kafka_streams_cache_monitoring" href="#kafka_streams_cache_monitoring">Record Cache指标</a></h5>
+  以下所有指标的记录级别都是``debug``:
 
   <table class="data-table">
       <tbody>
@@ -1533,14 +1528,13 @@ All the following metrics have a recording level of ``debug``:
     </tbody>
  </table>
 
-  <h4><a id="others_monitoring" href="#others_monitoring">Others</a></h4>
+  <h4><a id="others_monitoring" href="#others_monitoring">其它</a></h4>
+  我们建议监视GC时间和其它状态，以及各种服务器状态，如CPU利用率、I/O服务时间等。
 
-  We recommend monitoring GC time and other stats and various server stats such as CPU utilization, I/O service time, etc.
+  在客户端，我们建议监视消息/字节率(全局和每个topic)、请求速率/大小/时间以及消费者端上所有分区之间的最大延迟消息和最小获取请求速率。为了使消费者跟上生产的速率，最大延迟需要小于阈值，最小提取率需要大于0。
 
-  On the client side, we recommend monitoring the message/byte rate (global and per topic), request rate/size/time, and on the consumer side, max lag in messages among all partitions and min fetch request rate. For a consumer to keep up, max lag needs to be less than a threshold and min fetch rate needs to be larger than 0.
-
-  <h4><a id="basic_ops_audit" href="#basic_ops_audit">Audit</a></h4>
-  The final alerting we do is on the correctness of the data delivery. We audit that every message that is sent is consumed by all consumers and measure the lag for this to occur. For important topics we alert if a certain completeness is not achieved in a certain time period. The details of this are discussed in KAFKA-260.
+  <h4><a id="basic_ops_audit" href="#basic_ops_audit">审计</a></h4>
+  我们所做的最后一个提示是关于数据交付的正确性。我们审计发送的每条消息都被所有消费者使用，并测量发生的延迟。对于重要的topics，如果在某个时间段内没有达到一定的完整性，我们会提醒。这个细节在KAFKA-260中讨论。
 
   <h3><a id="zk" href="#zk">6.7 ZooKeeper</a></h3>
 
