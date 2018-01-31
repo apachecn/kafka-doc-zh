@@ -38,16 +38,13 @@ Kafka 的初始用例是将用户活动跟踪管道重建为一组实时发布-�
 Kafka 通常用于监控数据。这涉及到从分布式应用程序中汇总数据，然后生成可操作的集中数据源。
 
 <h4><a id="uses_logs" href="#uses_logs">日志聚合</a></h4>
+许多人使用Kafka来替代日志聚合解决方案。
+日志聚合系统通常从服务器收集物理日志文件，并将其置于一个中心系统（可能是文件服务器或HDFS）进行处理。
+Kafka 从这些日志文件中提取信息，并将其抽象为一个更加清晰的消息流。
+这样可以实现更低的延迟处理且易于支持多个数据源及分布式数据的消耗。
+与Scribe或Flume等以日志为中心的系统相比，Kafka具备同样出色的性能、更强的耐用性（因为复制功能）和更低的端到端延迟。
 
-Many people use Kafka as a replacement for a log aggregation solution.
-Log aggregation typically collects physical log files off servers and puts them in a central place (a file server or HDFS perhaps) for processing.
-Kafka abstracts away the details of files and gives a cleaner abstraction of log or event data as a stream of messages.
-This allows for lower-latency processing and easier support for multiple data sources and distributed data consumption.
-
-In comparison to log-centric systems like Scribe or Flume, Kafka offers equally good performance, stronger durability guarantees due to replication,
-and much lower end-to-end latency.
-
-<h4><a id="uses_streamprocessing" href="#uses_streamprocessing">Stream Processing</a></h4>
+<h4><a id="uses_streamprocessing" href="#uses_streamprocessing">流处理</a></h4>
 
 Many users of Kafka process data in processing pipelines consisting of multiple stages, where raw input data is consumed from Kafka topics and then
 aggregated, enriched, or otherwise transformed into new topics for further consumption or follow-up processing.
@@ -60,14 +57,12 @@ is available in Apache Kafka to perform such data processing as described above.
 Apart from Kafka Streams, alternative open source stream processing tools include <a href="https://storm.apache.org/">Apache Storm</a> and
 <a href="http://samza.apache.org/">Apache Samza</a>.
 
-<h4><a id="uses_eventsourcing" href="#uses_eventsourcing">Event Sourcing</a></h4>
+<h4><a id="uses_eventsourcing" href="#uses_eventsourcing">采集日志</a></h4>
+<a href="http://martinfowler.com/eaaDev/EventSourcing.html">Event sourcing</a>是一种应用程序设计风格，按时间来记录状态的更改。
+Kafka 可以存储非常多的日志数据，为基于 event sourcing 的应用程序提供强有力的支持。
 
-<a href="http://martinfowler.com/eaaDev/EventSourcing.html">Event sourcing</a> is a style of application design where state changes are logged as a
-time-ordered sequence of records. Kafka's support for very large stored log data makes it an excellent backend for an application built in this style.
-
-<h4><a id="uses_commitlog" href="#uses_commitlog">Commit Log</a></h4>
-
-Kafka can serve as a kind of external commit-log for a distributed system. The log helps replicate data between nodes and acts as a re-syncing
-mechanism for failed nodes to restore their data.
-The <a href="/documentation.html#compaction">log compaction</a> feature in Kafka helps support this usage.
-In this usage Kafka is similar to <a href="http://zookeeper.apache.org/bookkeeper/">Apache BookKeeper</a> project.
+<h4><a id="uses_commitlog" href="#uses_commitlog">提交日志</a></h4>
+Kafka 可以从外部为分布式系统提供日志提交功能。
+日志有助于记录节点和行为间的数据，采用重新同步机制可以从失败节点恢复数据。
+Kafka的<a href="/documentation.html#compaction">日志压缩</a> 功能支持这一用法。
+这一点与<a href="http://zookeeper.apache.org/bookkeeper/">Apache BookKeeper</a> 项目类似。
