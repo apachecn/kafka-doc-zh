@@ -45,8 +45,8 @@ Kafka 从这些日志文件中提取信息，并将其抽象为一个更加清�
 与Scribe或Flume等以日志为中心的系统相比，Kafka具备同样出色的性能、更强的耐用性（因为复制功能）和更低的端到端延迟。
 
 <h4><a id="uses_streamprocessing" href="#uses_streamprocessing">流处理</a></h4>
-
-Many users of Kafka process data in processing pipelines consisting of multiple stages, where raw input data is consumed from Kafka topics and then
+许多Kafka 用户提供处理管道来处理数据，处理管道由多个阶段组成，其中原始输入数据从Kafka主题中消耗，然后聚合，丰富或以其他方式转化为新的主题，以供进一步消费或后续处理。例如，用于推荐新闻文章的处理流水线可以从RSS提要抓取文章内容并将其发布到“文章”主题; 进一步的处理可以对这个内容进行归一化或者重复删除，并且将已清理的文章内容发布到新的主题; 最终处理阶段可能会尝试将这些内容推荐给用户。这种处理流水线基于各个主题创建实时数据流的图表。从0.10.0.0开始，这是一个轻量但功能强大的流处理库，称为Kafka Streams 在Apache Kafka中可用于执行如上所述的数据处理。除了Kafka Streams之外，替代性的开源流处理工具还包括Apache Storm和 Apache Samza。
+processing pipelines consisting of multiple stages, where raw input data is consumed from Kafka topics and then
 aggregated, enriched, or otherwise transformed into new topics for further consumption or follow-up processing.
 For example, a processing pipeline for recommending news articles might crawl article content from RSS feeds and publish it to an "articles" topic;
 further processing might normalize or deduplicate this content and published the cleansed article content to a new topic;
