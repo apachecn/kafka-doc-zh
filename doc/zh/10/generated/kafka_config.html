@@ -51,7 +51,7 @@
 <tr>
 <td>log.flush.scheduler.interval.ms</td><td>日志刷新器检查是否需要将所有日志刷新到磁盘的频率（以毫秒为单位）</td><td>long</td><td>9223372036854775807</td><td></td><td>高</td></tr>
 <tr>
-<td>log.flush.start.offset.checkpoint.interval.ms</td><td>我们更新日志持久化记录开始偏移量的频率</td><td>int</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
+<td>log.flush.start.offset.checkpoint.interval.ms</td><td>我们更新日志持久化记录开始offset的频率</td><td>int</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
 <tr>
 <td>log.retention.bytes</td><td>日志删除的大小阈值</td><td>long</td><td>-1</td><td></td><td>高</td></tr>
 <tr>
@@ -73,255 +73,271 @@
 <tr>
 <td>log.segment.delete.delay.ms</td><td>从文件系统中删除一个日志段文件前的保留时间</td><td>long</td><td>60000</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>message.max.bytes</td><td><p>kafka允许的最大的一个批次的消息大小。 如果这个数字增加，且有0.10.2版本以下的消费者，那么消费者的提取大小也必须增加，以便他们可以取得这么大的记录批次。
+<td>message.max.bytes</td><td><p>kafka允许的最大的一个批次的消息大小。 如果这个数字增加，且有0.10.2版本以下的consumer，那么consumer的提取大小也必须增加，以便他们可以取得这么大的记录批次。
  在最新的消息格式版本中，记录总是被组合到一个批次以提高效率。 在以前的消息格式版本中，未压缩的记录不会分组到批次中，并且此限制仅适用于该情况下的单个记录。</p><p>可以使用topic设置`max.message.bytes`来设置每个topic。 <code>max.message.bytes</code>.</p></td><td>int</td><td>1000012</td><td>[0,...]</td><td>高</td></tr>
 <tr>
-<td>min.insync.replicas</td><td>当生产者将ack设置为“全部”（或“-1”）时，min.insync.replicas指定了被认为写入成功的最小副本数。如果这个最小值不能满足，那么生产者将会引发一个异常（NotEnoughReplicas或NotEnoughReplicasAfterAppend）。当一起使用时，min.insync.replicas和acks允许您强制更大的耐久性保证。 一个经典的情况是创建一个复本数为3的topic，将min.insync.replicas设置为2，并且生产者使用“all”选项。 这将确保如果大多数副本没有写入生产者则抛出异常。</td><td>int</td><td>1</td><td>[1,...]</td><td>高</td></tr>
+<td>min.insync.replicas</td><td>当producer将ack设置为“全部”（或“-1”）时，min.insync.replicas指定了被认为写入成功的最小副本数。如果这个最小值不能满足，那么producer将会引发一个异常（NotEnoughReplicas或NotEnoughReplicasAfterAppend）。当一起使用时，min.insync.replicas和acks允许您强制更大的耐久性保证。 一个经典的情况是创建一个复本数为3的topic，将min.insync.replicas设置为2，并且producer使用“all”选项。 这将确保如果大多数副本没有写入producer则抛出异常。</td><td>int</td><td>1</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>num.io.threads</td><td>The number of threads that the server uses for processing requests, which may include disk I/O</td><td>int</td><td>8</td><td>[1,...]</td><td>high</td></tr>
+<td>num.io.threads</td><td>服务器用于处理请求的线程数，可能包括磁盘I/O</td><td>int</td><td>8</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>num.network.threads</td><td>The number of threads that the server uses for receiving requests from the network and sending responses to the network</td><td>int</td><td>3</td><td>[1,...]</td><td>high</td></tr>
+<td>num.network.threads</td><td>服务器用于从接收网络请求并发送网络响应的线程数</td><td>int</td><td>3</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>num.recovery.threads.per.data.dir</td><td>The number of threads per data directory to be used for log recovery at startup and flushing at shutdown</td><td>int</td><td>1</td><td>[1,...]</td><td>high</td></tr>
+<td>num.recovery.threads.per.data.dir</td><td>每个数据目录，用于启动时日志恢复和关闭时刷新的线程数</td><td>int</td><td>1</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>num.replica.fetchers</td><td>Number of fetcher threads used to replicate messages from a source broker. Increasing this value can increase the degree of I/O parallelism in the follower broker.</td><td>int</td><td>1</td><td></td><td>high</td></tr>
+<td>num.replica.fetchers</td><td>从源broker复制消息的拉取器的线程数。增加这个值可以增加follow broker的I/O并行度。</td><td>int</td><td>1</td><td></td><td>高</td></tr>
 <tr>
-<td>offset.metadata.max.bytes</td><td>The maximum size for a metadata entry associated with an offset commit</td><td>int</td><td>4096</td><td></td><td>high</td></tr>
+<td>offset.metadata.max.bytes</td><td>与offset提交相关联的元数据条目的最大大小</td><td>int</td><td>4096</td><td></td><td>高</td></tr>
 <tr>
-<td>offsets.commit.required.acks</td><td>The required acks before the commit can be accepted. In general, the default (-1) should not be overridden</td><td>short</td><td>-1</td><td></td><td>high</td></tr>
+<td>offsets.commit.required.acks</td><td>在offset提交可以接受之前，需要设置acks的数目，一般不需要更改，默认值为-1。</td><td>short</td><td>-1</td><td></td><td>高</td></tr>
 <tr>
-<td>offsets.commit.timeout.ms</td><td>Offset commit will be delayed until all replicas for the offsets topic receive the commit or this timeout is reached. This is similar to the producer request timeout.</td><td>int</td><td>5000</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.commit.timeout.ms</td><td>offset提交将延迟到topic所有副本收到提交或超时。这与producer请求超时类似。</td><td>int</td><td>5000</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.load.buffer.size</td><td>Batch size for reading from the offsets segments when loading offsets into the cache.</td><td>int</td><td>5242880</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.load.buffer.size</td><td>每次从offset段文件往缓存加载时，批量读取的数据大小</td><td>int</td><td>5242880</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.retention.check.interval.ms</td><td>Frequency at which to check for stale offsets</td><td>long</td><td>600000</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.retention.check.interval.ms</td><td>检查失效offset的频率</td><td>long</td><td>600000</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.retention.minutes</td><td>Offsets older than this retention period will be discarded</td><td>int</td><td>1440</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.retention.minutes</td><td>超过这个保留期限未提交的offset将被丢弃</td><td>int</td><td>1440</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.topic.compression.codec</td><td>Compression codec for the offsets topic - compression may be used to achieve "atomic" commits</td><td>int</td><td>0</td><td></td><td>high</td></tr>
+<td>offsets.topic.compression.codec</td><td>用于offsets topic的压缩编解码器 - 压缩可用于实现“原子”提交</td><td>int</td><td>0</td><td></td><td>高</td></tr>
 <tr>
-<td>offsets.topic.num.partitions</td><td>The number of partitions for the offset commit topic (should not change after deployment)</td><td>int</td><td>50</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.topic.num.partitions</td><td>Offsets topic的分区数量（部署后不应更改）</td><td>int</td><td>50</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.topic.replication.factor</td><td>The replication factor for the offsets topic (set higher to ensure availability). Internal topic creation will fail until the cluster size meets this replication factor requirement.</td><td>short</td><td>3</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.topic.replication.factor</td><td>offset topic的副本数（设置的越大，可用性越高）。内部topic创建将失败，直到集群大小满足此副本数要求。</td><td>short</td><td>3</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>offsets.topic.segment.bytes</td><td>The offsets topic segment bytes should be kept relatively small in order to facilitate faster log compaction and cache loads</td><td>int</td><td>104857600</td><td>[1,...]</td><td>high</td></tr>
+<td>offsets.topic.segment.bytes</td><td>为了便于更快的日志压缩和缓存加载，offset topic段字节应该保持相对较小</td><td>int</td><td>104857600</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>port</td><td>DEPRECATED: only used when `listeners` is not set. Use `listeners` instead. 
-the port to listen and accept connections on</td><td>int</td><td>9092</td><td></td><td>high</td></tr>
+<td>port</td><td>不建议: 仅在未设置“listener”时使用。使用`listeners`来代替。端口用来来监听和接受连接</td><td>int</td><td>9092</td><td></td><td>高</td></tr>
 <tr>
-<td>queued.max.requests</td><td>The number of queued requests allowed before blocking the network threads</td><td>int</td><td>500</td><td>[1,...]</td><td>high</td></tr>
+<td>queued.max.requests</td><td>网络线程阻塞前队列允许的最大请求数</td><td>int</td><td>500</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>quota.consumer.default</td><td>DEPRECATED: Used only when dynamic default quotas are not configured for <user, <client-id> or <user, client-id> in Zookeeper. Any consumer distinguished by clientId/consumer group will get throttled if it fetches more bytes than this value per-second</td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>high</td></tr>
+<td>quota.consumer.default</td><td>不建议:仅在动态默认配额未配置或在zookeeper中使用。任何由clientid区分开来的consumer，如果它每秒产生的字节数多于这个值，就会受到限制</td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>quota.producer.default</td><td>DEPRECATED: Used only when dynamic default quotas are not configured for <user>, <client-id> or <user, client-id> in Zookeeper. Any producer distinguished by clientId will get throttled if it produces more bytes than this value per-second</td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>high</td></tr>
+<td>quota.producer.default</td><td>不建议:仅在动态默认配额未配置或在zookeeper中使用。任何由clientid区分开来的producer，如果它每秒产生的字节数多于这个值，就会受到限制</td><td>long</td><td>9223372036854775807</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>replica.fetch.min.bytes</td><td>Minimum bytes expected for each fetch response. If not enough bytes, wait up to replicaMaxWaitTimeMs</td><td>int</td><td>1</td><td></td><td>high</td></tr>
+<td>replica.fetch.min.bytes</td><td>复制数据过程中，replica收到的每个fetch响应，期望的最小的字节数，如果没有收到足够的字节数，就会等待更多的数据，直到达到replicaMaxWaitTimeMs（复制数据超时时间）</td><td>int</td><td>1</td><td></td><td>高</td></tr>
 <tr>
-<td>replica.fetch.wait.max.ms</td><td>max wait time for each fetcher request issued by follower replicas. This value should always be less than the replica.lag.time.max.ms at all times to prevent frequent shrinking of ISR for low throughput topics</td><td>int</td><td>500</td><td></td><td>high</td></tr>
+<td>replica.fetch.wait.max.ms</td><td>副本follow同leader之间通信的最大等待时间，失败了会重试。 此值始终应始终小于replica.lag.time.max.ms，以防止针对低吞吐量topic频繁收缩ISR</td><td>int</td><td>500</td><td></td><td>高</td></tr>
 <tr>
-<td>replica.high.watermark.checkpoint.interval.ms</td><td>The frequency with which the high watermark is saved out to disk</td><td>long</td><td>5000</td><td></td><td>high</td></tr>
+<td>replica.high.watermark.checkpoint.interval.ms</td><td>high watermark被保存到磁盘的频率，用来标记日后恢复点/td><td>long</td><td>5000</td><td></td><td>高</td></tr>
 <tr>
-<td>replica.lag.time.max.ms</td><td>If a follower hasn't sent any fetch requests or hasn't consumed up to the leaders log end offset for at least this time, the leader will remove the follower from isr</td><td>long</td><td>10000</td><td></td><td>high</td></tr>
+<td>replica.lag.time.max.ms</td><td>如果一个follower在这个时间内没有发送fetch请求或消费leader日志到结束的offset，leader将从ISR中移除这个follower，并认为这个follower已经挂了</td><td>long</td><td>10000</td><td></td><td>高</td></tr>
 <tr>
-<td>replica.socket.receive.buffer.bytes</td><td>The socket receive buffer for network requests</td><td>int</td><td>65536</td><td></td><td>high</td></tr>
+<td>replica.socket.receive.buffer.bytes</td><td>socket接收网络请求的缓存大小</td><td>int</td><td>65536</td><td></td><td>高</td></tr>
 <tr>
-<td>replica.socket.timeout.ms</td><td>The socket timeout for network requests. Its value should be at least replica.fetch.wait.max.ms</td><td>int</td><td>30000</td><td></td><td>high</td></tr>
+<td>replica.socket.timeout.ms</td><td>副本复制数据过程中，发送网络请求的socket超时时间。这个值应该大于replica.fetch.wait.max.ms的值</td><td>int</td><td>30000</td><td></td><td>高</td></tr>
 <tr>
-<td>request.timeout.ms</td><td>The configuration controls the maximum amount of time the client will wait for the response of a request. If the response is not received before the timeout elapses the client will resend the request if necessary or fail the request if retries are exhausted.</td><td>int</td><td>30000</td><td></td><td>high</td></tr>
+<td>request.timeout.ms</td><td>该配置控制客户端等待请求响应的最长时间。如果在超时之前未收到响应，则客户端将在必要时重新发送请求，如果重试仍然失败，则请求失败。</td><td>int</td><td>30000</td><td></td><td>高</td></tr>
 <tr>
-<td>socket.receive.buffer.bytes</td><td>The SO_RCVBUF buffer of the socket sever sockets. If the value is -1, the OS default will be used.</td><td>int</td><td>102400</td><td></td><td>high</td></tr>
+<td>socket.receive.buffer.bytes</td><td>服务端用来处理socket连接的SO_RCVBUFF缓冲大小。如果值为-1，则使用系统默认值。</td><td>int</td><td>102400</td><td></td><td>高</td></tr>
 <tr>
-<td>socket.request.max.bytes</td><td>The maximum number of bytes in a socket request</td><td>int</td><td>104857600</td><td>[1,...]</td><td>high</td></tr>
+<td>socket.request.max.bytes</td><td>socket请求的最大大小，这是为了防止server跑光内存，不能大于Java堆的大小。</td><td>int</td><td>104857600</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>socket.send.buffer.bytes</td><td>The SO_SNDBUF buffer of the socket sever sockets. If the value is -1, the OS default will be used.</td><td>int</td><td>102400</td><td></td><td>high</td></tr>
+<td>socket.send.buffer.bytes</td><td>服务端用来处理socket连接的SO_SNDBUF缓冲大小。如果值为-1，则使用系统默认值。</td><td>int</td><td>102400</td><td></td><td>高</td></tr>
 <tr>
-<td>transaction.max.timeout.ms</td><td>The maximum allowed timeout for transactions. If a client’s requested transaction time exceed this, then the broker will return an error in InitProducerIdRequest. This prevents a client from too large of a timeout, which can stall consumers reading from topics included in the transaction.</td><td>int</td><td>900000</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.max.timeout.ms</td><td>事务允许的最大超时时间。如果客户请求的事务超时，那么broker将在InitProducerIdRequest中返回一错误。 这样可以防止客户超时时间过长，从而阻碍consumers读取事务中包含的topic。</td><td>int</td><td>900000</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transaction.state.log.load.buffer.size</td><td>Batch size for reading from the transaction log segments when loading producer ids and transactions into the cache.</td><td>int</td><td>5242880</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.state.log.load.buffer.size</td><td>将producer ID和事务加载到高速缓存中时，从事务日志段（the transaction log segments）中批量读取的大小。</td><td>int</td><td>5242880</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transaction.state.log.min.isr</td><td>Overridden min.insync.replicas config for the transaction topic.</td><td>int</td><td>2</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.state.log.min.isr</td><td>覆盖事务topic的min.insync.replicas配置</td><td>int</td><td>2</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transaction.state.log.num.partitions</td><td>The number of partitions for the transaction topic (should not change after deployment).</td><td>int</td><td>50</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.state.log.num.partitions</td><td>事务topic的分区数（部署后不应该修改）</td><td>int</td><td>50</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transaction.state.log.replication.factor</td><td>The replication factor for the transaction topic (set higher to ensure availability). Internal topic creation will fail until the cluster size meets this replication factor requirement.</td><td>short</td><td>3</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.state.log.replication.factor</td><td>事务topic的副本数（设置的越大，可用性越高）。内部topic在集群数满足副本数之前，将会一直创建失败。</td><td>short</td><td>3</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transaction.state.log.segment.bytes</td><td>The transaction topic segment bytes should be kept relatively small in order to facilitate faster log compaction and cache loads</td><td>int</td><td>104857600</td><td>[1,...]</td><td>high</td></tr>
+<td>transaction.state.log.segment.bytes</td><td>事务topic段应保持相对较小，以便于更快的日志压缩和缓存负载。</td><td>int</td><td>104857600</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>transactional.id.expiration.ms</td><td>The maximum amount of time in ms that the transaction coordinator will wait before proactively expire a producer's transactional id without receiving any transaction status updates from it.</td><td>int</td><td>604800000</td><td>[1,...]</td><td>high</td></tr>
+ <td>transactional.id.expiration.ms</td><td>事务协调器在未收到任何事务状态更新之前，主动设置producer的事务标识为过期之前将等待的最长时间（以毫秒为单位）</td><td>int</td><td>604800000</td><td>[1,...]</td><td>高</td></tr>
 <tr>
-<td>unclean.leader.election.enable</td><td>Indicates whether to enable replicas not in the ISR set to be elected as leader as a last resort, even though doing so may result in data loss</td><td>boolean</td><td>false</td><td></td><td>high</td></tr>
+<td>unclean.leader.election.enable</td><td>指定副本是否能够不再ISR中被选举为leader，即使这样可能会丢数据</td><td>boolean</td><td>false</td><td></td><td>高</td></tr>
 <tr>
-<td>zookeeper.connection.timeout.ms</td><td>The max time that the client waits to establish a connection to zookeeper. If not set, the value in zookeeper.session.timeout.ms is used</td><td>int</td><td>null</td><td></td><td>high</td></tr>
+<td>zookeeper.connection.timeout.ms</td><td>与ZK server建立连接的超时时间,没有配置就使用zookeeper.session.timeout.ms</td><td>int</td><td>null</td><td></td><td>高</td></tr>
 <tr>
-<td>zookeeper.session.timeout.ms</td><td>Zookeeper session timeout</td><td>int</td><td>6000</td><td></td><td>high</td></tr>
+<td>zookeeper.session.timeout.ms</td><td>ZooKeeper的session的超时时间</td><td>int</td><td>6000</td><td></td><td>高</td></tr>
 <tr>
-<td>zookeeper.set.acl</td><td>Set client to use secure ACLs</td><td>boolean</td><td>false</td><td></td><td>high</td></tr>
+<td>zookeeper.set.acl</td><td>ZooKeeper客户端连接是否设置ACL安全y安装</td><td>boolean</td><td>false</td><td></td><td>高</td></tr>
 <tr>
-<td>broker.id.generation.enable</td><td>Enable automatic broker id generation on the server. When enabled the value configured for reserved.broker.max.id should be reviewed.</td><td>boolean</td><td>true</td><td></td><td>medium</td></tr>
+<td>broker.id.generation.enable</td><td>是否允许服务器自动生成broker.id。如果允许则产生的值会交由reserved.broker.max.id审核</td><td>boolean</td><td>true</td><td></td><td>中</td></tr>
 <tr>
-<td>broker.rack</td><td>Rack of the broker. This will be used in rack aware replication assignment for fault tolerance. Examples: `RACK1`, `us-east-1d`</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>broker.rack</td><td>broker的机架位置。 这将在机架感知副本分配中用于容错。例如：RACK1，us-east-1</td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>connections.max.idle.ms</td><td>Idle connections timeout: the server socket processor threads close the connections that idle more than this</td><td>long</td><td>600000</td><td></td><td>medium</td></tr>
+<td>connections.max.idle.ms</td><td>连接空闲超时：服务器socket处理线程空闲超时关闭时间</td><td>long</td><td>600000</td><td></td><td>中</td></tr>
 <tr>
-<td>controlled.shutdown.enable</td><td>Enable controlled shutdown of the server</td><td>boolean</td><td>true</td><td></td><td>medium</td></tr>
+<td>controlled.shutdown.enable</td><td>是否允许服务器关闭broker服务</td><td>boolean</td><td>true</td><td></td><td>中</td></tr>
 <tr>
-<td>controlled.shutdown.max.retries</td><td>Controlled shutdown can fail for multiple reasons. This determines the number of retries when such failure happens</td><td>int</td><td>3</td><td></td><td>medium</td></tr>
+<td>controlled.shutdown.max.retries</td><td>当发生失败故障时，由于各种原因导致关闭服务的次数</td><td>int</td><td>3</td><td></td><td>中</td></tr>
 <tr>
-<td>controlled.shutdown.retry.backoff.ms</td><td>Before each retry, the system needs time to recover from the state that caused the previous failure (Controller fail over, replica lag etc). This config determines the amount of time to wait before retrying.</td><td>long</td><td>5000</td><td></td><td>medium</td></tr>
+<td>controlled.shutdown.retry.backoff.ms</td><td>在每次重试关闭之前，系统需要时间从上次故障状态（控制器故障切换，副本延迟等）中恢复。
+这个配置决定了重试之前等待的时间。</td><td>long</td><td>5000</td><td></td><td>中</td></tr>
 <tr>
-<td>controller.socket.timeout.ms</td><td>The socket timeout for controller-to-broker channels</td><td>int</td><td>30000</td><td></td><td>medium</td></tr>
+<td>controller.socket.timeout.ms</td><td>控制器到broker通道的socket超时时间</td><td>int</td><td>30000</td><td></td><td>中</td></tr>
 <tr>
-<td>default.replication.factor</td><td>default replication factors for automatically created topics</td><td>int</td><td>1</td><td></td><td>medium</td></tr>
+<td>default.replication.factor</td><td>自动创建topic时的默认副本个数</td><td>int</td><td>1</td><td></td><td>中</td></tr>
 <tr>
-<td>delete.records.purgatory.purge.interval.requests</td><td>The purge interval (in number of requests) of the delete records request purgatory</td><td>int</td><td>1</td><td></td><td>medium</td></tr>
+<td>delete.records.purgatory.purge.interval.requests</td><td>删除purgatory中请求的清理间隔时间（purgatory：broker对于无法立即处理的请求，将会放在purgatory中，当请求完成后，并不会立即清除，还会继续在purgatory中占用资源，直到下一次delete.records.purgatory.purge.interval.requests）</td><td>int</td><td>1</td><td></td><td>中</td></tr>
 <tr>
-<td>fetch.purgatory.purge.interval.requests</td><td>The purge interval (in number of requests) of the fetch request purgatory</td><td>int</td><td>1000</td><td></td><td>medium</td></tr>
+<td>fetch.purgatory.purge.interval.requests</td><td>提取purgatory中请求的间隔时间</td><td>int</td><td>1000</td><td></td><td>中</td></tr>
 <tr>
-<td>group.initial.rebalance.delay.ms</td><td>The amount of time the group coordinator will wait for more consumers to join a new group before performing the first rebalance. A longer delay means potentially fewer rebalances, but increases the time until processing begins.</td><td>int</td><td>3000</td><td></td><td>medium</td></tr>
+<td>group.initial.rebalance.delay.ms</td><td>在执行第一次重新平衡之前，group协调器将等待更多consumer加入group的时间。延迟时间越长意味着重新平衡的工作可能越小，但是等待处理开始的时间增加。</td><td>int</td><td>3000</td><td></td><td>中</td></tr>
 <tr>
-<td>group.max.session.timeout.ms</td><td>The maximum allowed session timeout for registered consumers. Longer timeouts give consumers more time to process messages in between heartbeats at the cost of a longer time to detect failures.</td><td>int</td><td>300000</td><td></td><td>medium</td></tr>
+<td>group.max.session.timeout.ms</td><td>consumer注册允许的最大会话超时时间。超时时间越短，处理心跳越频繁从而使故障检测更快，但会导致broker被抢占更多的资源。</td><td>int</td><td>300000</td><td></td><td>medium</td></tr>
 <tr>
-<td>group.min.session.timeout.ms</td><td>The minimum allowed session timeout for registered consumers. Shorter timeouts result in quicker failure detection at the cost of more frequent consumer heartbeating, which can overwhelm broker resources.</td><td>int</td><td>6000</td><td></td><td>medium</td></tr>
+ <td>group.min.session.timeout.ms</td><td>consumer注册允许的最小会话超时时间。超时时间越短，处理心跳越频繁从而使故障检测更快，但会导致broker被抢占更多的资源。</td><td>int</td><td>6000</td><td></td><td>中</td></tr>
 <tr>
-<td>inter.broker.listener.name</td><td>Name of listener used for communication between brokers. If this is unset, the listener name is defined by security.inter.broker.protocol. It is an error to set this and security.inter.broker.protocol properties at the same time.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>inter.broker.listener.name</td><td>broker间通讯的监听器名称。如果未设置，则侦听器名称由security.inter.broker.protocol定义。 同时设置此项和security.inter.broker.protocol属性是错误的，只设置一个。</td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>inter.broker.protocol.version</td><td>Specify which version of the inter-broker protocol will be used.
- This is typically bumped after all brokers were upgraded to a new version.
- Example of some valid values are: 0.8.0, 0.8.1, 0.8.1.1, 0.8.2, 0.8.2.0, 0.8.2.1, 0.9.0.0, 0.9.0.1 Check ApiVersion for the full list.</td><td>string</td><td>1.0-IV0</td><td></td><td>medium</td></tr>
+<td>inter.broker.protocol.version</td><td>指定使用哪个版本的 inter-broker 协议。 在所有broker升级到新版本之后，这通常会有冲突。一些有效的例子是：0.8.0, 0.8.1, 0.8.1.1, 0.8.2, 0.8.2.0, 0.8.2.1, 0.9.0.0, 0.9.0.1，详情可以检查apiversion的完整列表</td><td>string</td><td>1.0-IV0</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.backoff.ms</td><td>The amount of time to sleep when there are no logs to clean</td><td>long</td><td>15000</td><td>[0,...]</td><td>medium</td></tr>
+<td>log.cleaner.backoff.ms</td><td>检查log是否需要清除的时间间隔。</td><td>long</td><td>15000</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>log.cleaner.dedupe.buffer.size</td><td>The total memory used for log deduplication across all cleaner threads</td><td>long</td><td>134217728</td><td></td><td>medium</td></tr>
+<td>log.cleaner.dedupe.buffer.size</td><td>日志去重清理线程所需要的内存</td><td>long</td><td>134217728</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.delete.retention.ms</td><td>How long are delete records retained?</td><td>long</td><td>86400000</td><td></td><td>medium</td></tr>
+<td>log.cleaner.delete.retention.ms</td><td>日志记录保留时间</td><td>long</td><td>86400000</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.enable</td><td>Enable the log cleaner process to run on the server. Should be enabled if using any topics with a cleanup.policy=compact including the internal offsets topic. If disabled those topics will not be compacted and continually grow in size.</td><td>boolean</td><td>true</td><td></td><td>medium</td></tr>
+<td>log.cleaner.enable</td><td>在服务器上启用日志清理器进程。如果任何topic都使用cleanup.policy = compact，包括内部topic offset，则建议开启。如果被禁用的话，这些topic将不会被压缩，而且会不断增长。</td><td>boolean</td><td>true</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.io.buffer.load.factor</td><td>Log cleaner dedupe buffer load factor. The percentage full the dedupe buffer can become. A higher value will allow more log to be cleaned at once but will lead to more hash collisions</td><td>double</td><td>0.9</td><td></td><td>medium</td></tr>
+<td>log.cleaner.io.buffer.load.factor</td><td>日志清理器去重的缓存负载数。完全重复数据的缓存比例可以改变。数值越高，清理的越多，但会导致更多的hash冲突</td><td>double</td><td>0.9</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.io.buffer.size</td><td>The total memory used for log cleaner I/O buffers across all cleaner threads</td><td>int</td><td>524288</td><td>[0,...]</td><td>medium</td></tr>
+<td>log.cleaner.io.buffer.size</td><td>所有清理线程的日志清理I/O缓存区所需要的内存</td><td>int</td><td>524288</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>log.cleaner.io.max.bytes.per.second</td><td>The log cleaner will be throttled so that the sum of its read and write i/o will be less than this value on average</td><td>double</td><td>1.7976931348623157E308</td><td></td><td>medium</td></tr>
+<td>log.cleaner.io.max.bytes.per.second</td><td>日志清理器受到的大小限制数，因此它的I/O读写总和将小于平均值</td><td>double</td><td>1.7976931348623157E308</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.min.cleanable.ratio</td><td>The minimum ratio of dirty log to total log for a log to eligible for cleaning</td><td>double</td><td>0.5</td><td></td><td>medium</td></tr>
+<td>log.cleaner.min.cleanable.ratio</td><td>日志中脏数据清理比例</td><td>double</td><td>0.5</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.min.compaction.lag.ms</td><td>The minimum time a message will remain uncompacted in the log. Only applicable for logs that are being compacted.</td><td>long</td><td>0</td><td></td><td>medium</td></tr>
+<td>log.cleaner.min.compaction.lag.ms</td><td>消息在日志中保持未压缩的最短时间。
+ 仅适用于正在压缩的日志。</td><td>long</td><td>0</td><td></td><td>中</td></tr>
 <tr>
-<td>log.cleaner.threads</td><td>The number of background threads to use for log cleaning</td><td>int</td><td>1</td><td>[0,...]</td><td>medium</td></tr>
+<td>log.cleaner.threads</td><td>用于日志清理的后台线程的数量</td><td>int</td><td>1</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>log.cleanup.policy</td><td>The default cleanup policy for segments beyond the retention window. A comma separated list of valid policies. Valid policies are: "delete" and "compact"</td><td>list</td><td>delete</td><td>[compact, delete]</td><td>medium</td></tr>
+<td>log.cleanup.policy</td><td>超出保留窗口期的日志段的默认清理策略。用逗号隔开有效策略列表。有效策略：“delete”和“compact”</td><td>list</td><td>delete</td><td>[compact, delete]</td><td>中</td></tr>
 <tr>
-<td>log.index.interval.bytes</td><td>The interval with which we add an entry to the offset index</td><td>int</td><td>4096</td><td>[0,...]</td><td>medium</td></tr>
+<td>log.index.interval.bytes</td><td>添加offset索引字段大小间隔（设置越大，代表扫描速度越快，但是也更耗内存）</td><td>int</td><td>4096</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>log.index.size.max.bytes</td><td>The maximum size in bytes of the offset index</td><td>int</td><td>10485760</td><td>[4,...]</td><td>medium</td></tr>
+<td>log.index.size.max.bytes</td><td>offset索引的最大字节数</td><td>int</td><td>10485760</td><td>[4,...]</td><td>中</td></tr>
 <tr>
-<td>log.message.format.version</td><td>Specify the message format version the broker will use to append messages to the logs. The value should be a valid ApiVersion. Some examples are: 0.8.2, 0.9.0.0, 0.10.0, check ApiVersion for more details. By setting a particular message format version, the user is certifying that all the existing messages on disk are smaller or equal than the specified version. Setting this value incorrectly will cause consumers with older versions to break as they will receive messages with a format that they don't understand.</td><td>string</td><td>1.0-IV0</td><td></td><td>medium</td></tr>
+<td>log.message.format.version</td><td>指定broker用于将消息附加到日志的消息格式版本。应该是一个有效的apiversion值。例如：0.8.2，0.9.0.0，0.10.0，详情去看apiversion。通过设置特定的消息格式版本，用户得保证磁盘上的所有现有消息的版本小于或等于指定的版本。不正确地设置这个值会导致旧版本的用户出错，因为他们将接收到他们无法处理的格式消息。</td><td>string</td><td>1.0-IV0</td><td></td><td>中</td></tr>
 <tr>
-<td>log.message.timestamp.difference.max.ms</td><td>The maximum difference allowed between the timestamp when a broker receives a message and the timestamp specified in the message. If log.message.timestamp.type=CreateTime, a message will be rejected if the difference in timestamp exceeds this threshold. This configuration is ignored if log.message.timestamp.type=LogAppendTime.The maximum timestamp difference allowed should be no greater than log.retention.ms to avoid unnecessarily frequent log rolling.</td><td>long</td><td>9223372036854775807</td><td></td><td>medium</td></tr>
+<td>log.message.timestamp.difference.max.ms</td><td>broker收到消息时的时间戳和消息中指定的时间戳之间允许的最大差异。当log.message.timestamp.type=CreateTime,如果时间差超过这个阈值，消息将被拒绝。如果log.message.timestamp.type = logappendtime，则该配置将被忽略。允许的最大时间戳差值，不应大于log.retention.ms，以避免不必要的频繁日志滚动。</td><td>long</td><td>9223372036854775807</td><td></td><td>中</td></tr>
 <tr>
-<td>log.message.timestamp.type</td><td>Define whether the timestamp in the message is message create time or log append time. The value should be either `CreateTime` or `LogAppendTime`</td><td>string</td><td>CreateTime</td><td>[CreateTime, LogAppendTime]</td><td>medium</td></tr>
+<td>log.message.timestamp.type</td><td>定义消息中的时间戳是消息创建时间还是日志追加时间。
+该值应该是“createtime”或“logappendtime”。</td><td>string</td><td>CreateTime</td><td>[CreateTime, LogAppendTime]</td><td>中</td></tr>
 <tr>
-<td>log.preallocate</td><td>Should pre allocate file when create new segment? If you are using Kafka on Windows, you probably need to set it to true.</td><td>boolean</td><td>false</td><td></td><td>medium</td></tr>
+<td>log.preallocate</td><td>创建新的日志段前是否应该预先分配文件？如果你在windows上使用kafka，你可能需要打开个这个选项</td><td>boolean</td><td>false</td><td></td><td>中</td></tr>
 <tr>
-<td>log.retention.check.interval.ms</td><td>The frequency in milliseconds that the log cleaner checks whether any log is eligible for deletion</td><td>long</td><td>300000</td><td>[1,...]</td><td>medium</td></tr>
+<td>log.retention.check.interval.ms</td><td>日志清理器检查是否有日志符合删除的频率（以毫秒为单位）</td><td>long</td><td>300000</td><td>[1,...]</td><td>中</td></tr>
 <tr>
-<td>max.connections.per.ip</td><td>The maximum number of connections we allow from each ip address</td><td>int</td><td>2147483647</td><td>[1,...]</td><td>medium</td></tr>
+<td>max.connections.per.ip</td><td>每个IP允许的最大连接数</td><td>int</td><td>2147483647</td><td>[1,...]</td><td>中</td></tr>
 <tr>
-<td>max.connections.per.ip.overrides</td><td>Per-ip or hostname overrides to the default maximum number of connections</td><td>string</td><td>""</td><td></td><td>medium</td></tr>
+<td>max.connections.per.ip.overrides</td><td>每个IP或主机名将覆盖默认的最大连接数</td><td>string</td><td>""</td><td></td><td>中</td></tr>
 <tr>
-<td>num.partitions</td><td>The default number of log partitions per topic</td><td>int</td><td>1</td><td>[1,...]</td><td>medium</td></tr>
+<td>num.partitions</td><td>每个topic的默认日志分区数</td><td>int</td><td>1</td><td>[1,...]</td><td>中</td></tr>
 <tr>
-<td>principal.builder.class</td><td>The fully qualified name of a class that implements the KafkaPrincipalBuilder interface, which is used to build the KafkaPrincipal object used during authorization. This config also supports the deprecated PrincipalBuilder interface which was previously used for client authentication over SSL. If no principal builder is defined, the default behavior depends on the security protocol in use. For SSL authentication, the principal name will be the distinguished name from the client certificate if one is provided; otherwise, if client authentication is not required, the principal name will be ANONYMOUS. For SASL authentication, the principal will be derived using the rules defined by <code>sasl.kerberos.principal.to.local.rules</code> if GSSAPI is in use, and the SASL authentication ID for other mechanisms. For PLAINTEXT, the principal will be ANONYMOUS.</td><td>class</td><td>null</td><td></td><td>medium</td></tr>
+<td>principal.builder.class</td><td>实现kafkaprincipalbuilder接口类的全名，该接口用于构建授权期间使用的kafkaprincipal对象。此配置还支持以前已弃用的用于ssl客户端身份验证的principalbuilder接口。如果未定义主体构建器，则默认采用所使用的安全协议。对于ssl身份验证，如果提供了一个主体名称，主体名称将是客户端证书的专有名称;否则，如果不需要客户端身份验证，则主体名称将是匿名的。对于sasl身份验证，如果使用gssapi，则将使用由<code>sasl.kerberos.principal.to.local.rules</code>定义的规则来生成主体，而使用其他机制的sasl身份验证ID。若果用明文，委托人将是匿名的。</td><td>class</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>producer.purgatory.purge.interval.requests</td><td>The purge interval (in number of requests) of the producer request purgatory</td><td>int</td><td>1000</td><td></td><td>medium</td></tr>
+<td>producer.purgatory.purge.interval.requests</td><td>producer请求purgatory的清除间隔（请求数量）</td><td>int</td><td>1000</td><td></td><td>中</td></tr>
 <tr>
-<td>queued.max.request.bytes</td><td>The number of queued bytes allowed before no more requests are read</td><td>long</td><td>-1</td><td></td><td>medium</td></tr>
+<td>queued.max.request.bytes</td><td>在不再读取请求之前队列的字节数</td><td>long</td><td>-1</td><td></td><td>中</td></tr>
 <tr>
-<td>replica.fetch.backoff.ms</td><td>The amount of time to sleep when fetch partition error occurs.</td><td>int</td><td>1000</td><td>[0,...]</td><td>medium</td></tr>
+<td>replica.fetch.backoff.ms</td><td>当拉取分区发生错误时，睡眠的时间。</td><td>int</td><td>1000</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>replica.fetch.max.bytes</td><td>The number of bytes of messages to attempt to fetch for each partition. This is not an absolute maximum, if the first record batch in the first non-empty partition of the fetch is larger than this value, the record batch will still be returned to ensure that progress can be made. The maximum record batch size accepted by the broker is defined via <code>message.max.bytes</code> (broker config) or <code>max.message.bytes</code> (topic config).</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
+<td>replica.fetch.max.bytes</td><td>尝试提取每个分区的消息的字节数。这并不是绝对最大值，如果第一个非空分区的第一个批量记录大于这个值，那么批处理仍将被执行并返回，以确保进度可以正常进行下去。broker接受的最大批量记录大小通过<code>message.max.bytes</code>（broker配置）或<code>max.message.bytes</code>（topic配置）进行配置。</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>replica.fetch.response.max.bytes</td><td>Maximum bytes expected for the entire fetch response. Records are fetched in batches, and if the first record batch in the first non-empty partition of the fetch is larger than this value, the record batch will still be returned to ensure that progress can be made. As such, this is not an absolute maximum. The maximum record batch size accepted by the broker is defined via <code>message.max.bytes</code> (broker config) or <code>max.message.bytes</code> (topic config).</td><td>int</td><td>10485760</td><td>[0,...]</td><td>medium</td></tr>
+<td>replica.fetch.response.max.bytes</td><td>预计整个获取响应的最大字节数。记录被批量取回时，如果取第一个非空分区的第一个批量记录大于此值，记录的批处理仍将被执行并返回以确保可以进行下去。因此，这不是绝对的最大值。
+broker接受的最大批量记录大小通过<code>message.max.bytes</code>（broker配置）或<code>max.message.bytes</code>（topic配置）进行配置。</td><td>int</td><td>10485760</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>reserved.broker.max.id</td><td>Max number that can be used for a broker.id</td><td>int</td><td>1000</td><td>[0,...]</td><td>medium</td></tr>
+<td>reserved.broker.max.id</td><td>可以用于broker.id的最大数量</td><td>int</td><td>1000</td><td>[0,...]</td><td>中</td></tr>
 <tr>
-<td>sasl.enabled.mechanisms</td><td>The list of SASL mechanisms enabled in the Kafka server. The list may contain any mechanism for which a security provider is available. Only GSSAPI is enabled by default.</td><td>list</td><td>GSSAPI</td><td></td><td>medium</td></tr>
+<td>sasl.enabled.mechanisms</td><td>kafka服务器中启用的sasl机制的列表。
+该列表可能包含安全提供程序可用的任何机制。默认情况下只有gssapi是启用的。</td><td>list</td><td>GSSAPI</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.kinit.cmd</td><td>Kerberos kinit command path.</td><td>string</td><td>/usr/bin/kinit</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.kinit.cmd</td><td>Kerberos kinit 命令路径。</td><td>string</td><td>/usr/bin/kinit</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.min.time.before.relogin</td><td>Login thread sleep time between refresh attempts.</td><td>long</td><td>60000</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.min.time.before.relogin</td><td>登录线程在尝试刷新间隔内的休眠时间。</td><td>long</td><td>60000</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.principal.to.local.rules</td><td>A list of rules for mapping from principal names to short names (typically operating system usernames). The rules are evaluated in order and the first rule that matches a principal name is used to map it to a short name. Any later rules in the list are ignored. By default, principal names of the form {username}/{hostname}@{REALM} are mapped to {username}. For more details on the format please see <a href="#security_authz"> security authorization and acls</a>. Note that this configuration is ignored if an extension of KafkaPrincipalBuilder is provided by the <code>principal.builder.class</code> configuration.</td><td>list</td><td>DEFAULT</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.principal.to.local.rules</td><td>主体名称到简称映射的规则列表（通常是操作系统用户名）。按顺序，使用与principal名称匹配的第一个规则将其映射到简称。列表中的任何后续规则都将被忽略。
+默认情况下，{username} / {hostname} @ {realm}形式的主体名称映射到{username}。
+ 有关格式的更多细节，请参阅<a href="#security_authz">安全授权和acls</a>。
+请注意，如果由principal.builder.class配置提供了kafkaprincipalbuilder的扩展，则忽略此配置。</td><td>list</td><td>DEFAULT</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.service.name</td><td>The Kerberos principal name that Kafka runs as. This can be defined either in Kafka's JAAS config or in Kafka's config.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.service.name</td><td>kafka运行的kerberos的主体名称。
+这可以在kafka的JAAS配置或在kafka的配置中定义。</td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.ticket.renew.jitter</td><td>Percentage of random jitter added to the renewal time.</td><td>double</td><td>0.05</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.ticket.renew.jitter</td><td>添加到更新时间的随机抖动的百分比</td><td>double</td><td>0.05</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.kerberos.ticket.renew.window.factor</td><td>Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket.</td><td>double</td><td>0.8</td><td></td><td>medium</td></tr>
+<td>sasl.kerberos.ticket.renew.window.factor</td><td>登录线程将休眠，直到从上次刷新到ticket的到期的时间到达（指定窗口因子），在此期间它将尝试更新ticket。</td><td>double</td><td>0.8</td><td></td><td>中</td></tr>
 <tr>
-<td>sasl.mechanism.inter.broker.protocol</td><td>SASL mechanism used for inter-broker communication. Default is GSSAPI.</td><td>string</td><td>GSSAPI</td><td></td><td>medium</td></tr>
+<td>sasl.mechanism.inter.broker.protocol</td><td>SASL机制，用于broker之间的通讯，默认是GSSAPI。</td><td>string</td><td>GSSAPI</td><td></td><td>中</td></tr>
 <tr>
-<td>security.inter.broker.protocol</td><td>Security protocol used to communicate between brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL. It is an error to set this and inter.broker.listener.name properties at the same time.</td><td>string</td><td>PLAINTEXT</td><td></td><td>medium</td></tr>
+<td>security.inter.broker.protocol</td><td>broker之间的安全通讯协议，有效值有：PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL。同时设置此配置和inter.broker.listener.name属性会出错</td><td>string</td><td>PLAINTEXT</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.cipher.suites</td><td>A list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol. By default all the available cipher suites are supported.</td><td>list</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.cipher.suites</td><td>密码套件列表。
+这是一种用于使用tls或ssl网络协议来协商网络连接的安全设置的认证，加密，mac和密钥交换算法的命名组合。
+默认情况下，所有可用的密码套件都受支持。</td><td>list</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.client.auth</td><td>Configures kafka broker to request client authentication. The following settings are common:  <ul> <li><code>ssl.client.auth=required</code> If set to required client authentication is required. <li><code>ssl.client.auth=requested</code> This means client authentication is optional. unlike requested , if this option is set client can choose not to provide authentication information about itself <li><code>ssl.client.auth=none</code> This means client authentication is not needed.</td><td>string</td><td>none</td><td>[required, requested, none]</td><td>medium</td></tr>
+ <td>ssl.client.auth</td><td>配置请求客户端的broker认证。常见的设置：<ul> <li><code>ssl.client.auth=required</code>如果设置需要客户端认证。<li><code>ssl.client.auth=requested</code>客户端认证可选，不同于requested，客户端可选择不提供自身的身份验证信息。<li><code>ssl.client.auth=none</code> 不需要客户端身份认证。</li></ul></td><td>string</td><td>none</td><td>[required, requested, none]</td><td>中</td></tr>
 <tr>
-<td>ssl.enabled.protocols</td><td>The list of protocols enabled for SSL connections.</td><td>list</td><td>TLSv1.2,TLSv1.1,TLSv1</td><td></td><td>medium</td></tr>
+<td>ssl.enabled.protocols</td><td>已启用的SSL连接协议列表。</td><td>list</td><td>TLSv1.2,TLSv1.1,TLSv1</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.key.password</td><td>The password of the private key in the key store file. This is optional for client.</td><td>password</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.key.password</td><td>秘钥库文件中的私钥密码。对客户端是可选的。</td><td>password</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.keymanager.algorithm</td><td>The algorithm used by key manager factory for SSL connections. Default value is the key manager factory algorithm configured for the Java Virtual Machine.</td><td>string</td><td>SunX509</td><td></td><td>medium</td></tr>
+<td>ssl.keymanager.algorithm</td><td>用于SSL连接的密钥管理工厂算法。默认值是为Java虚拟机配置的密钥管理器工厂算法。</td><td>string</td><td>SunX509</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.keystore.location</td><td>The location of the key store file. This is optional for client and can be used for two-way authentication for client.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.keystore.location</td><td>密钥仓库文件的位置。客户端可选，并可用于客户端的双向认证。</td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.keystore.password</td><td>The store password for the key store file. This is optional for client and only needed if ssl.keystore.location is configured. </td><td>password</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.keystore.password</td><td>密钥仓库文件的仓库密码。客户端可选，只有ssl.keystore.location配置了才需要。</td><td>password</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.keystore.type</td><td>The file format of the key store file. This is optional for client.</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
+<td>ssl.keystore.type</td><td>密钥仓库文件的格式。客户端可选。</td><td>string</td><td>JKS</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.protocol</td><td>The SSL protocol used to generate the SSLContext. Default setting is TLS, which is fine for most cases. Allowed values in recent JVMs are TLS, TLSv1.1 and TLSv1.2. SSL, SSLv2 and SSLv3 may be supported in older JVMs, but their usage is discouraged due to known security vulnerabilities.</td><td>string</td><td>TLS</td><td></td><td>medium</td></tr>
+<td>ssl.protocol</td><td>用于生成SSLContext，默认是TLS，适用于大多数情况。允许使用最新的JVM，LS, TLSv1.1 和TLSv1.2。 SSL，SSLv2和SSLv3 老的JVM也可能支持，但由于有已知的安全漏洞，不建议使用。</td><td>string</td><td>TLS</td><td></td><td></td></tr>
 <tr>
-<td>ssl.provider</td><td>The name of the security provider used for SSL connections. Default value is the default security provider of the JVM.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.provider</td><td>用于SSL连接的安全提供程序的名称。默认值由JVM的安全程序提供。</td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.trustmanager.algorithm</td><td>The algorithm used by trust manager factory for SSL connections. Default value is the trust manager factory algorithm configured for the Java Virtual Machine.</td><td>string</td><td>PKIX</td><td></td><td>medium</td></tr>
+<td>ssl.trustmanager.algorithm</td><td>信任管理工厂用于SSL连接的算法。默认为Java虚拟机配置的信任算法。</td><td>string</td><td>PKIX</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.truststore.location</td><td>The location of the trust store file. </td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.truststore.location</td><td>信任文件的存储位置。 </td><td>string</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.truststore.password</td><td>The password for the trust store file. If a password is not set access to the truststore is still available, but integrity checking is disabled.</td><td>password</td><td>null</td><td></td><td>medium</td></tr>
+<td>ssl.truststore.password</td><td>信任存储文件的密码。
+如果密码未设置，则仍然可以访问信任库，但完整性检查将被禁用。</td><td>password</td><td>null</td><td></td><td>中</td></tr>
 <tr>
-<td>ssl.truststore.type</td><td>The file format of the trust store file.</td><td>string</td><td>JKS</td><td></td><td>medium</td></tr>
+<td>ssl.truststore.type</td><td>信任存储文件的文件格式。</td><td>string</td><td>JKS</td><td></td><td>中</td></tr>
 <tr>
-<td>alter.config.policy.class.name</td><td>The alter configs policy class that should be used for validation. The class should implement the <code>org.apache.kafka.server.policy.AlterConfigPolicy</code> interface.</td><td>class</td><td>null</td><td></td><td>low</td></tr>
+<td>alter.config.policy.class.name</td><td>应该用于验证的alter configs策略类。
+该类应该实现org.apache.kafka.server.policy.alterconfigpolicy接口。</td><td>class</td><td>null</td><td></td><td>低</td></tr>
 <tr>
-<td>authorizer.class.name</td><td>The authorizer class that should be used for authorization</td><td>string</td><td>""</td><td></td><td>low</td></tr>
+<td>authorizer.class.name</td><td>用于认证授权的程序类</td><td>string</td><td>""</td><td></td><td>低</td></tr>
 <tr>
-<td>create.topic.policy.class.name</td><td>The create topic policy class that should be used for validation. The class should implement the <code>org.apache.kafka.server.policy.CreateTopicPolicy</code> interface.</td><td>class</td><td>null</td><td></td><td>low</td></tr>
+<td>create.topic.policy.class.name</td><td>用于验证的创建topic策略类。
+该类应该实现org.apache.kafka.server.policy.createtopicpolicy接口。</td><td>class</td><td>null</td><td></td><td>低</td></tr>
 <tr>
-<td>listener.security.protocol.map</td><td>Map between listener names and security protocols. This must be defined for the same security protocol to be usable in more than one port or IP. For example, internal and external traffic can be separated even if SSL is required for both. Concretely, the user could define listeners with names INTERNAL and EXTERNAL and this property as: `INTERNAL:SSL,EXTERNAL:SSL`. As shown, key and value are separated by a colon and map entries are separated by commas. Each listener name should only appear once in the map. Different security (SSL and SASL) settings can be configured for each listener by adding a normalised prefix (the listener name is lowercased) to the config name. For example, to set a different keystore for the INTERNAL listener, a config with name `listener.name.internal.ssl.keystore.location` would be set. If the config for the listener name is not set, the config will fallback to the generic config (i.e. `ssl.keystore.location`). </td><td>string</td><td>PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL</td><td></td><td>low</td></tr>
+<td>listener.security.protocol.map</td><td>侦听器名称和安全协议之间的映射。必须定义为相同的安全协议可用于多个端口或IP。例如，即使两者都需要ssl，内部和外部流量也可以分开。具体的说，用户可以定义名字为INTERNAL和EXTERNAL的侦听器，这个属性为：internal：ssl，external：ssl。
+如图所示，键和值由冒号分隔，映射条目以逗号分隔。
+每个监听者名字只能在映射表上出现一次。
+通过向配置名称添加规范化前缀（侦听器名称小写），可以为每个侦听器配置不同的安全性（ssl和sasl）设置。
+例如，为内部监听器设置不同的密钥仓库，将会设置名称为“listener.name.internal.ssl.keystore.location”的配置。
+如果没有设置侦听器名称的配置，配置将回退到通用配置（即`ssl.keystore.location`）。</td><td>string</td><td>PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL</td><td></td><td>低</td></tr>
 <tr>
-<td>metric.reporters</td><td>A list of classes to use as metrics reporters. Implementing the <code>org.apache.kafka.common.metrics.MetricsReporter</code> interface allows plugging in classes that will be notified of new metric creation. The JmxReporter is always included to register JMX statistics.</td><td>list</td><td>""</td><td></td><td>low</td></tr>
+<td>metric.reporters</td><td>度量报告的类列表，通过实现<code>MetricReporter</code>接口，允许插入新度量标准类。JmxReporter包含注册JVM统计。</td><td>list</td><td>""</td><td></td><td>低</td></tr>
 <tr>
-<td>metrics.num.samples</td><td>The number of samples maintained to compute metrics.</td><td>int</td><td>2</td><td>[1,...]</td><td>low</td></tr>
+<td>metrics.num.samples</td><td>维持计算度量的样本数</td><td>int</td><td>2</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>metrics.recording.level</td><td>The highest recording level for metrics.</td><td>string</td><td>INFO</td><td></td><td>low</td></tr>
+<td>metrics.recording.level</td><td>指标的最高记录级别</td><td>string</td><td>INFO</td><td></td><td>低</td></tr>
 <tr>
-<td>metrics.sample.window.ms</td><td>The window of time a metrics sample is computed over.</td><td>long</td><td>30000</td><td>[1,...]</td><td>low</td></tr>
+<td>metrics.sample.window.ms</td><td>计算度量样本的时间窗口</td><td>long</td><td>30000</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>quota.window.num</td><td>The number of samples to retain in memory for client quotas</td><td>int</td><td>11</td><td>[1,...]</td><td>low</td></tr>
+<td>quota.window.num</td><td>在内存中保留客户端限额的样本数</td><td>int</td><td>11</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>quota.window.size.seconds</td><td>The time span of each sample for client quotas</td><td>int</td><td>1</td><td>[1,...]</td><td>low</td></tr>
+<td>quota.window.size.seconds</td><td>每个客户端限额的样本时间跨度</td><td>int</td><td>1</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>replication.quota.window.num</td><td>The number of samples to retain in memory for replication quotas</td><td>int</td><td>11</td><td>[1,...]</td><td>low</td></tr>
+<td>replication.quota.window.num</td><td>在内存中保留副本限额的样本数</td><td>int</td><td>11</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>replication.quota.window.size.seconds</td><td>The time span of each sample for replication quotas</td><td>int</td><td>1</td><td>[1,...]</td><td>low</td></tr>
+<td>replication.quota.window.size.seconds</td><td>每个副本限额样本数的时间跨度</td><td>int</td><td>1</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>ssl.endpoint.identification.algorithm</td><td>The endpoint identification algorithm to validate server hostname using server certificate. </td><td>string</td><td>null</td><td></td><td>low</td></tr>
+<td>ssl.endpoint.identification.algorithm</td><td>端点身份标识算法，使用服务器证书验证服务器主机名</td><td>string</td><td>null</td><td></td><td>低</td></tr>
 <tr>
-<td>ssl.secure.random.implementation</td><td>The SecureRandom PRNG implementation to use for SSL cryptography operations. </td><td>string</td><td>null</td><td></td><td>low</td></tr>
+<td>ssl.secure.random.implementation</td><td>用于SSL加密操作的SecureRandom PRNG实现</td><td>string</td><td>null</td><td></td><td>低</td></tr>
 <tr>
-<td>transaction.abort.timed.out.transaction.cleanup.interval.ms</td><td>The interval at which to rollback transactions that have timed out</td><td>int</td><td>60000</td><td>[1,...]</td><td>low</td></tr>
+<td>transaction.abort.timed.out.transaction.cleanup.interval.ms</td><td>回滚已超时的事务的时间间隔</td><td>int</td><td>60000</td><td>[1,...]</td><td>低</td></tr>
 <tr>
-<td>transaction.remove.expired.transaction.cleanup.interval.ms</td><td>The interval at which to remove transactions that have expired due to <code>transactional.id.expiration.ms<code> passing</td><td>int</td><td>3600000</td><td>[1,...]</td><td>low</td></tr>
+<td>transaction.remove.expired.transaction.cleanup.interval.ms</td><td>删除由于transactional.id.expiration.ms传递过程而过期的事务的时间间隔 </td><td>int</td><td>3600000</td><td>[1,...]</td><td>low</td></tr>
 <tr>
-<td>zookeeper.sync.time.ms</td><td>How far a ZK follower can be behind a ZK leader</td><td>int</td><td>2000</td><td></td><td>low</td></tr>
+<td>zookeeper.sync.time.ms</td><td>ZK follower同步可落后leader多久/td><td>int</td><td>2000</td><td></td><td>低</td></tr>
 </tbody></table>
