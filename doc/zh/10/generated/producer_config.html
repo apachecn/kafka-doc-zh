@@ -98,17 +98,17 @@
 <tr>
 <td>sasl.kerberos.ticket.renew.jitter</td><td>随机抖动增加到更新时间的百分比。</td><td>double</td><td>0.05</td><td></td><td>low</td></tr>
 <tr>
-<td>sasl.kerberos.ticket.renew.window.factor</td><td>Login thread will sleep until the specified window factor of time from last refresh to ticket's expiry has been reached, at which time it will try to renew the ticket.</td><td>double</td><td>0.8</td><td></td><td>low</td></tr>
+<td>sasl.kerberos.ticket.renew.window.factor</td><td>登录线程将持续休眠直到上一次刷新到 ticket 的过期时间窗口，在此时间窗口它将尝试更新 ticket 。</td><td>double</td><td>0.8</td><td></td><td>low</td></tr>
 <tr>
-<td>ssl.cipher.suites</td><td>A list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol. By default all the available cipher suites are supported.</td><td>list</td><td>null</td><td></td><td>low</td></tr>
+<td>ssl.cipher.suites</td><td>密码套件列表。密码套件是利用TLS或SSL网络协议来实现网络连接的安全设置，是一个涵盖认证，加密，MAC和密钥交换算法的组合。默认情况下，支持所有可用的密码套件。</td><td>list</td><td>null</td><td></td><td>low</td></tr>
 <tr>
-<td>ssl.endpoint.identification.algorithm</td><td>The endpoint identification algorithm to validate server hostname using server certificate. </td><td>string</td><td>null</td><td></td><td>low</td></tr>
+<td>ssl.endpoint.identification.algorithm</td><td>使用服务器证书验证服务器主机名的 endpoint 识别算法。 </td><td>string</td><td>null</td><td></td><td>low</td></tr>
 <tr>
-<td>ssl.keymanager.algorithm</td><td>The algorithm used by key manager factory for SSL connections. Default value is the key manager factory algorithm configured for the Java Virtual Machine.</td><td>string</td><td>SunX509</td><td></td><td>low</td></tr>
+<td>ssl.keymanager.algorithm</td><td>key manager factory 用于SSL连接的算法。默认值是Java虚拟机配置的 key manager factory 算法。</td><td>string</td><td>SunX509</td><td></td><td>low</td></tr>
 <tr>
-<td>ssl.secure.random.implementation</td><td>The SecureRandom PRNG implementation to use for SSL cryptography operations. </td><td>string</td><td>null</td><td></td><td>low</td></tr>
+<td>ssl.secure.random.implementation</td><td>用于SSL加密操作的SecureRandom PRNG实现。 </td><td>string</td><td>null</td><td></td><td>low</td></tr>
 <tr>
-<td>ssl.trustmanager.algorithm</td><td>The algorithm used by trust manager factory for SSL connections. Default value is the trust manager factory algorithm configured for the Java Virtual Machine.</td><td>string</td><td>PKIX</td><td></td><td>low</td></tr>
+<td>ssl.trustmanager.algorithm</td><td>trust manager factory 用于SSL连接的算法。默认值是Java虚拟机配置的 trust manager factory 算法。 </td><td>string</td><td>PKIX</td><td></td><td>low</td></tr>
 <tr>
 <td>transaction.timeout.ms</td><td>The maximum amount of time in ms that the transaction coordinator will wait for a transaction status update from the producer before proactively aborting the ongoing transaction.If this value is larger than the max.transaction.timeout.ms setting in the broker, the request will fail with a `InvalidTransactionTimeout` error.</td><td>int</td><td>60000</td><td></td><td>low</td></tr>
 <tr>
