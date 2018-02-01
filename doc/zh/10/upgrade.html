@@ -21,40 +21,34 @@
 
 <script id="upgrade-template" type="text/x-handlebars-template">
 
-<h4><a id="upgrade_1_0_0" href="#upgrade_1_0_0">Upgrading from 0.8.x, 0.9.x, 0.10.0.x, 0.10.1.x, 0.10.2.x or 0.11.0.x to 1.0.0</a></h4>
-<p>Kafka 1.0.0 introduces wire protocol changes. By following the recommended rolling upgrade plan below,
-    you guarantee no downtime during the upgrade. However, please review the <a href="#upgrade_100_notable">notable changes in 1.0.0</a> before upgrading.
+<h4><a id="upgrade_1_0_0" href="#upgrade_1_0_0">从 0.8.x, 0.9.x, 0.10.0.x, 0.10.1.x, 0.10.2.x, 0.11.0.x 升级到1.0.0</a></h4>
+<p>Kafka 1.0.0 介绍了通信协议方面的改变。 遵循下面的滚动升级计划，可以保证您在升级过程中不用停机。
+在升级之前，请先查看<a href="#upgrade_100_notable">1.0.0版本中显著的变化</a>。
 </p>
 
-<p><b>For a rolling upgrade:</b></p>
+<p><b>滚动升级计划：</b></p>
 
 <ol>
-    <li> Update server.properties on all brokers and add the following properties. CURRENT_KAFKA_VERSION refers to the version you
-        are upgrading from. CURRENT_MESSAGE_FORMAT_VERSION refers to the message format version currently in use. If you have previously
-        overridden the message format version, you should keep its current value. Alternatively, if you are upgrading from a version prior
-        to 0.11.0.x, then CURRENT_MESSAGE_FORMAT_VERSION should be set to match CURRENT_KAFKA_VERSION. 
+    <li> 更新所有代理上的server.properties 并添加以下属性：
+    CURRENT_KAFKA_VERSION代表指您要升级的版本。CURRENT_MESSAGE_FORMAT_VERSION代表当前正在使用的消息格式版本。
+    如果您以前重写过消息格式版本，则应保留当前值。或者如果您正从0.11.0.x之前的版本升级，则应将current_message_format_version设置为与current_kafka_version匹配的值。    
         <ul>
-            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (e.g. 0.8.2, 0.9.0, 0.10.0, 0.10.1, 0.10.2, 0.11.0).</li>
-            <li>log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION  (See <a href="#upgrade_10_performance_impact">potential performance impact
-		following the upgrade</a> for the details on what this configuration does.)</li>
+            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (例如 0.8.2, 0.9.0, 0.10.0, 0.10.1, 0.10.2, 0.11.0)。</li>
+            <li>log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION  (请参阅 <a href="#upgrade_10_performance_impact">升级后在性能方面潜在的影响</a> ，了解有关此配置的详细信息。</li>
         </ul>
-	If you are upgrading from 0.11.0.x and you have not overridden the message format, then you only need to override
-	the inter-broker protocol format.
+	如果您从0.11.0.x升级，且没有重写消息格式，那么您只需要覆盖inter-broker协议格式。
         <ul>
-            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (e.g. 0.8.2, 0.9.0, 0.10.0, 0.10.1, 0.10.2, 0.11.0).</li>
+            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (例如 0.8.2, 0.9.0, 0.10.0, 0.10.1, 0.10.2, 0.11.0)。</li>
         </ul>
     </li>
-    <li> Upgrade the brokers one at a time: shut down the broker, update the code, and restart it. </li>
-    <li> Once the entire cluster is upgraded, bump the protocol version by editing <code>inter.broker.protocol.version</code> and setting it to 1.0.
-    <li> Restart the brokers one by one for the new protocol version to take effect. </li>
-    <li> If you have overridden the message format version as instructed above, then you need to do one more rolling restart to
-        upgrade it to its latest version. Once all (or most) consumers have been upgraded to 0.11.0 or later,
-        change log.message.format.version to 1.0 on each broker and restart them one by one. Note that the older Scala consumer 
-        does not support the new message format introduced in 0.11, so to avoid the performance cost of down-conversion (or to
-        take advantage of <a href="#upgrade_11_exactly_once_semantics">exactly once semantics</a>), the newer Java consumer must be used.</li>
+    <li> 一次升级一个代理：关闭代理，更新代码并重新启动代理。 </li>
+    <li> 整个群集升级后，通过编辑修改协议版本<code>inter.broker.protocol.version</code> 并将其设置为1.0。
+    <li> 重新启动代理，以使新的协议版本生效。</li>
+    <li> 如果您按照上面的指示重写了消息格式版本，则需要再执行一次滚动重启才能将其升级到最新版本。一旦所有（或大部分的）consumer升级到0.11.0或更高版本，请将每个代理上的log.message.format.version更改为1.0，然后逐个重启它们。 
+    请注意，较早的Scala consumer 不支持0.11中新的消息格式，因此为了避免转换中的性能成本（或者使用<a href="#upgrade_11_exactly_once_semantics">一次语义</a>），必须使用较新的Java consumer 。 </li>
 </ol>
 
-<p><b>Additional Upgrade Notes:</b></p>
+<p><b>其他升级说明：</b></p>
 
 <ol>
     <li>If you are willing to accept downtime, you can simply take all the brokers down, update the code and start them back up. They will start
