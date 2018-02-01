@@ -16,56 +16,55 @@
 -->
 
 <script id="security-template" type="text/x-handlebars-template">
-    <h3><a id="security_overview" href="#security_overview">7.1 Security Overview</a></h3>
-    In release 0.9.0.0, the Kafka community added a number of features that, used either separately or together, increases security in a Kafka cluster. The following security measures are currently supported:
+    <h3><a id="security_overview" href="#security_overview">7.1 安全总览</a></h3>
+    在0.9.0.0版中，Kafka社区添加了一些特性，通过单独使用或者一起使用这些特性，提高了Kafka集群的安全性。目前支持下列安全措施：
     <ol>
-        <li>Authentication of connections to brokers from clients (producers and consumers), other brokers and tools, using either SSL or SASL. Kafka supports the following SASL mechanisms:
+        <li>使用SSL或SASL验证来自客户(producers和consumers)、其他brokers和brokers工具的连接。Kafka支持以下SASL机制：
         <ul>
-            <li>SASL/GSSAPI (Kerberos) - starting at version 0.9.0.0</li>
-            <li>SASL/PLAIN - starting at version 0.10.0.0</li>
-            <li>SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512 - starting at version 0.10.2.0</li>
+            <li>SASL/GSSAPI (Kerberos) - 从版本0.9.0.0开始</li>
+            <li>SASL/PLAIN - 从版本0.10.0.0开始</li>
+            <li>SASL/SCRAM-SHA-256 和 SASL/SCRAM-SHA-512 - 从版本0.10.2.0开始</li>
         </ul></li>
-        <li>Authentication of connections from brokers to ZooKeeper</li>
-        <li>Encryption of data transferred between brokers and clients, between brokers, or between brokers and tools using SSL (Note that there is a performance degradation when SSL is enabled, the magnitude of which depends on the CPU type and the JVM implementation.)</li>
-        <li>Authorization of read / write operations by clients</li>
-        <li>Authorization is pluggable and integration with external authorization services is supported</li>
+        <li>验证从brokers 到 ZooKeeper的连接</li>
+        <li>对brokers与clients之间、brokers之间或brokers与工具之间使用SSL传输的数据加密(注意，启用SSL时性能会下降，其大小取决于CPU类型和JVM实现)。</li>
+        <li>授权客户端的读写操作</li>
+        <li>授权是可插拔的，并且支持与外部授权服务的集成</li>
     </ol>
 
-    It's worth noting that security is optional - non-secured clusters are supported, as well as a mix of authenticated, unauthenticated, encrypted and non-encrypted clients.
+    值得注意的是，安全是可选的 - 支持非安全集群，以及经过身份验证，未经身份验证，加密和未加密clients的混合。
 
-    The guides below explain how to configure and use the security features in both clients and brokers.
+    以下指南介绍了如何在clients和brokers中配置和使用安全功能。
 
-    <h3><a id="security_ssl" href="#security_ssl">7.2 Encryption and Authentication using SSL</a></h3>
-    Apache Kafka allows clients to connect over SSL. By default, SSL is disabled but can be turned on as needed.
+    <h3><a id="security_ssl" href="#security_ssl">7.2 使用SSL加密和授权</a></h3>
+    Apache Kafka允许客户端通过SSL进行连接。默认情况下，SSL被禁用，但可以根据需要启用。
 
     <ol>
-        <li><h4><a id="security_ssl_key" href="#security_ssl_key">Generate SSL key and certificate for each Kafka broker</a></h4>
-            The first step of deploying one or more brokers with the SSL support is to generate the key and the certificate for each machine in the cluster. You can use Java's keytool utility to accomplish this task.
-            We will generate the key into a temporary keystore initially so that we can export and sign it later with CA.
+        <li><h4><a id="security_ssl_key" href="#security_ssl_key">为每个Kafka broker生成SSL密钥和证书</a></h4>
+            部署一个或多个支持SSL的brokers的第一步是为集群中的每台计算机生成密钥和证书。你可以使用Java的keytool实用程序来完成此任务。最初我们将生成一个临时密钥库的密钥，以便我们稍后可以导出并用CA签名。
             <pre class="brush: bash;">
             keytool -keystore server.keystore.jks -alias localhost -validity {validity} -genkey -keyalg RSA</pre>
 
-            You need to specify two parameters in the above command:
+            你需要在上面的命令中指定两个参数：
             <ol>
-                <li>keystore: the keystore file that stores the certificate. The keystore file contains the private key of the certificate; therefore, it needs to be kept safely.</li>
-                <li>validity: the valid time of the certificate in days.</li>
+                <li>keystore: 存储证书的密钥库文件。密钥库文件包含证书的私钥；因此，它需要安全保存。</li>
+                <li>validity: 证书有效期。</li>
             </ol>
             <br>
-        Note: By default the property <code>ssl.endpoint.identification.algorithm</code> is not defined, so hostname verification is not performed. In order to enable hostname verification, set the following property:
+            注意：默认情况下，属性ssl.endpoint.identification.algorithm未定义，所以不执行主机名验证。为了启用主机名验证，请设置以下属性：
 
         <pre class="brush: text;">	ssl.endpoint.identification.algorithm=HTTPS </pre>
 
-        Once enabled, clients will verify the server's fully qualified domain name (FQDN) against one of the following two fields:
+        启用后，客户端将根据以下两个字段之一验证服务器的完全限定域名(FQDN)：
         <ol>
             <li>Common Name (CN)
             <li>Subject Alternative Name (SAN)
         </ol>
         <br>
-        Both fields are valid, RFC-2818 recommends the use of SAN however. SAN is also more flexible, allowing for multiple DNS entries to be declared. Another advantage is that the CN can be set to a more meaningful value for authorization purposes. To add a SAN field  append the following argument <code> -ext SAN=DNS:{FQDN} </code> to the keytool command:
+        这两个字段都是有效的，但RFC-2818建议使用SAN。 SAN也更加灵活，允许声明多个DNS条目。另一个优点是可以将CN设置为更有意义的值用于授权目的。要添加SAN字段，请将以下参数<code> -ext SAN=DNS:{FQDN} </code>附加到keytool命令中：
         <pre class="brush: bash;">
         keytool -keystore server.keystore.jks -alias localhost -validity {validity} -genkey -keyalg RSA -ext SAN=DNS:{FQDN}
         </pre>
-        The following command can be run afterwards to verify the contents of the generated certificate:
+        之后可以运行以下命令来验证生成的证书内容：
         <pre class="brush: bash;">
         keytool -list -v -keystore server.keystore.jks
         </pre>
