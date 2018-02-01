@@ -45,17 +45,17 @@ Kafka 从这些日志文件中提取信息，并将其抽象为一个更加清�
 与Scribe或Flume等以日志为中心的系统相比，Kafka具备同样出色的性能、更强的耐用性（因为复制功能）和更低的端到端延迟。
 
 <h4><a id="uses_streamprocessing" href="#uses_streamprocessing">流处理</a></h4>
-许多Kafka 用户提供处理管道来处理数据，处理管道由多个阶段组成，其中原始输入数据从Kafka主题中消耗，然后聚合，丰富或以其他方式转化为新的主题，以供进一步消费或后续处理。例如，用于推荐新闻文章的处理流水线可以从RSS提要抓取文章内容并将其发布到“文章”主题; 进一步的处理可以对这个内容进行归一化或者重复删除，并且将已清理的文章内容发布到新的主题; 最终处理阶段可能会尝试将这些内容推荐给用户。这种处理流水线基于各个主题创建实时数据流的图表。从0.10.0.0开始，这是一个轻量但功能强大的流处理库，称为Kafka Streams 在Apache Kafka中可用于执行如上所述的数据处理。除了Kafka Streams之外，替代性的开源流处理工具还包括Apache Storm和 Apache Samza。
-processing pipelines consisting of multiple stages, where raw input data is consumed from Kafka topics and then
-aggregated, enriched, or otherwise transformed into new topics for further consumption or follow-up processing.
-For example, a processing pipeline for recommending news articles might crawl article content from RSS feeds and publish it to an "articles" topic;
-further processing might normalize or deduplicate this content and published the cleansed article content to a new topic;
-a final processing stage might attempt to recommend this content to users.
-Such processing pipelines create graphs of real-time data flows based on the individual topics.
-Starting in 0.10.0.0, a light-weight but powerful stream processing library called <a href="/documentation/streams">Kafka Streams</a>
-is available in Apache Kafka to perform such data processing as described above.
-Apart from Kafka Streams, alternative open source stream processing tools include <a href="https://storm.apache.org/">Apache Storm</a> and
-<a href="http://samza.apache.org/">Apache Samza</a>.
+
+许多Kafka用户通过管道来处理数据，有多个阶段：
+从Kafka topic中消费原始输入数据，然后聚合，修饰或通过其他方式转化为新的topic，
+以供进一步消费或处理。
+例如，一个推荐新闻文章的处理管道可以从RSS订阅源抓取文章内容并将其发布到“文章”topic;
+然后对这个内容进行标准化或者重复的内容，
+并将处理完的文章内容发布到新的topic; 
+最终它会尝试将这些内容推荐给用户。
+这种处理管道基于各个topic创建实时数据流图。从0.10.0.0开始，在Apache Kafka中，<a href="/documentation/streams">Kafka Streams</a>
+可以用来执行上述的数据处理，它是一个轻量但功能强大的流处理库。除Kafka Streams外，可供替代的开源流处理工具还包括<a href="https://storm.apache.org/">Apache Storm</a>
+和<a href="http://samza.apache.org/">Apache Samza</a>.
 
 <h4><a id="uses_eventsourcing" href="#uses_eventsourcing">采集日志</a></h4>
 <a href="http://martinfowler.com/eaaDev/EventSourcing.html">Event sourcing</a>是一种应用程序设计风格，按时间来记录状态的更改。
