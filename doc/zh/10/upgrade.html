@@ -51,16 +51,13 @@
 <p><b>其他升级说明：</b></p>
 
 <ol>
-    <li>If you are willing to accept downtime, you can simply take all the brokers down, update the code and start them back up. They will start
-        with the new protocol by default.</li>
-    <li>Bumping the protocol version and restarting can be done any time after the brokers are upgraded. It does not have to be immediately after.
-        Similarly for the message format version.</li>
+    <li>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重新开始。系统将默认启动新的协议。 </li>
+    <li>在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。更新消息格式版本也是如此。</li>
 </ol>
 
-<h5><a id="upgrade_100_notable" href="#upgrade_100_notable">Notable changes in 1.0.0</a></h5>
+<h5><a id="upgrade_100_notable" href="#upgrade_100_notable">1.0.0中显著的变化</a></h5>
 <ul>
-    <li>Topic deletion is now enabled by default, since the functionality is now stable. Users who wish to
-        to retain the previous behavior should set the broker config <code>delete.topic.enable</code> to <code>false</code>. Keep in mind that topic deletion removes data and the operation is not reversible (i.e. there is no "undelete" operation)</li>
+    <li>由于功能稳定，所以默认启动删除topic功能。希望保留以前操作的用户请将代理配置<code>delete.topic.enable</code>设置为false。请记住，在topic中删除数据的操作是不可逆的（即没有“撤销删除”操作）。</li>
     <li>For topics that support timestamp search if no offset can be found for a partition, that partition is now included in the search result with a null offset value. Previously, the partition was not included in the map.
         This change was made to make the search behavior consistent with the case of topics not supporting timestamp search.
     <li>If the <code>inter.broker.protocol.version</code> is 1.0 or later, a broker will now stay online to serve replicas
