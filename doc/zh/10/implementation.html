@@ -161,86 +161,85 @@
     Note that two kinds of corruption must be handled: truncation in which an unwritten block is lost due to a crash, and corruption in which a nonsense block is ADDED to the file. The reason for this is that in general the OS makes no guarantee of the write order between the file inode and the actual block data so in addition to losing written data the file can gain nonsense data if the inode is updated with a new size but a crash occurs before the block containing that data is written. The CRC detects this corner case, and prevents it from corrupting the log (though the unwritten messages are, of course, lost).
     </p>
 
-    <h3><a id="distributionimpl" href="#distributionimpl">5.5 Distribution</a></h3>
-    <h4><a id="impl_offsettracking" href="#impl_offsettracking">Consumer Offset Tracking</a></h4>
+    <h3><a id="distributionimpl" href="#distributionimpl">5.5 分布式</a></h3>
+    <h4><a id="impl_offsettracking" href="#impl_offsettracking">Consumer Offset Tracking（消费者offset跟踪）</a></h4>
     <p>
-    The high-level consumer tracks the maximum offset it has consumed in each partition and periodically commits its offset vector so that it can resume from those offsets in the event of a restart. Kafka provides the option to store all the offsets for a given consumer group in a designated broker (for that group) called the <i>offset manager</i>. i.e., any consumer instance in that consumer group should send its offset commits and fetches to that offset manager (broker). The high-level consumer handles this automatically. If you use the simple consumer you will need to manage offsets manually. This is currently unsupported in the Java simple consumer which can only commit or fetch offsets in ZooKeeper. If you use the Scala simple consumer you can discover the offset manager and explicitly commit or fetch offsets to the offset manager. A consumer can look up its offset manager by issuing a GroupCoordinatorRequest to any Kafka broker and reading the GroupCoordinatorResponse which will contain the offset manager. The consumer can then proceed to commit or fetch offsets from the offsets manager broker. In case the offset manager moves, the consumer will need to rediscover the offset manager. If you wish to manage your offsets manually, you can take a look at these <a href="https://cwiki.apache.org/confluence/display/KAFKA/Committing+and+fetching+consumer+offsets+in+Kafka">code samples that explain how to issue OffsetCommitRequest and OffsetFetchRequest</a>.
+        高级别的consumer跟踪每个分区已消费的offset，并定期提交，以便在重启的情况下可以从这些offset中恢复。Kafka提供了一个选项在指定的broker中来存储所有给定的consumer组的offset，称为offset manager。例如，该consumer组的所有consumer实例向offset manager（broker）发送提交和获取offset请求。高级别的consumer将会自动处理这些过程。如果你使用低级别的consumer，你将需要手动管理offset。目前在低级别的java consumer中不支持，只能在Zookeeper中提交或获取offset。如果你使用简单的Scala consumer，将可拿到offset manager，并显式的提交或获取offset。对于包含offset manager的consumer可以通过发送GroupCoordinatorRequest到任意kafka broker，并接受GroupCoordinatorResponse响应，consumer可以继续向`offset manager broker`提交或获取offset。如果offset manager位置变动，consumer需要重新发现offset manager。如果你想手动管理你的offset，你可以看看<a href="https://cwiki.apache.org/confluence/display/KAFKA/Committing+and+fetching+consumer+offsets+in+Kafka">OffsetCommitRequest 和 OffsetFetchRequest的源码</a>是如何实现的。
     </p>
 
     <p>
-    When the offset manager receives an OffsetCommitRequest, it appends the request to a special <a href="#compaction">compacted</a> Kafka topic named <i>__consumer_offsets</i>. The offset manager sends a successful offset commit response to the consumer only after all the replicas of the offsets topic receive the offsets. In case the offsets fail to replicate within a configurable timeout, the offset commit will fail and the consumer may retry the commit after backing off. (This is done automatically by the high-level consumer.) The brokers periodically compact the offsets topic since it only needs to maintain the most recent offset commit per partition. The offset manager also caches the offsets in an in-memory table in order to serve offset fetches quickly.
+        当offset manager接收到一个OffsetCommitRequest，它将追加请求到一个特定的<a href="#compaction">压缩</a>名为__consumer_offsets的kafka topic中，当offset topic的所有副本接收offset之后，offset manager将发送一个提交offset成功的响应给consumer。万一offset无法在规定的时间内复制，offset将提交失败，consumer在回退之后可重试该提交（高级别consumer自动进行）。broker会定期压缩offset topic，因为只需要保存每个分区最近的offset。offset manager会缓存offset在内存表中，以便offset快速获取。
     </p>
 
     <p>
-    When the offset manager receives an offset fetch request, it simply returns the last committed offset vector from the offsets cache. In case the offset manager was just started or if it just became the offset manager for a new set of consumer groups (by becoming a leader for a partition of the offsets topic), it may need to load the offsets topic partition into the cache. In this case, the offset fetch will fail with an OffsetsLoadInProgress exception and the consumer may retry the OffsetFetchRequest after backing off. (This is done automatically by the high-level consumer.)
+        当offset manager接收一个offset的获取请求，将从offset缓存中返回最新的的offset。如果offset manager刚启动或新的consumer组刚成为offset manager（成为offset topic分区的leader），则需要加载offset topic的分区到缓存中，在这种情况下，offset将获取失败，并报出OffsetsLoadInProgress异常，consumer回滚后，重试OffsetFetchRequest（高级别consumer自动进行这些操作）。
     </p>
 
-    <h5><a id="offsetmigration" href="#offsetmigration">Migrating offsets from ZooKeeper to Kafka</a></h5>
+    <h5><a id="offsetmigration" href="#offsetmigration">从ZooKeeper迁移offset到kafka</a></h5>
     <p>
-    Kafka consumers in earlier releases store their offsets by default in ZooKeeper. It is possible to migrate these consumers to commit offsets into Kafka by following these steps:
+        Kafka consumers在早先的版本中offset默认存储在ZooKeeper中。可以通过下面的步骤迁移这些consumer到Kafka：
     <ol>
-    <li>Set <code>offsets.storage=kafka</code> and <code>dual.commit.enabled=true</code> in your consumer config.
+    <li>在consumer配置中设置<code>offsets.storage=kafka</code> 和 <code>dual.commit.enabled=true</code>。
     </li>
-    <li>Do a rolling bounce of your consumers and then verify that your consumers are healthy.
+    <li>consumer做滚动消费，验证你的consumer是健康正常的。
     </li>
-    <li>Set <code>dual.commit.enabled=false</code> in your consumer config.
+    <li>在你的consumer配置中设置<code>dual.commit.enabled=false</code>。
     </li>
-    <li>Do a rolling bounce of your consumers and then verify that your consumers are healthy.
+    <li>consumer做滚动消费，验证你的consumer是健康正常的。
     </li>
     </ol>
-    A roll-back (i.e., migrating from Kafka back to ZooKeeper) can also be performed using the above steps if you set <code>offsets.storage=zookeeper</code>.
+    回滚（就是从kafka回到Zookeeper）也可以使用上面的步骤，通过设置 <code>offsets.storage=zookeeper</code>。
     </p>
 
-    <h4><a id="impl_zookeeper" href="#impl_zookeeper">ZooKeeper Directories</a></h4>
+    <h4><a id="impl_zookeeper" href="#impl_zookeeper">ZooKeeper 目录</a></h4>
     <p>
-    The following gives the ZooKeeper structures and algorithms used for co-ordination between consumers and brokers.
+        下面给出了Zookeeper的结构和算法，用于协调consumer和broker。
     </p>
 
     <h4><a id="impl_zknotation" href="#impl_zknotation">Notation</a></h4>
     <p>
-    When an element in a path is denoted [xyz], that means that the value of xyz is not fixed and there is in fact a ZooKeeper znode for each possible value of xyz. For example /topics/[topic] would be a directory named /topics containing a sub-directory for each topic name. Numerical ranges are also given such as [0...5] to indicate the subdirectories 0, 1, 2, 3, 4. An arrow -> is used to indicate the contents of a znode. For example /hello -> world would indicate a znode /hello containing the value "world".
+        当一个path中的元素表示为[XYZ]，这意味着xyz的值不是固定的，实际上每个xyz的值可能是Zookeeper的znode，例如`/topic/[topic]`是一个目录，/topic包含一个子目录(每个topic名称)。数字的范围如[0...5]来表示子目录0，1，2，3，4。箭头`->`用于表示znode的内容，例如:/hello->world表示znode /hello包含值”world”。
     </p>
 
-    <h4><a id="impl_zkbroker" href="#impl_zkbroker">Broker Node Registry</a></h4>
+    <h4><a id="impl_zkbroker" href="#impl_zkbroker">Broker节点注册</a></h4>
     <pre class="brush: json;">
     /brokers/ids/[0...N] --> {"jmx_port":...,"timestamp":...,"endpoints":[...],"host":...,"version":...,"port":...} (ephemeral node)
     </pre>
     <p>
-    This is a list of all present broker nodes, each of which provides a unique logical broker id which identifies it to consumers (which must be given as part of its configuration). On startup, a broker node registers itself by creating a znode with the logical broker id under /brokers/ids. The purpose of the logical broker id is to allow a broker to be moved to a different physical machine without affecting consumers. An attempt to register a broker id that is already in use (say because two servers are configured with the same broker id) results in an error.
+        这是当前所有broker的节点列表，其中每个提供了一个唯一的逻辑broker的id标识它的consumer（必须作为配置的一部分）。在启动时，broker节点通过在/brokers/ids/下用逻辑broker id创建一个znode来注册它自己。逻辑broker id的目的是当broker移动到不同的物理机器时，而不会影响消费者。尝试注册一个已存在的broker id时将返回错误（因为2个server配置了相同的broker id）。
     </p>
     <p>
-    Since the broker registers itself in ZooKeeper using ephemeral znodes, this registration is dynamic and will disappear if the broker is shutdown or dies (thus notifying consumers it is no longer available).
+        由于broker在Zookeeper中用的是临时znode来注册，因此这个注册是动态的，如果broker关闭或宕机，节点将消失（通知consumer不再可用）。
     </p>
-    <h4><a id="impl_zktopic" href="#impl_zktopic">Broker Topic Registry</a></h4>
+    <h4><a id="impl_zktopic" href="#impl_zktopic">Broker Topic 注册</a></h4>
     <pre class="brush: json;">
     /brokers/topics/[topic]/partitions/[0...N]/state --> {"controller_epoch":...,"leader":...,"version":...,"leader_epoch":...,"isr":[...]} (ephemeral node)
     </pre>
 
     <p>
-    Each broker registers itself under the topics it maintains and stores the number of partitions for that topic.
+        每个broker在它自己的topic下注册，维护和存储该topic分区的数据。
     </p>
 
     <h4><a id="impl_zkconsumers" href="#impl_zkconsumers">Consumers and Consumer Groups</a></h4>
     <p>
-    Consumers of topics also register themselves in ZooKeeper, in order to coordinate with each other and balance the consumption of data. Consumers can also store their offsets in ZooKeeper by setting <code>offsets.storage=zookeeper</code>. However, this offset storage mechanism will be deprecated in a future release. Therefore, it is recommended to <a href="#offsetmigration">migrate offsets storage to Kafka</a>.
+        topic的consumer也在zookeeper中注册自己，以便相互协调和平衡数据的消耗。consumer也可以通过设置offsets.storage = zookeeper将他们的偏移量存储在zookeeper中。但是，这个偏移存储机制将在未来的版本中被弃用。因此，建议将<a href="#offsetmigration">数据迁移到kafka</a>中。
     </p>
 
     <p>
-    Multiple consumers can form a group and jointly consume a single topic. Each consumer in the same group is given a shared group_id.
-    For example if one consumer is your foobar process, which is run across three machines, then you might assign this group of consumers the id "foobar". This group id is provided in the configuration of the consumer, and is your way to tell the consumer which group it belongs to.
+        多个consumer可组成一组，共同消费一个topic，在同一组中的每个consumer共享一个group_id。例如，如果一个consumer是foobar，在三台机器上运行，你可能分配这个这个consumer的ID是“foobar”。这个组id是在consumer的配置文件中配置的。 
     </p>
 
     <p>
-    The consumers in a group divide up the partitions as fairly as possible, each partition is consumed by exactly one consumer in a consumer group.
+        每个分区正好被一个consumer组的consumer所消费，一组中的consumer尽可能公平地分配分区。
     </p>
 
-    <h4><a id="impl_zkconsumerid" href="#impl_zkconsumerid">Consumer Id Registry</a></h4>
+    <h4><a id="impl_zkconsumerid" href="#impl_zkconsumerid">Consumer Id 注册</a></h4>
     <p>
-    In addition to the group_id which is shared by all consumers in a group, each consumer is given a transient, unique consumer_id (of the form hostname:uuid) for identification purposes. Consumer ids are registered in the following directory.
+        除了由所有consumer共享的group_id，每个consumer都有一个临时且唯一的consumer_id（主机名的形式:uuid）用于识别。consumer的id在以下目录中注册。
     <pre class="brush: json;">
     /consumers/[group_id]/ids/[consumer_id] --> {"version":...,"subscription":{...:...},"pattern":...,"timestamp":...} (ephemeral node)
     </pre>
-    Each of the consumers in the group registers under its group and creates a znode with its consumer_id. The value of the znode contains a map of &lt;topic, #streams&gt;. This id is simply used to identify each of the consumers which is currently active within a group. This is an ephemeral node so it will disappear if the consumer process dies.
+    组中的每个consumer用consumer_id注册znode。znode的值包含一个map<topic,#streams>。这个id只是用来识别在组里目前活跃的consumer，这是个临时节点，如果consumer在处理中挂掉，它就会消失。
     </p>
 
     <h4><a id="impl_zkconsumeroffsets" href="#impl_zkconsumeroffsets">Consumer Offsets</a></h4>
