@@ -8,7 +8,7 @@
 <th>Importance</th>
 </tr>
 <tr>
-<td>bootstrap.servers</td><td>这是一个用于建立初始连接到kafka集群的"主机/端口对"配置列表。客户端会调用集群中的所有服务器，而此清单中配置的服务器仅用于初始化连接。&mdash;配置的服务器清单仅用于初始化连接，以便找到完整服务器集群。配置格式： <code>host1:port1,host2:port2,...</code>. 由于这些主机是用于初始连接，以获得整个集群（集群是会动态变化的），因此这个配置清单不需要包含整个集群的服务器。（当然，为了避免单节点风险，这个清单最好配置多台主机）。</td><td>list</td><td></td><td></td><td>high</td></tr>
+<td>bootstrap.servers</td><td>这是一个用于建立初始连接到kafka集群的"主机/端口对"配置列表。不论这个参数配置了那些服务器来初始化连接，客户端是可以与集群中的所有服务器建立连接的。&mdash;配置的服务器清单仅用于初始化连接，以便找到完整服务器集群。配置格式： <code>host1:port1,host2:port2,...</code>. 由于这些主机是用于初始连接，以获得整个集群（集群是会动态变化的），因此这个配置清单不需要包含整个集群的服务器。（当然，为了避免单节点风险，这个清单最好配置多台主机）。</td><td>list</td><td></td><td></td><td>high</td></tr>
 <tr>
 <td>key.serializer</td><td>关键字的序列化类，实现了以下接口： <code>org.apache.kafka.common.serialization.Serializer</code> 接口。</td><td>class</td><td></td><td></td><td>high</td></tr>
 <tr>
@@ -16,7 +16,7 @@
 <tr>
     <td>acks</td><td>此配置是 producer 在确认一个发送请求完成之前需要收到的反馈信息的数量。 这个参数是为了保证发送请求的可靠性。以下配置方式是允许的： <ul> <li><code>acks=0</code> 如果设置为0，则 producer 不会等待服务器的反馈。该消息会被立刻添加到 socket buffer 中并认为已经发送完成。在这种情况下，服务器是否收到请求是没法保证的，并且参数 <code>retries</code> 也不会生效（因为客户端无法获得失败信息）。每个记录返回的偏移量总是被设置为-1。</li> <li><code>acks=1</code> 如果设置为1，leader节点会将记录写入本地日志，并且在所有follower节点反馈之前就先确认成功。在这种情况下，如果leader节点在接收记录之后，并且在follower节点复制数据完成之前产生错误，则这条记录会丢失。 </li><li><code>acks=all</code> 如果设置为all，这就意味着leader节点会等待所有同步中的副本确认之后再确认这条记录是否发送完成。只要至少有一个同步副本存在，记录就不会丢失。这种方式是对请求传递的最有效保证。acks=-1与acks=all是等效的。 </li></ul></td><td>string</td><td>1</td><td>[all, -1, 0, 1]</td><td>high</td></tr>
 <tr>
-    <td>buffer.memory</td><td> Producer 可以用来缓冲等待被发送到服务器的记录的总字节数。如果记录发送的速度比发送到服务器的速度快， Producer 就会阻塞，如果阻塞的时间超过 <code>max.block.ms</code>> 配置的时长，则会抛出一个异常。<p>这个配置与 Producer 的可用总内存有一定的对应关系，但并不是完全等价的关系，因为 Producer 的可用内存并不是全部都用来缓存。一些额外的内存可能会用于压缩(如果启用了压缩)，以及维护正在运行的请求。</p></td><td>long</td><td>33554432</td><td>[0,...]</td><td>high</td></tr>
+    <td>buffer.memory</td><td> Producer 可以用来缓冲等待被发送到服务器的记录的总字节数。如果记录发送的速度比发送到服务器的速度快， Producer 就会阻塞，如果阻塞的时间超过 <code>max.block.ms</code> 配置的时长，则会抛出一个异常。<p>这个配置与 Producer 的可用总内存有一定的对应关系，但并不是完全等价的关系，因为 Producer 的可用内存并不是全部都用来缓存。一些额外的内存可能会用于压缩(如果启用了压缩)，以及维护正在运行的请求。</p></td><td>long</td><td>33554432</td><td>[0,...]</td><td>high</td></tr>
 <tr>
 <td>compression.type</td><td> Producer 生成数据时可使用的压缩类型。默认值是none(即没有压缩)。可配置的压缩类型包括：<code>none</code>, <code>gzip</code>, <code>snappy</code>, or <code>lz4</code> 。压缩是针对批处理的所有数据，所以批处理的效果也会影响压缩比(更多的批处理意味着更好的压缩)。</td><td>string</td><td>none</td><td></td><td>high</td></tr>
 <tr>
@@ -40,7 +40,7 @@
 <tr>
 <td>linger.ms</td><td>producer 会将两个请求发送时间间隔内到达的记录合并到一个单独的批处理请求中。通常只有当记录到达的速度超过了发送的速度时才会出现这种情况。然而，在某些场景下，即使处于可接受的负载下，客户端也希望能减少请求的数量。这个设置是通过添加少量的人为延迟来实现的&mdash；即，与其立即发送记录， producer 将等待给定的延迟时间，以便将等待过程中到达的其他记录能合并到本批次的处理中。这可以认为是与 TCP 中的 Nagle 算法类似。这个设置为批处理的延迟提供了上限:一旦我们接受到记录超过了分区的 batch.size ，Producer 会忽略这个参数，立刻发送数据。但是如果累积的字节数少于 batch.size ，那么我们将在指定的时间内“逗留”(linger)，以等待更多的记录出现。这个设置默认为0(即没有延迟)。例如：如果设置<code>linger.ms=5</code> ，则发送的请求会减少并降低部分负载，但同时会增加5毫秒的延迟。</td><td>long</td><td>0</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
-<td>max.block.ms</td><td>该配置控制<code> KafkaProducer.send()</code>和<code> KafkaProducer.partitionsFor()> </code>允许被阻塞的时长。这些方法可能因为缓冲区满了或者元数据不可用而被阻塞。用户提供的序列化程序或分区程序的阻塞将不会被计算到这个超时。</td><td>long</td><td>60000</td><td>[0,...]</td><td>medium</td></tr>
+<td>max.block.ms</td><td>该配置控制<code> KafkaProducer.send()</code>和<code>KafkaProducer.partitionsFor()</code> 允许被阻塞的时长。这些方法可能因为缓冲区满了或者元数据不可用而被阻塞。用户提供的序列化程序或分区程序的阻塞将不会被计算到这个超时。</td><td>long</td><td>60000</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
 <td>max.request.size</td><td>请求的最大字节数。这个设置将限制 Producer 在单个请求中发送的记录批量的数量，以避免发送巨大的请求。这实际上也等同于批次的最大记录数的限制。请注意，服务器对批次的大小有自己的限制，这可能与此不同。</td><td>int</td><td>1048576</td><td>[0,...]</td><td>medium</td></tr>
 <tr>
@@ -110,7 +110,7 @@
 <tr>
 <td>ssl.trustmanager.algorithm</td><td>trust manager factory 用于SSL连接的算法。默认值是Java虚拟机配置的 trust manager factory 算法。 </td><td>string</td><td>PKIX</td><td></td><td>low</td></tr>
 <tr>
-<td>transaction.timeout.ms</td><td>The maximum amount of time in ms that the transaction coordinator will wait for a transaction status update from the producer before proactively aborting the ongoing transaction.If this value is larger than the max.transaction.timeout.ms setting in the broker, the request will fail with a `InvalidTransactionTimeout` error.</td><td>int</td><td>60000</td><td></td><td>low</td></tr>
+<td>transaction.timeout.ms</td><td>主动中止进行中的事务之前，事务协调器等待 Producer 更新事务状态的最长时间（以毫秒为单位）。如果此值大于 Broker 中的max.transaction.timeout.ms设置，则请求将失败并提示"InvalidTransactionTimeout"错误。</td><td>int</td><td>60000</td><td></td><td>low</td></tr>
 <tr>
-<td>transactional.id</td><td>The TransactionalId to use for transactional delivery. This enables reliability semantics which span multiple producer sessions since it allows the client to guarantee that transactions using the same TransactionalId have been completed prior to starting any new transactions. If no TransactionalId is provided, then the producer is limited to idempotent delivery. Note that enable.idempotence must be enabled if a TransactionalId is configured. The default is empty, which means transactions cannot be used.</td><td>string</td><td>null</td><td>non-empty string</td><td>low</td></tr>
+<td>transactional.id</td><td>用于事务交付的TransactionalId。 这使跨越多个生产者会话的可靠性语义成为可能，因为它可以保证客户在开始任何新的事务之前，使用相同的TransactionalId的事务都已经完成。 如果没有提供TransactionalId，则 Producer 被限制为幂等递送。 请注意，如果配置了TransactionalId，则必须启用enable.idempotence。 缺省值为空，这意味着无法使用事务。</td><td>string</td><td>null</td><td>non-empty string</td><td>low</td></tr>
 </tbody></table>
