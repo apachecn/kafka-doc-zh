@@ -1544,21 +1544,22 @@ All the following metrics have a recording level of ``debug``:
 
   <h3><a id="zk" href="#zk">6.7 ZooKeeper</a></h3>
 
-  <h4><a id="zkversion" href="#zkversion">Stable version</a></h4>
-  The current stable branch is 3.4 and the latest release of that branch is 3.4.9.
+  <h4><a id="zkversion" href="#zkversion">稳定版本</a></h4>
+  当前稳定分支是3.4，最新版本是3.4.9。
 
   <h4><a id="zkops" href="#zkops">Operationalizing ZooKeeper</a></h4>
-  Operationally, we do the following for a healthy ZooKeeper installation:
+  在操作上，我们有一下符合规范的ZooKeeper安装方式：
   <ul>
-    <li>Redundancy in the physical/hardware/network layout: try not to put them all in the same rack, decent (but don't go nuts) hardware, try to keep redundant power and network paths, etc. A typical ZooKeeper ensemble has 5 or 7 servers, which tolerates 2 and 3 servers down, respectively. If you have a small deployment, then using 3 servers is acceptable, but keep in mind that you'll only be able to tolerate 1 server down in this case. </li>
-    <li>I/O segregation: if you do a lot of write type traffic you'll almost definitely want the transaction logs on a dedicated disk group. Writes to the transaction log are synchronous (but batched for performance), and consequently, concurrent writes can significantly affect performance. ZooKeeper snapshots can be one such a source of concurrent writes, and ideally should be written on a disk group separate from the transaction log. Snapshots are written to disk asynchronously, so it is typically ok to share with the operating system and message log files. You can configure a server to use a separate disk group with the dataLogDir parameter.</li>
-    <li>Application segregation: Unless you really understand the application patterns of other apps that you want to install on the same box, it can be a good idea to run ZooKeeper in isolation (though this can be a balancing act with the capabilities of the hardware).</li>
-    <li>Use care with virtualization: It can work, depending on your cluster layout and read/write patterns and SLAs, but the tiny overheads introduced by the virtualization layer can add up and throw off ZooKeeper, as it can be very time sensitive</li>
-    <li>ZooKeeper configuration: It's java, make sure you give it 'enough' heap space (We usually run them with 3-5G, but that's mostly due to the data set size we have here). Unfortunately we don't have a good formula for it, but keep in mind that allowing for more ZooKeeper state means that snapshots can become large, and large snapshots affect recovery time. In fact, if the snapshot becomes too large (a few gigabytes), then you may need to increase the initLimit parameter to give enough time for servers to recover and join the ensemble.</li>
-    <li>Monitoring: Both JMX and the 4 letter words (4lw) commands are very useful, they do overlap in some cases (and in those cases we prefer the 4 letter commands, they seem more predictable, or at the very least, they work better with the LI monitoring infrastructure)</li>
-    <li>Don't overbuild the cluster: large clusters, especially in a write heavy usage pattern, means a lot of intracluster communication (quorums on the writes and subsequent cluster member updates), but don't underbuild it (and risk swamping the cluster). Having more servers adds to your read capacity.</li>
+    <li>在物理/硬件/网络上的冗余：尽量不要把他们放在同一个机架上，合适的硬件配置（但不要过分），尽量保持电源，网络等。一个典型的ZooKeeper集群有5或7台服务器，分别允许宕机2台和3台服务器。如果你想部署一个小型集群，3台服务器也可以部署，但是要记住，在这种情况下你只能宕机1台服务器。</li>
+    <li>
+      I/O隔离：如果你有大量的写入操作流入，你几乎肯定会把事务日志放在一组特定的磁盘上。写入事物日志是同步的（但为了性能会分批写入），因此并发写入会明显影响性能。数据快照是异步落盘，因此通常可以与操作系统和消息日志文件共享磁盘性能。你可以配置dataLogDir参数单独为服务器配置磁盘组。</li>
+    <li>应用隔离：除非你真的了解其他应用的运行模式，否则不要和ZooKeeper安装在一起，最好是单独部署运行ZooKeeper（尽管ZooKeeper可以均衡的利用硬件资源）。</li>
+    <li>谨慎使用虚拟化：他的运行状况取决于你的集群架构，读写模式和SLA，即便是由虚拟化层引入的微小开销也可能造成ZooKeeper的中断，毕竟ZooKeeper对此十分敏感。</li>
+    <li>ZooKeeper配置: 他是java运行的，首先确保你给他分配足够的堆空间（我们通常配置3-5G，但这是根据我们现有数据实际情况来定的）。不幸的是，我们没有一个好的固定公式来确定他的值，但是要记住分配个ZooKeeper的堆空间越大，快照也就越大，从而会影响快照的恢复时间。实际上，如果快照变得太大（几个G），那你能需要增加initlimit参数的值，以便为服务器提供足够的时间来恢复并加入集群。</li>
+    <li>监控:JMX和4个字母的命令（ZooKeeper提供的一系列命令，如：conf,cons,dump等）非常有用，他们在某些功能上重复了（这种情况下我们更喜欢4lw命令，他们似乎更容易预测情况，至少，他们和基础设施监控兼容性更好）</li>
+    <li>不要过度构建集群：大型集群，尤其是大量写入的情况下，意味着大量的集群内部通信（集群成员节点的写入和后续的仲裁更新），但是过小的将集群将承担不必要的风险。添加更多的服务器可以增加集群的读取能力。</li>
   </ul>
-  Overall, we try to keep the ZooKeeper system as small as will handle the load (plus standard growth capacity planning) and as simple as possible. We try not to do anything fancy with the configuration or application layout as compared to the official release as well as keep it as self contained as possible. For these reasons, we tend to skip the OS packaged versions, since it has a tendency to try to put things in the OS standard hierarchy, which can be 'messy', for want of a better way to word it.
+  总体来看，我们应尽量保持zookeeper尽可能小的处理负载（标准增长容量规划） 并尽可能的简单。与官方版本相比，我们尽量对配置和应用布局不做什么更改，尽可能保持官方原版。基于这些原因，我们倾向于跳过操作系统打包的版本。因为为了有更好的表现，它倾向于把关注点放在可能“混乱”的标准系统层上。
 </script>
 
 <div class="p-ops"></div>
