@@ -664,7 +664,7 @@
     </ol>
 
     <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs(授权和访问控制列表)</a></h3>
-    Kafka带有一个可插拔的授权器(Authorizer)和一个开箱即用的授权器实现，它使用zookeeper存储所有的acls。Kafka acls定义Principal对主机上的某个资源的操作是允许还是拒绝。您可以在KIP-11上阅读更多关于acl结构信息。您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，可以在server.properties中包含以下内容。
+    Kafka 带有一个可扩展的 Authorizer (授权器) 和一个用 zookeeper 实现的 Authorizer (授权器)，zookeeper 会存储所有的 acls 授权信息。 Kafka acls 授权信息定义的规则是 " P is [Allowed/Denied] Operation O From Host H On Resource R"。您可以在KIP-11上阅读更多关于 acl 结构信息。您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls 授权信息，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，你可以在server.properties 文件中填写以下内容。
     <pre>allow.everyone.if.no.acl.found=true</pre>
     还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
     <pre>super.users=User:Bob;User:Alice</pre>
