@@ -90,7 +90,7 @@
 <h5><a id="upgrade_100_streams" href="#upgrade_100_streams">升级 1.0.0 Kafka Streams 应用程序</a></h5>
 <ul>
     <li> 将Streams应用程序从0.11.0升级到1.0.0不需要使用代理。Kafka Streams 1.0.0应用程序可以连接到0.11.0，0.10.2和0.10.1的代理（却不能连接到0.10.0代理）。</li>
-    <li> If you are monitoring on streams metrics, you will need make some changes to the metrics names in your reporting and monitoring code, because the metrics sensor hierarchy was changed. </li>
+    <li> 如果您正在监控 streams 指标，则需要更改一下报告和代码中的指标名称，因为指标传感器层次结构已更改。, you will need make some changes to the metrics names in your reporting and monitoring code, because the metrics sensor hierarchy was changed. </li>
     <li> There are a few public APIs including <code>ProcessorContext#schedule()</code>, <code>Processor#punctuate()</code> and <code>KStreamBuilder</code>, <code>TopologyBuilder</code> are being deprecated by new APIs.
         We recommend making corresponding code changes, which should be very minor since the new APIs look quite similar, when you upgrade.
     <li> See <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_100">Streams API changes in 1.0.0</a> for more details. </li>
