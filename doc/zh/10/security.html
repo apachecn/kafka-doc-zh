@@ -788,29 +788,29 @@
     <h4><a id="security_authz_examples" href="#security_authz_examples">Examples(例子)</a></h4>
     <ul>
         <li><b>Adding Acls</b><br>
-     如果您想添加一个 acl ，允许 Principals User:Bob 和 User:Alice  从 IP 198.51.100.0 和  198.51.100.1 对 Topic 中的 Test-Topic 进行读写。您可以按照下面的选项执行 CLI :
+            如果您想添加一个 acl 授权信息 "允许 User:Bob 和 User:Alice 从 IP 198.51.100.0 和 198.51.100.1 对 Topic 中的 Test-Topic 进行读写"。您可以按照下面的选项在终端执行 CLI :
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic</pre>
-            默认情况下，所有的没有显示声明的 principals 都不允许操作资源。在极少情况下，我们需要在acl中定义一个仅不许特定的 principal 访问，其他的 principal 都允许访问，这时就不得不使用 --deny-principal 和 --deny-host 选项。如果我们想允许所有用户对Test-topic进行读，仅拒绝 User:BadBob 从 IP 198.51.100.3 进行读。我们可以使用下面的命令：
+            默认情况下，所有的没有显示声明 acl 授权信息的用户，对某个资源操作时都将被拒绝。在极少情况下，我们需要在acl 授权信息定义一个少数用户不允许访问，其他用户都允许访问的规则，这个时候就需要使用 --deny-principal 和 --deny-host 选项。如果我们想允许所有用户对 Test-topic 进行读取，仅拒绝 User:BadBob 从 IP 198.51.100.3 进行读取。我们可以使用下面的命令：
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:* --allow-host * --deny-principal User:BadBob --deny-host 198.51.100.3 --operation Read --topic Test-topic</pre>
             Note that ``--allow-host`` and ``deny-host`` only support IP addresses (hostnames are not supported).
             注意：``--allow-host`` 和 ``deny-host`` 只支持 IP地址(不支持主机名)
             以上示例通过--topic [topic-name]指定资源选项来将acls添加到 topic 上。同样，用户可以通过指定 --cluster 将 acls 添加到 cluster；通过指定 --group [group-name] 将 acls 添加到一个 consumer group。</li>
 
         <li><b>Removing Acls</b><br>
-                移除acl几乎是相同的。唯一的不同就是必须使用 --remove 选项来代替 --add 选项。为了移除上面第一个示例添加的 acls，我们可以用 CLI 执行下面的选项：
+                移除 acl 授权信息几乎是相同的命令。唯一的不同就是必须使用 --remove 选项来代替 --add 选项。为了移除上面第一个示例添加的 acls 授权信息，我们可以用 CLI 终端执行下面的选项：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --remove --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic </pre></li>
 
         <li><b>List Acls</b><br>
-                我们可以通过指定 --list 选项和资源来列出任何资源的 acls。如果我们想列出 Test-topic 的所有的 acls,我们可以用 CLI 执行下面的选项：
+                我们可以通过指定 --list 选项和资源来列出任何资源的 acls 授权信息。如果我们想列出 Test-topic 的所有的 acls授权信息,我们可以用 CLI 终端执行下面的选项：
                 <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --list --topic Test-topic</pre></li>
 
         <li><b>Adding or removing a principal as producer or consumer</b><br>
-                ACL 管理最常见的情况就是添加或移除一个 principal 作为 producer 或 consumer。因此我们添加便利选项来处理这些情景。为了添加 User:Bob 作为 Test-topic 的生产者我们可以执行下面的命令：
+                ACL 管理最常见的情况就是添加或移除一个用户作为 producer 或 consumer。因此我们添加方便的选项来处理这些情景。为了添加 User:Bob 作为 Test-topic 的 producer 我们可以执行下面的命令：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --producer --topic Test-topic</pre>
-                类似的，如果要添加 Alice 在 consumer group Group-1 中作为 Test-topic 的一个 consumer，我们仅需要传 --consumer 选项：
+            类似的，如果要添加 Alice 到 consumer group Group-1 中作为 Test-topic 的一个 consumer，我们仅需要传递 --consumer 选项：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --consumer --topic Test-topic --group Group-1 </pre>
                 注意：对于 consumer 选项我们必须指定 consumer group。
-                为了从 producer 和 consumer 的角色中移除一个principal我们仅需要传 --remove 选项。</li>
+                为了从 producer 和 consumer 的角色中移除一个用户我们仅需要传 --remove 选项</li>
         </ul>
 
     <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 Incorporating Security Features in a Running Cluster</a></h3>
