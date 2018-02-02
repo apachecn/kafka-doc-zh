@@ -323,23 +323,27 @@
             </li>
         </ol>
     </li>
-    <li><h4><a id="security_sasl_kerberos" href="#security_sasl_kerberos">Authentication using SASL/Kerberos</a></h4>
+    <li><h4><a id="security_sasl_kerberos" href="#security_sasl_kerberos">使用 SASL/Kerberos 认证协议</a></h4>
         <ol>
-        <li><h5><a id="security_sasl_kerberos_prereq" href="#security_sasl_kerberos_prereq">Prerequisites</a></h5>
+        <li><h5><a id="security_sasl_kerberos_prereq" href="#security_sasl_kerberos_prereq">准备条件</a></h5>
         <ol>
             <li><b>Kerberos</b><br>
-            If your organization is already using a Kerberos server (for example, by using Active Directory), there is no need to install a new server just for Kafka. Otherwise you will need to install one, your Linux vendor likely has packages for Kerberos and a short guide on how to install and configure it (<a href="https://help.ubuntu.com/community/Kerberos">Ubuntu</a>, <a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Managing_Smart_Cards/installing-kerberos.html">Redhat</a>). Note that if you are using Oracle Java, you will need to download JCE policy files for your Java version and copy them to $JAVA_HOME/jre/lib/security.</li>
-            <li><b>Create Kerberos Principals</b><br>
-            If you are using the organization's Kerberos or Active Directory server, ask your Kerberos administrator for a principal for each Kafka broker in your cluster and for every operating system user that will access Kafka with Kerberos authentication (via clients and tools).</br>
-            If you have installed your own Kerberos, you will need to create these principals yourself using the following commands:
+                如果您的项目已经使用 Kerberos 认证协议服务器（例如使用了Active Directory），那么您就无需为 Kafka 安装新的服务器，否则您需要从您 Linux 社区中的服务包中安装一个。
+                此处有一个简短的指南教您如何安装并且配置它(<a href="https://help.ubuntu.com/community/Kerberos">Ubuntu</a>,<a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Managing_Smart_Cards/installing-kerberos.html">Redhat</a>).
+                请注意，若果您正在使用 Oracle Java， 您需要对应您的 Java 版本 下载 JCE 策略文件，并且将它拷贝到 $JAVA_HOME/jre/lib/security 路径下面。
+            </li>
+            <li><b>创建 Kerberos 证书</b><br>
+            如果您在使用团队的 Kerberos 服务器或者 Active Directory 服务器, 请向您的 Kerberos 管理员咨询集群中每一个 Kafka broker 的证书 和 每个将通过 Kerberos 身份验证的用户的证书（通过客户端或者工具等方式通过身份验证）。</br>
+                如果您已经安装了自己的 Kerberos， 您可以根据下面的步骤为您自己创建证书：
                 <pre class="brush: bash;">
         sudo /usr/sbin/kadmin.local -q 'addprinc -randkey kafka/{hostname}@{REALM}'
         sudo /usr/sbin/kadmin.local -q "ktadd -k /etc/security/keytabs/{keytabname}.keytab kafka/{hostname}@{REALM}"</pre></li>
-            <li><b>Make sure all hosts can be reachable using hostnames</b> - it is a Kerberos requirement that all your hosts can be resolved with their FQDNs.</li>
+            <li><b>确保所有的主机名可以访问其对应的主机</b> - Kerberos 要求您的所有主机都可以被其 FQDN 进行解析。</li>
         </ol>
-        <li><h5><a id="security_sasl_kerberos_brokerconfig" href="#security_sasl_kerberos_brokerconfig">Configuring Kafka Brokers</a></h5>
+        <li><h5><a id="security_sasl_kerberos_brokerconfig" href="#security_sasl_kerberos_brokerconfig">Kafka Brokers 的配置</a></h5>
         <ol>
-            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example (note that each broker should have its own keytab):
+            <li>为每一个 Kafka broker 的 config 目录下，创建一个类似下面的适当修改的 JAAS 文件，我们在这个例子中把它命名为 kafka_server_jaas.conf
+                （请注意每一个 broker 都应该有他自己 keytab):
             <pre class="brush: text;">
         KafkaServer {
             com.sun.security.auth.module.Krb5LoginModule required
@@ -359,54 +363,50 @@
         };</pre>
 
             </li>
-            <tt>KafkaServer</tt> section in the JAAS file tells the broker which principal to use and the location of the keytab where this principal is stored. It
-            allows the broker to login using the keytab specified in this section. See <a href="#security_sasl_brokernotes">notes</a> for more details on Zookeeper SASL configuration.
-            <li>Pass the JAAS and optionally the krb5 file locations as JVM parameters to each Kafka broker (see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">here</a> for more details):
+            JAAS 文件中 的 <tt>KafkaServer</tt> 节点 告诉 broker 使用哪一个认证以及对应的认证的 keytab 的位置。
+            它允许 broker 根据节点中的 keytab 中的信息来认证登陆。 有关 Zookeeper SASL 配置的更多详细信息，请参阅 <a href="#security_sasl_brokernotes">此处</a>。
+            <li>将 JAAS 和 krb5（可选）的文件位置作为 JVM 的参数传给每一个 Kafka broker。获取更多资料请参照 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">此处</a>。
                 <pre>    -Djava.security.krb5.conf=/etc/kafka/krb5.conf
         -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre>
             </li>
-            <li>Make sure the keytabs configured in the JAAS file are readable by the operating system user who is starting kafka broker.</li>
-            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>. For example:
+            <li>确保启动 Kafka broker 的操作系统用户可以读取 JAAS 文件中的 keytabs。</li>
+            <li>在配置server.properties文件中，确保SASL 端口 和 SASL 安全机制<a href="#security_sasl_brokerconfig">配置</a>正确. 例如:
             <pre>    listeners=SASL_PLAINTEXT://host.name:port
         security.inter.broker.protocol=SASL_PLAINTEXT
         sasl.mechanism.inter.broker.protocol=GSSAPI
         sasl.enabled.mechanisms=GSSAPI
             </pre>
-            </li>We must also configure the service name in server.properties, which should match the principal name of the kafka brokers. In the above example, principal is "kafka/kafka1.hostname.com@EXAMPLE.com", so:
+            </li>我们在 server.properties 文件中， 必须配置和 Kafka broker 证书中名称相匹配的服务器名称。
+            在下面的例子中， 证书的名称为"kafka/kafka1.hostname.com@EXAMPLE.com"，所以
             <pre>    sasl.kerberos.service.name=kafka</pre>
 
         </ol></li>
-        <li><h5><a id="security_sasl_kerberos_clientconfig" href="#security_kerberos_sasl_clientconfig">Configuring Kafka Clients</a></h5>
-            To configure SASL authentication on the clients:
+        <li><h5><a id="security_sasl_kerberos_clientconfig" href="#security_kerberos_sasl_clientconfig">Kafka 客户端的配置</a></h5>
+            在客户端配置 SASL 认证:
             <ol>
                 <li>
-                    Clients (producers, consumers, connect workers, etc) will authenticate to the cluster with their
-                    own principal (usually with the same name as the user running the client), so obtain or create
-                    these principals as needed. Then configure the JAAS configuration property for each client.
-                    Different clients within a JVM may run as different users by specifiying different principals.
-                    The property <code>sasl.jaas.config</code> in producer.properties or consumer.properties describes
-                    how clients like producer and consumer can connect to the Kafka Broker. The following is an example
-                    configuration for a client using a keytab (recommended for long-running processes):
+                    客户端 (producers, consumers, connect workers, 等等) 将使用自己的证书对集群进行身份验证（证书的名字通常与运行客户端的用户同名）
+                    然后根据需要来创建或者获取证书。从而为每一个客户端配置 JAAS 配置属性。
+                    通过指定不同的证书， JVM的不同客户端可以作为不同的用户运行。
+                    在 producer.properties 或者 consumer.properties 文件中 <code>sasl.jaas.config</code> 属性描述着客户端（producer 或 consumer）通过何种方式连接 Kafka broker。
+                    下面的例子是使用 keytab 配置客户端（建议用于长时间运行的进程）：
                 <pre>
     sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
         useKeyTab=true \
         storeKey=true  \
         keyTab="/etc/security/keytabs/kafka_client.keytab" \
         principal="kafka-client-1@EXAMPLE.COM";</pre>
-
-                   For command-line utilities like kafka-console-consumer or kafka-console-producer, kinit can be used
-                   along with "useTicketCache=true" as in:
+                    对于像 kafka-console-consumer 和 kafka-console-producer 这样的命令行应用程序， kinit 可以与 "useTicketCache=true" 一同使用。就像：
                 <pre>
     sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
         useTicketCache=true;</pre>
 
-                   JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
-                   as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
-                   <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</li>
-                <li>Make sure the keytabs configured in the JAAS configuration are readable by the operating system user who is starting kafka client.</li>
-                <li>Optionally pass the krb5 file locations as JVM parameters to each client JVM (see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">here</a> for more details):
+                    客户端的 JAAS 配置 也可以设定为与<a href="#security_client_staticjaas">此处</a>所述的 broker 类似的参数。
+                    客户端使用登陆的节点名称(<tt>KafkaClient</tt>)的这个选项只来确保 一个 JVM 的所有的客户端只对应一个用户。</li>
+                <li>确保启动 Kafka broker 的操作系统用户可以读取 JAAS 文件中的 keytabs。</li>
+                <li>（可选）将 krb5 的文件位置作为 JVM 的参数传给每一个 Kafka broker。获取更多资料请参照<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">此处</a>：
                 <pre>    -Djava.security.krb5.conf=/etc/kafka/krb5.conf</pre></li>
-                <li>Configure the following properties in producer.properties or consumer.properties:
+                <li>在 producer.properties 和 consumer.properties 文件中配置以下的属性：
                 <pre>
     security.protocol=SASL_PLAINTEXT (or SASL_SSL)
     sasl.mechanism=GSSAPI
