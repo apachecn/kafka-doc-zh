@@ -664,14 +664,14 @@
     </ol>
 
     <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs(授权和访问控制列表)</a></h3>
-    Kafka带有一个可插拔的授权器(Authorizer)和一个开箱即用的授权器实现，它使用zookeeper存储所有的acls。Kafka acls定义主体(Principal)对主机上的某个资源的操作是允许还是拒绝。您可以在KIP-11上阅读更多关于acl结构信息。 您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，可以在server.properties中包含以下内容。
+    Kafka带有一个可插拔的授权器(Authorizer)和一个开箱即用的授权器实现，它使用zookeeper存储所有的acls。Kafka acls定义Principal对主机上的某个资源的操作是允许还是拒绝。您可以在KIP-11上阅读更多关于acl结构信息。您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，可以在server.properties中包含以下内容。
     <pre>allow.everyone.if.no.acl.found=true</pre>
     还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
     <pre>super.users=User:Bob;User:Alice</pre>
     默认情况下，SSL用户名的格式为："CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown"。可以通过在server.properties中设置一个自定义的PrincipalBuilder来改变这种情况，如下所示。
     <pre>principal.builder.class=CustomizedPrincipalBuilderClass</pre>
     默认情况下，SASL用户名将成为Kerberos主体的主要部分。有一种方式可以改变，通过设置 <code>sasl.kerberos.principal.to.local.rules</code> 在server.properties中自定义规则。
-    <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的例子，该例子可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
+    <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的示例，该示例可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
     <pre>sasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//,DEFAULT</pre>
 
     <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface(命令行界面) </a></h4>
@@ -788,7 +788,7 @@
     <h4><a id="security_authz_examples" href="#security_authz_examples">Examples(例子)</a></h4>
     <ul>
         <li><b>Adding Acls</b><br>
-     如果您想添加一个 acl ，允许 Principals User:Bob 和 User:Alice  从 IP 198.51.100.0 和  198.51.100.1 对 Topic 和 Test-Topic 进行读写。您可以按照下面的选项执行 CLI :
+     如果您想添加一个 acl ，允许 Principals User:Bob 和 User:Alice  从 IP 198.51.100.0 和  198.51.100.1 对 Topic 中的 Test-Topic 进行读写。您可以按照下面的选项执行 CLI :
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic</pre>
             默认情况下，所有的没有显示声明的 principals 都不允许操作资源。在极少情况下，我们需要在acl中定义一个仅不许特定的 principal 访问，其他的 principal 都允许访问，这时就不得不使用 --deny-principal 和 --deny-host 选项。如果我们想允许所有用户对Test-topic进行读，仅拒绝 User:BadBob 从 IP 198.51.100.3 进行读。我们可以使用下面的命令：
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:* --allow-host * --deny-principal User:BadBob --deny-host 198.51.100.3 --operation Read --topic Test-topic</pre>
