@@ -45,7 +45,7 @@
     <li> 整个群集升级后，通过编辑修改协议版本<code>inter.broker.protocol.version</code> 并将其设置为1.0。
     <li> 重新启动代理，以使新的协议版本生效。</li>
     <li> 如果您按照上面的指示重写了消息格式版本，则需要再执行一次滚动重启才能将其升级到最新版本。一旦所有（或大部分的）consumer升级到0.11.0或更高版本，请将每个代理上的log.message.format.version更改为1.0，然后逐个重启它们。 
-    请注意，较早的Scala consumer 不支持0.11中新的消息格式，因此为了避免转换中的性能成本（或者使用<a href="#upgrade_11_exactly_once_semantics">一次语义</a>），必须使用较新的Java consumer 。 </li>
+    请注意，以前的Scala consumer 不支持0.11中新的消息格式，因此为了避免转换中的性能成本（或者使用<a href="#upgrade_11_exactly_once_semantics">一次语义</a>），必须使用较新的Java consumer 。 </li>
 </ol>
 
 <p><b>其他升级说明：</b></p>
@@ -58,22 +58,12 @@
 <h5><a id="upgrade_100_notable" href="#upgrade_100_notable">1.0.0中显著的变化</a></h5>
 <ul>
     <li>由于功能稳定，所以默认启动删除topic功能。希望保留以前操作的用户请将代理配置<code>delete.topic.enable</code>设置为false。请记住，在topic中删除数据的操作是不可逆的（即没有“撤销删除”操作）。</li>
-    <li>For topics that support timestamp search if no offset can be found for a partition, that partition is now included in the search result with a null offset value. Previously, the partition was not included in the map.
-        This change was made to make the search behavior consistent with the case of topics not supporting timestamp search.
-    <li>If the <code>inter.broker.protocol.version</code> is 1.0 or later, a broker will now stay online to serve replicas
-        on live log directories even if there are offline log directories. A log directory may become offline due to IOException
-        caused by hardware failure. Users need to monitor the per-broker metric <code>offlineLogDirectoryCount</code> to check
-        whether there is offline log directory. </li>
-    <li>Added KafkaStorageException which is a retriable exception. KafkaStorageException will be converted to NotLeaderForPartitionException in the response
-        if the version of client's FetchRequest or ProducerRequest does not support KafkaStorageException. </li>
-    <li>-XX:+DisableExplicitGC was replaced by -XX:+ExplicitGCInvokesConcurrent in the default JVM settings. This helps
-        avoid out of memory exceptions during allocation of native memory by direct buffers in some cases.</li>
-    <li>The overridden <code>handleError</code> method implementations have been removed from the following deprecated classes in
-        the <code>kafka.api</code> package: <code>FetchRequest</code>, <code>GroupCoordinatorRequest</code>, <code>OffsetCommitRequest</code>,
-        <code>OffsetFetchRequest</code>, <code>OffsetRequest</code>, <code>ProducerRequest</code>, and <code>TopicMetadataRequest</code>.
-        This was only intended for use on the broker, but it is no longer in use and the implementations have not been maintained.
-        A stub implementation has been retained for binary compatibility.</li>
-    <li>The Java clients and tools now accept any string as a client-id.</li>
+    <li> 对于可以按时间戳搜索的topic，如果找不到分区的偏移量，则会将该分区显示在搜索结果中，并将偏移量值设置为空。在以前的版本中，这类分区不会显示。这种更改是为了使搜索行为与不支持时间戳搜索的topic相一致。
+    <li>如果<code>inter.broker.protocol.version</code>是1.0或更高版本，即使存在脱机日志目录，代理也会一直保持联机，并在实时日志目录上提交副本。由硬件故障导致的IOException，日志目录可能会变为脱机状态。用户需要监控每个代理度量标准<code>offlineLogDirectoryCount</code>来检查是否存在离线日志目录。</li>
+    <li>增加了一个可回溯的异常 KafkaStorageException 。 如果客户端的FetchRequest或ProducerRequest的版本不支持KafkaStorageException，则KafkaStorageException将在响应中转换为NotLeaderForPartitionException。</li>
+    <li>-XX：在默认的JVM设置中，+ DisableExplicitGC被-XX:+ ExplicitGCInvokesConcurrent替换。在某些情况下，这有助于避免通过直接缓冲区分配本机内存时出现的内存异常。</li>
+    <li>重写的<code>handleError</code>方法已经从以下过时类中除去<code>kafka.api</code>：包<code>FetchRequest</code>，<code>GroupCoordinatorRequest</code>，<code>OffsetCommitRequest</code>， <code>OffsetFetchRequest</code>，<code>OffsetRequest</code>，<code>ProducerRequest</code>，和<code>TopicMetadataRequest</code>。这只是为了在代理上使用，但是实际上它已经不再被使用了，实现也没有被维护。只是因为二进制兼容性，保留了一个存根。</li>
+    <li>Java客户端和工具现在接受任何字符串作为客户端ID。</li>
     <li>The deprecated tool <code>kafka-consumer-offset-checker.sh</code> has been removed. Use <code>kafka-consumer-groups.sh</code> to get consumer group details.</li>
     <li>SimpleAclAuthorizer now logs access denials to the authorizer log by default.</li>
     <li>Authentication failures are now reported to clients as one of the subclasses of <code>AuthenticationException</code>.
