@@ -64,15 +64,11 @@
     <li>-XX：在默认的JVM设置中，+ DisableExplicitGC被-XX:+ ExplicitGCInvokesConcurrent替换。在某些情况下，这有助于避免通过直接缓冲区分配本机内存时出现的内存异常。</li>
     <li>重写的<code>handleError</code>方法已经从以下过时类中除去<code>kafka.api</code>：包<code>FetchRequest</code>，<code>GroupCoordinatorRequest</code>，<code>OffsetCommitRequest</code>， <code>OffsetFetchRequest</code>，<code>OffsetRequest</code>，<code>ProducerRequest</code>，和<code>TopicMetadataRequest</code>。这只是为了在代理上使用，但是实际上它已经不再被使用了，实现也没有被维护。只是因为二进制兼容性，保留了一个存根。</li>
     <li>Java客户端和工具现在接受任何字符串作为客户端ID。</li>
-    <li>The deprecated tool <code>kafka-consumer-offset-checker.sh</code> has been removed. Use <code>kafka-consumer-groups.sh</code> to get consumer group details.</li>
-    <li>SimpleAclAuthorizer now logs access denials to the authorizer log by default.</li>
-    <li>Authentication failures are now reported to clients as one of the subclasses of <code>AuthenticationException</code>.
-        No retries will be performed if a client connection fails authentication.</li>
-    <li>Custom <code>SaslServer</code> implementations may throw <code>SaslAuthenticationException</code> to provide an error
-        message to return to clients indicating the reason for authentication failure. Implementors should take care not to include
-        any security-critical information in the exception message that should not be leaked to unauthenticated clients.</li>
-    <li>The <code>app-info</code> mbean registered with JMX to provide version and commit id will be deprecated and replaced with
-        metrics providing these attributes.</li>
+    <li><code>kafka-consumer-offset-checker.sh</code>工具已被弃用。使用<code>kafka-consumer-groups.sh</code>来得到consumer group 的详细信息</li>
+    <li>SimpleAclAuthorizer默认将拒绝访问日志记录到授权人日志中。</li>
+    <li><code>AuthenticationException</code>中的一个子类向客户端报告身份验证失败日志。如果客户端连接失败，并不会重新进行验证 。</li>
+    <li>自定义 <code>SaslServer</code> 实现可能会向客户端抛出 <code>SaslAuthenticationException</code> 来提供有关身份验证失败的错误信息。同时应注意在异常信息中，不要向未授权的客户泄露任何安全方面的关键信息。</li>
+    <li>向JMX提供版本和提交ID 的<code>app-info</code>将被弃用，由提供这些属性的metrics（度量）来替换。</li>
     <li>Kafka metrics may now contain non-numeric values. <code>org.apache.kafka.common.Metric#value()</code> has been deprecated and
         will return <code>0.0</code> in such cases to minimise the probability of breaking users who read the value of every client
         metric (via a <code>MetricsReporter</code> implementation or by calling the <code>metrics()</code> method).
