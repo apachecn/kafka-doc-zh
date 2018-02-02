@@ -458,7 +458,7 @@
     Note that "acknowledgement by all replicas" does not guarantee that the full set of assigned replicas have received the message. By default, when acks=all, acknowledgement happens as soon as all the current in-sync
     replicas have received the message. For example, if a topic is configured with only two replicas and one fails (i.e., only one in sync replica remains), then writes that specify acks=all will succeed. However, these
     writes could be lost if the remaining replica also fails.
-    向 Kafka 写数据时, producers 设置 ack 是否提交完成, 0：不等待broker返回确认消息,1: leader保存成功返回或 -1(all): 所有副本都保存成功返回.
+    向 Kafka 写数据时, producers 设置 ack 是否提交完成, 0：不等待broker返回确认消息,1: leader返回确认消息或 -1( all ): 所有备份都保存成功返回.
     请注意. 设置 "ack = all" 并不能保证所有的副本都写入了消息. 默认情况下, 当 acks = all 时, 只要 ISR 副本同步完成, 就会返回消息已经写入. 
     例如, 一个 topic 仅仅设置了两个副本, 那么只有一个 ISR 副本, 那么acks = all的返回写入成功时, 剩下了的那个副本数据也可能数据没有写入.  
     Although this ensures maximum availability of the partition, this behavior may be undesirable to some users who prefer durability over availability. Therefore, we provide two topic-level configurations that can be
@@ -467,7 +467,7 @@
     <ol>
         <li> Disable unclean leader election - if all replicas become unavailable, then the partition will remain unavailable until the most recent leader becomes available again. This effectively prefers unavailability
         over the risk of message loss. See the previous section on Unclean Leader Election for clarification. 
-        禁用 unclean leader 机制, 如果所有的副本挂了, 分区就会不可用, 直到最近的 leader 可用. 这中策略优先于数据丢失的风险, 参看上一节的 unclean leader 选举机制.
+        禁用 unclean leader 选举机制 - 如果所有的备份节点都挂了, 分区数据就会不可用, 直到最近的 leader 恢复正常. 这种策略优先于数据丢失的风险, 参看上一节的 unclean leader 选举机制.
     </li>
         <li> Specify a minimum ISR size - the partition will only accept writes if the size of the ISR is above a certain minimum, in order to prevent the loss of messages that were written to just a single replica,
         which subsequently becomes unavailable. This setting only takes effect if the producer uses acks=all and guarantees that the message will be acknowledged by at least this many in-sync replicas.
