@@ -69,39 +69,27 @@
     <li><code>AuthenticationException</code>中的一个子类向客户端报告身份验证失败日志。如果客户端连接失败，并不会重新进行验证 。</li>
     <li>自定义 <code>SaslServer</code> 实现可能会向客户端抛出 <code>SaslAuthenticationException</code> 来提供有关身份验证失败的错误信息。同时应注意在异常信息中，不要向未授权的客户泄露任何安全方面的关键信息。</li>
     <li>向JMX提供版本和提交ID 的<code>app-info</code>将被弃用，由提供这些属性的metrics（度量）来替换。</li>
-    <li>Kafka metrics 现在可能包含非数字值。<code>org.apache.kafka.common.Metric#value()</code>已被弃用并返回<code>0.0</code> in such cases to minimise the probability of breaking users who read the value of every client
-        metric (via a <code>MetricsReporter</code> implementation or by calling the <code>metrics()</code> method).
-        <code>org.apache.kafka.common.Metric#metricValue()</code> can be used to retrieve numeric and non-numeric metric values.</li>
-    <li>Every Kafka rate metric now has a corresponding cumulative count metric with the suffix <code>-total</code>
-        to simplify downstream processing. For example, <code>records-consumed-rate</code> has a corresponding
-        metric named <code>records-consumed-total</code>.</li>
-    <li>Mx4j will only be enabled if the system property <code>kafka_mx4jenable</code> is set to <code>true</code>. Due to a logic
-        inversion bug, it was previously enabled by default and disabled if <code>kafka_mx4jenable</code> was set to <code>true</code>.</li>
-    <li>The package <code>org.apache.kafka.common.security.auth</code> in the clients jar has been made public and added to the javadocs.
-        Internal classes which had previously been located in this package have been moved elsewhere.</li>
-    <li>When using an Authorizer and a user doesn't have required permissions on a topic, the broker
-        will return TOPIC_AUTHORIZATION_FAILED errors to requests irrespective of topic existence on broker.
-        If the user have required permissions and the topic doesn't exists, then the UNKNOWN_TOPIC_OR_PARTITION
-        error code will be returned. </li>
-    <li>config/consumer.properties file updated to use new consumer config properties.</li>
+    <li>Kafka metrics 现在可能包含非数字值。<code>org.apache.kafka.common.Metric#value()</code>已被弃用并返回<code>0.0</code>以最大限度地减少用户读取每个客户端值时系统断开的概率（用户调用 <code>MetricsReporter</code> 或<code>metrics()</code> 来读取）。<code>org.apache.kafka.common.Metric#metricValue()</code>用来检索数字和非数字的度量值</li>
+    <li>每个 Kafka 速率指标都有相应的累计计数度量标准，带后缀 <code>-total</code>方便后续处理。 例如， <code>records-consumed-rate</code>对应的度量标准是 <code>records-consumed-total</code>。</li>
+    <li>当系统属性<code>kafka_mx4jenable</code> 设置为 <code>true</code>时，Mx4j才会启用。以前它是默认启用的，如果 <code>kafka_mx4jenable</code> 设置为 <code>true</code>，则禁用Mx4j。</li>
+    <li>客户端jar 包中的<code>org.apache.kafka.common.security.auth</code>包现在是公有的，已被添加到javadocs中。这个包中的内部类已经移到其他地方了。</li>
+    <li>当使用授权且用户对topic没有必备的权限时，broker 返回TOPIC_AUTHORIZATION_FAILED错误表示broker对于已存在的topic无权限。如果用户具有权限但topic不存在，则返回UNKNOWN_TOPIC_OR_PARTITION错误。</li>
+    <li>为新的consumer配置config/consumer.properties 文件中的属性。</li>
 </ul>
 
-<h5><a id="upgrade_100_new_protocols" href="#upgrade_100_new_protocols">New Protocol Versions</a></h5>
+<h5><a id="upgrade_100_new_protocols" href="#upgrade_100_new_protocols">新的版本协议</a></h5>
 <ul>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: LeaderAndIsrRequest v1 introduces a partition-level <code>is_new</code> field. </li>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: UpdateMetadataRequest v4 introduces a partition-level <code>offline_replicas</code> field. </li>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: MetadataResponse v5 introduces a partition-level <code>offline_replicas</code> field. </li>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: ProduceResponse v4 introduces error code for KafkaStorageException. </li>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: FetchResponse v6 introduces error code for KafkaStorageException. </li>
-    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-152+-+Improve+diagnostics+for+SASL+authentication+failures">KIP-152</a>:
-         SaslAuthenticate request has been added to enable reporting of authentication failures. This request will
-         be used if the SaslHandshake request version is greater than 0. </li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: LeaderAndIsrRequest v1 引入一个分区字段 <code>is_new</code> 。</li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: UpdateMetadataRequest v4 引入一个分区字段 <code>offline_replicas</code> 。 </li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: MetadataResponse v5 引入一个分区字段<code>offline_replicas</code>。 </li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: ProduceResponse v4 引入了错误代码KafkaStorageException。 </li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-112%3A+Handle+disk+failure+for+JBOD">KIP-112</a>: FetchResponse v6 引入了错误代码KafkaStorageException。 </li>
+    <li> <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-152+-+Improve+diagnostics+for+SASL+authentication+failures">KIP-152</a>:添加SaslAuthenticate request来报告身份验证失败。当SaslHandshake request版本大于0，将使用此请求。 </li>
 </ul>
 
-<h5><a id="upgrade_100_streams" href="#upgrade_100_streams">Upgrading a 1.0.0 Kafka Streams Application</a></h5>
+<h5><a id="upgrade_100_streams" href="#upgrade_100_streams">升级 1.0.0 Kafka Streams 应用程序</a></h5>
 <ul>
-    <li> Upgrading your Streams application from 0.11.0 to 1.0.0 does not require a broker upgrade.
-        A Kafka Streams 1.0.0 application can connect to 0.11.0, 0.10.2 and 0.10.1 brokers (it is not possible to connect to 0.10.0 brokers though). </li>
+    <li> 将Streams应用程序从0.11.0升级到1.0.0不需要使用代理。Kafka Streams 1.0.0应用程序可以连接到0.11.0，0.10.2和0.10.1的代理（却不能连接到0.10.0代理）。</li>
     <li> If you are monitoring on streams metrics, you will need make some changes to the metrics names in your reporting and monitoring code, because the metrics sensor hierarchy was changed. </li>
     <li> There are a few public APIs including <code>ProcessorContext#schedule()</code>, <code>Processor#punctuate()</code> and <code>KStreamBuilder</code>, <code>TopologyBuilder</code> are being deprecated by new APIs.
         We recommend making corresponding code changes, which should be very minor since the new APIs look quite similar, when you upgrade.
