@@ -68,58 +68,78 @@
 <p>
 We have put significant effort into efficiency. One of our primary use cases is handling web activity data, which is very high volume: each page view may generate dozens of writes. Furthermore, we assume each
 message published is read by at least one consumer (often many), hence we strive to make consumption as cheap as possible.
+我们在性能上已经做了很大的努力. 我们主要的使用场景是处理网络活动数据, 这个数据量非常大, 因为每个页面都有可能大量的写入. 此外我们假设每个发布 message 至少被一个consumer (通常很多个consumer) 消费, 因此我们努力让消费尽可能付出少的
+代价.
 <p>
 We have also found, from experience building and running a number of similar systems, that efficiency is a key to effective multi-tenant operations. If the downstream infrastructure service can easily become a
 bottleneck due to a small bump in usage by the application, such small changes will often create problems. By being very fast we help ensure that the application will tip-over under load before the infrastructure.
 This is particularly important when trying to run a centralized service that supports dozens or hundreds of applications on a centralized cluster as changes in usage patterns are a near-daily occurrence.
+我们还发现, 从构建和运行许多相似系统的经验上来看, 性能是多租户运营的关键. 如果下游的基础设施服务很轻易被应用层冲击形成瓶颈, 那么一些小的改变也会造成问题. 通过非常快的(缓存)技术, 我们能确保应用层冲击基础设施之前, 将负载稳定下来.
+当尝试去运行支持集中式集群上成百上千个应用程序的集中式服务时, 这一点很重要, 因为应用层使用方式几乎每天都会发生变化. 
 <p>
 We discussed disk efficiency in the previous section. Once poor disk access patterns have been eliminated, there are two common causes of inefficiency in this type of system: too many small I/O operations, and
 excessive byte copying.
+我们在上一节讨论了磁盘性能. 一旦消除了磁盘访问模式不佳的情况, 还有可能导致系统效率低下的两个常见原因是: 太多的小 I/O 操作, 过多的字节复制. 
 <p>
 The small I/O problem happens both between the client and the server and in the server's own persistent operations.
+客户端和服务端之间以及服务端自身的持久化操作都会导致小的 I/O 问题.
 <p>
 To avoid this, our protocol is built around a "message set" abstraction that naturally groups messages together. This allows network requests to group messages together and amortize the overhead of the network
 roundtrip rather than sending a single message at a time. The server in turn appends chunks of messages to its log in one go, and the consumer fetches large linear chunks at a time.
+为了避免这种情况, 我们的协议是建立在一个 "消息块" 抽象的基础上, 合理将消息分组在一起, 这使得网络请求将获得分组信息并分摊网络的开销往返而不是一次发送一条消息. 服务端依次将消息块一次加载到它的日志中, consumer 一次获取大的线性
+的消息块.
 <p>
 This simple optimization produces orders of magnitude speed up. Batching leads to larger network packets, larger sequential disk operations, contiguous memory blocks, and so on, all of which allows Kafka to turn
 a bursty stream of random message writes into linear writes that flow to the consumers.
+这个简单的优化将速度提升了数量级. 批处理允许更大的网络数据包, 更大的顺序读写磁盘操作, 连续的内存块等等, 所有这些都使 KafKa 将随机流消息顺序写入到磁盘, 再由 consumers 进行消费 .
 <p>
 The other inefficiency is in byte copying. At low message rates this is not an issue, but under load the impact is significant. To avoid this we employ a standardized binary message format that is shared by the
 producer, the broker, and the consumer (so data chunks can be transferred without modification between them).
+另一个低效率的操作是字节复制, 在消息量少时, 这不是问题. 但是在高负载情况下, 影响还是挺大的. 为了避免这种情况, 我们使用 producer , broker , 和 consumer 都能用的标准化的二进制消息格式, 这样数据不用修改就能在他们之间传递. 
 <p>
 The message log maintained by the broker is itself just a directory of files, each populated by a sequence of message sets that have been written to disk in the same format used by the producer and consumer.
 Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data
 out of pagecache to a socket; in Linux this is done with the <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
+broker 维护的消息日志本身就是一个文件目录, 每个文件都是序列化的消息块, 以 producer 和 consumer 所使用格式写入到磁盘. 保持这种通用格式能得到最重要优化方式: 持久日志块的网络传输. 
+现代的 unix 操作系统提供了一个高度优化的编码路径,用于将数据从页面缓存转移到套接字; Linux 是这样做的 <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
 <p>
 To understand the impact of sendfile, it is important to understand the common data path for transfer of data from file to socket:
+为了理解 sendfile 的意义, 了解数据从文件传输到套接字的常见数据路径非常重要:
 <ol>
-    <li>The operating system reads data from the disk into pagecache in kernel space</li>
-    <li>The application reads the data from kernel space into a user-space buffer</li>
-    <li>The application writes the data back into kernel space into a socket buffer</li>
-    <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network</li>
+    <li>The operating system reads data from the disk into pagecache in kernel space 操作系统从磁盘读取数据到内核空间的 pagecache </li>
+    <li>The application reads the data from kernel space into a user-space buffer  应用程序读取内核空间的数据到用户空间的缓冲区</li>
+    <li>The application writes the data back into kernel space into a socket buffer  应用程序将数据(用户空间的缓冲区)写回内核空间到套接字缓冲区(内核空间)</li>
+    <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network 操作系统将数据从套接字缓冲区(内核空间)复制到通过网络发送的 NIC 缓冲区 </li>
 </ol>
 <p>
 This is clearly inefficient, there are four copies and two system calls. Using sendfile, this re-copying is avoided by allowing the OS to send the data from pagecache to the network directly. So in this optimized
 path, only the final copy to the NIC buffer is needed.
+这显然是低效的, 有四个副本和两次系统调用. 使用 sendfile , 通过允许操作系统将数据从 pagecache 直接发送到网络, 这样避免重新复制数据. 所以在这个优化路径,只需要将最终数据拷贝到 NIC 缓冲区.
 <p>
 We expect a common use case to be multiple consumers on a topic. Using the zero-copy optimization above, data is copied into pagecache exactly once and reused on each consumption instead of being stored in memory
 and copied out to user-space every time it is read. This allows messages to be consumed at a rate that approaches the limit of the network connection.
+我们期望一个 topic 有多个 consumer 是普遍的使用场景. 使用上述的零复制优化, 数据在使用时只会被复制到 pagecache 中一次, 而不是每次拷贝到用户空间内存,再进行读取. 这使得消息能够以网络连接速度的上限进行消费. 
 <p>
 This combination of pagecache and sendfile means that on a Kafka cluster where the consumers are mostly caught up you will see no read activity on the disks whatsoever as they will be serving data entirely from cache.
+pagecache 和 sendfile 的组合使用意味着,在一个kafka集群中, 大多数 consumer 消费时, 您将看不到磁盘上的读取活动, 因为它们将完全从缓存中提供数据.
 <p>
 For more background on the sendfile and zero-copy support in Java, see this <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">article</a>.
+JAVA 中更多有关 sendfile 和零复制相关的资料, 参看这里的 <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">文章</a>.
 
-<h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression</a></h4>
+<h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression 端到端的批量压缩</a></h4>
 <p>
 In some cases the bottleneck is actually not CPU or disk but network bandwidth. This is particularly true for a data pipeline that needs to send messages between data centers over a wide-area network. Of course,
 the user can always compress its messages one at a time without any support needed from Kafka, but this can lead to very poor compression ratios as much of the redundancy is due to repetition between messages of
 the same type (e.g. field names in JSON or user agents in web logs or common string values). Efficient compression requires compressing multiple messages together rather than compressing each message individually.
+在某些情况下, 数据传输的瓶颈不是 CPU 或 磁盘, 而是网络带宽. 对于需要通过广域网在数据中心之间发送消息的数据方式尤其如此. 当然, 用户可以在不需要 Kakfa 支持下一个一个的压缩消息. 但是这样会造成非常差的压缩比, 和消息重复类型的冗余, 比如
+JSON 中的字段名称或者是或 Web 日志中的用户代理或公共字符串值. 高性能的压缩是一次压缩多个消息, 而不是压缩单个消息.
 <p>
 Kafka supports this with an efficient batching format. A batch of messages can be clumped together compressed and sent to the server in this form. This batch of messages will be written in compressed form and will
 remain compressed in the log and will only be decompressed by the consumer.
+Kafka 以高效的批处理格式支持一批消息可以压缩在一起发送到服务器. 这批消息将以压缩格式写入, 并且在日志中保持压缩, 只会在 consumer 消费时解压缩.
 <p>
 Kafka supports GZIP, Snappy and LZ4 compression protocols. More details on compression can be found <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">here</a>.
-
+Kafka 支持 GZIP, Snappy 和 LZ4 压缩协议. 更多有关压缩的资料参看 <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">这里</a>.
 <h3><a id="theproducer" href="#theproducer">4.4 The Producer</a></h3>
 
 <h4><a id="design_loadbalancing" href="#design_loadbalancing">Load balancing</a></h4>
@@ -877,7 +897,7 @@ In fact, when running Kafka as a service this even makes it possible to enforce 
     的 followers 能成为 leader .
     <p>
     If you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.
-    从 选择所需的确认数量(写) 和 必须比较的日志数量(读) 来选择一个为主, 并且确保读和写数量上大于总的备份数， 这样的读写机制成为 Quorum
+    从 选择所需的确认数量(写) 和 必须比较的日志数量(读) 来选择一个为主, 并且确保读和写数量上大于总的备份数， 这样的读写机制称为 Quorum
     <p>
     A common approach to this tradeoff is to use a majority vote for both the commit decision and the leader election. This is not what Kafka does, but let's explore it anyway to understand the tradeoffs. Let's say we
     have 2<i>f</i>+1 replicas. If <i>f</i>+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least
