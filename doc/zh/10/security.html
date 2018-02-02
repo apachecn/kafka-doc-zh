@@ -645,153 +645,154 @@
     </li>
     </ol>
 
-    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs</a></h3>
-    Kafka ships with a pluggable Authorizer and an out-of-box authorizer implementation that uses zookeeper to store all the acls. Kafka acls are defined in the general format of "Principal P is [Allowed/Denied] Operation O From Host H On Resource R". You can read more about the acl structure on KIP-11. In order to add, remove or list acls you can use the Kafka authorizer CLI. By default, if a Resource R has no associated acls, no one other than super users is allowed to access R. If you want to change that behavior, you can include the following in server.properties.
+    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs(授权和访问控制列表)</a></h3>
+    Kafka 带有一个可扩展的 Authorizer (授权器) 和一个用 zookeeper 实现的 Authorizer (授权器)，zookeeper 会存储所有的 acls 授权信息。 Kafka acls 授权信息定义的规则是 " P is [Allowed/Denied] Operation O From Host H On Resource R"。您可以在KIP-11上阅读更多关于 acl 结构信息。您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls 授权信息，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，你可以在server.properties 文件中填写以下内容。
     <pre>allow.everyone.if.no.acl.found=true</pre>
-    One can also add super users in server.properties like the following (note that the delimiter is semicolon since SSL user names may contain comma).
+    还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
     <pre>super.users=User:Bob;User:Alice</pre>
-    By default, the SSL user name will be of the form "CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown". One can change that by setting a customized PrincipalBuilder in server.properties like the following.
+    默认情况下，SSL用户名的格式为："CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown"。可以通过在server.properties中设置一个自定义的PrincipalBuilder来改变这种情况，如下所示。
     <pre>principal.builder.class=CustomizedPrincipalBuilderClass</pre>
-    By default, the SASL user name will be the primary part of the Kerberos principal. One can change that by setting <code>sasl.kerberos.principal.to.local.rules</code> to a customized rule in server.properties.
-    The format of <code>sasl.kerberos.principal.to.local.rules</code> is a list where each rule works in the same way as the auth_to_local in <a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>. Each rules starts with RULE: and contains an expression in the format [n:string](regexp)s/pattern/replacement/g. See the kerberos documentation for more details. An example of adding a rule to properly translate user@MYDOMAIN.COM to user while also keeping the default rule in place is:
+    默认情况下，SASL用户名将成为Kerberos主体的主要部分。有一种方式可以改变，通过设置 <code>sasl.kerberos.principal.to.local.rules</code> 在server.properties中自定义规则。
+    <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的示例，该示例可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
     <pre>sasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//,DEFAULT</pre>
 
-    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface</a></h4>
-    Kafka Authorization management CLI can be found under bin directory with all the other CLIs. The CLI script is called <b>kafka-acls.sh</b>. Following lists all the options that the script supports:
+    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface(命令行界面) </a></h4>
+    Kafka的授权管理CLI(命令行界面)可以在bin目录下找到，并使用所有其他CLIs。命令行界面脚本的名字是 <b>kafka-acls.sh</b>。以下列出了脚本支持的所有选项：
     <p></p>
     <table class="data-table">
         <tr>
-            <th>Option</th>
-            <th>Description</th>
-            <th>Default</th>
-            <th>Option type</th>
+            <th>选项</th>
+            <th>说明</th>
+            <th>默认值</th>
+            <th>选项类型</th>
         </tr>
         <tr>
             <td>--add</td>
-            <td>Indicates to the script that user is trying to add an acl.</td>
+            <td>表示用户正在尝试添加acl的脚本</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--remove</td>
-            <td>Indicates to the script that user is trying to remove an acl.</td>
+            <td>表示用户正在尝试删除acl的脚本。</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--list</td>
-            <td>Indicates to the script that user is trying to list acls.</td>
+            <td>表示用户正在尝试列出acls的脚本。</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--authorizer</td>
-            <td>Fully qualified class name of the authorizer.</td>
+            <td>授权器的完全限定类名。</td>
             <td>kafka.security.auth.SimpleAclAuthorizer</td>
             <td>Configuration</td>
         </tr>
         <tr>
             <td>--authorizer-properties</td>
-            <td>key=val pairs that will be passed to authorizer for initialization. For the default authorizer the example values are: zookeeper.connect=localhost:2181</td>
+            <td>键值对(key=val)将被传递给授权器进行初始化。对于默认授权器，示例值为：zookeeper.connect = localhost：2181</td>
             <td></td>
             <td>Configuration</td>
         </tr>
         <tr>
             <td>--cluster</td>
-            <td>Specifies cluster as resource.</td>
+            <td>指定一个集群作为资源。</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--topic [topic-name]</td>
-            <td>Specifies the topic as resource.</td>
+            <td>指定一个topic(主题)作为资源。</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--group [group-name]</td>
-            <td>Specifies the consumer-group as resource.</td>
+            <td>指定consumer-group(消费组)作为资源。</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--allow-principal</td>
-            <td>Principal is in PrincipalType:name format that will be added to ACL with Allow permission. <br>You can specify multiple --allow-principal in a single command.</td>
+            <td>Principal(委托人)是PrincipalType:name的格式，将被添加到ACL中并有允许权限。<br>你可以在单个命令中指定多个 --allow-principal。</td>
             <td></td>
             <td>Principal</td>
         </tr>
         <tr>
             <td>--deny-principal</td>
-            <td>Principal is in PrincipalType:name format that will be added to ACL with Deny permission. <br>You can specify multiple --deny-principal in a single command.</td>
+            <td>Principal是PrincipalType:name格式，将被添加到ACL中并有拒绝权限。<br>你可以在单个命令中指定多个--deny-principal。</td>
             <td></td>
             <td>Principal</td>
         </tr>
         <tr>
             <td>--allow-host</td>
-            <td>IP address from which principals listed in --allow-principal will have access.</td>
-            <td> if --allow-principal is specified defaults to * which translates to "all hosts"</td>
+            <td>在--allow-principal中列出将允许principal从哪些IP地址访问。</td>
+            <td>如果指定 --allow-principal的默认值为 *，将允许从所有主机进行访问。</td>
             <td>Host</td>
         </tr>
         <tr>
             <td>--deny-host</td>
-            <td>IP address from which principals listed in --deny-principal will be denied access.</td>
-            <td>if --deny-principal is specified defaults to * which translates to "all hosts"</td>
+            <td>在--deny-principal中列出将拒绝principal从哪些IP地址访问。</td>
+            <td>如果指定 --deny-principal的默认值为 *，将允许从所有主机进行访问。</td>
             <td>Host</td>
         </tr>
         <tr>
             <td>--operation</td>
-            <td>Operation that will be allowed or denied.<br>
-                Valid values are : Read, Write, Create, Delete, Alter, Describe, ClusterAction, All</td>
+            <td>将会被允许和拒绝的操作<br>
+                有效值: Read(读), Write(写), Create(创建), Delete(删除), Alter(修改), Describe(描述), ClusterAction(集群操作), All(所有)</td>
             <td>All</td>
             <td>Operation</td>
         </tr>
         <tr>
             <td>--producer</td>
-            <td> Convenience option to add/remove acls for producer role. This will generate acls that allows WRITE,
-                DESCRIBE on topic and CREATE on cluster.</td>
+            <td> 该选项可为生产者添加和删除acls(访问控制列表)。它生成的acls允许在topic(主题)上进行WRITE,
+                DESCRIBE操作，并且在集群上进行CREATE操作。</td>
             <td></td>
             <td>Convenience</td>
         </tr>
         <tr>
             <td>--consumer</td>
-            <td> Convenience option to add/remove acls for consumer role. This will generate acls that allows READ,
-                DESCRIBE on topic and READ on consumer-group.</td>
+            <td> 该选项可为消费者添加和删除acls(访问控制列表)。 它生成的acls允许在topic(主题)上进行READ,
+                DESCRIBE操作，并且通过消费组进行READ操作。</td>
             <td></td>
             <td>Convenience</td>
         </tr>
         <tr>
             <td>--force</td>
-            <td> Convenience option to assume yes to all queries and do not prompt.</td>
+            <td> 该选项对所有的查询都假设为yes，并且不提示。</td>
             <td></td>
             <td>Convenience</td>
         </tr>
     </tbody></table>
 
-    <h4><a id="security_authz_examples" href="#security_authz_examples">Examples</a></h4>
+    <h4><a id="security_authz_examples" href="#security_authz_examples">Examples(例子)</a></h4>
     <ul>
         <li><b>Adding Acls</b><br>
-    Suppose you want to add an acl "Principals User:Bob and User:Alice are allowed to perform Operation Read and Write on Topic Test-Topic from IP 198.51.100.0 and IP 198.51.100.1". You can do that by executing the CLI with following options:
+            如果您想添加一个 acl 授权信息 "允许 User:Bob 和 User:Alice 从 IP 198.51.100.0 和 198.51.100.1 对 Topic 中的 Test-Topic 进行读写"。您可以按照下面的选项在终端执行 CLI :
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic</pre>
-            By default, all principals that don't have an explicit acl that allows access for an operation to a resource are denied. In rare cases where an allow acl is defined that allows access to all but some principal we will have to use the --deny-principal and --deny-host option. For example, if we want to allow all users to Read from Test-topic but only deny User:BadBob from IP 198.51.100.3 we can do so using following commands:
+            默认情况下，所有的没有显示声明 acl 授权信息的用户，对某个资源操作时都将被拒绝。在极少情况下，我们需要在acl 授权信息定义一个少数用户不允许访问，其他用户都允许访问的规则，这个时候就需要使用 --deny-principal 和 --deny-host 选项。如果我们想允许所有用户对 Test-topic 进行读取，仅拒绝 User:BadBob 从 IP 198.51.100.3 进行读取。我们可以使用下面的命令：
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:* --allow-host * --deny-principal User:BadBob --deny-host 198.51.100.3 --operation Read --topic Test-topic</pre>
             Note that ``--allow-host`` and ``deny-host`` only support IP addresses (hostnames are not supported).
-            Above examples add acls to a topic by specifying --topic [topic-name] as the resource option. Similarly user can add acls to cluster by specifying --cluster and to a consumer group by specifying --group [group-name].</li>
+            注意：``--allow-host`` 和 ``deny-host`` 只支持 IP地址(不支持主机名)
+            以上示例通过--topic [topic-name]指定资源选项来将acls添加到 topic 上。同样，用户可以通过指定 --cluster 将 acls 添加到 cluster；通过指定 --group [group-name] 将 acls 添加到一个 consumer group。</li>
 
         <li><b>Removing Acls</b><br>
-                Removing acls is pretty much the same. The only difference is instead of --add option users will have to specify --remove option. To remove the acls added by the first example above we can execute the CLI with following options:
+                移除 acl 授权信息几乎是相同的命令。唯一的不同就是必须使用 --remove 选项来代替 --add 选项。为了移除上面第一个示例添加的 acls 授权信息，我们可以用 CLI 终端执行下面的选项：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --remove --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic </pre></li>
 
         <li><b>List Acls</b><br>
-                We can list acls for any resource by specifying the --list option with the resource. To list all acls for Test-topic we can execute the CLI with following options:
+                我们可以通过指定 --list 选项和资源来列出任何资源的 acls 授权信息。如果我们想列出 Test-topic 的所有的 acls授权信息,我们可以用 CLI 终端执行下面的选项：
                 <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --list --topic Test-topic</pre></li>
 
         <li><b>Adding or removing a principal as producer or consumer</b><br>
-                The most common use case for acl management are adding/removing a principal as producer or consumer so we added convenience options to handle these cases. In order to add User:Bob as a producer of  Test-topic we can execute the following command:
+                ACL 管理最常见的情况就是添加或移除一个用户作为 producer 或 consumer。因此我们添加方便的选项来处理这些情景。为了添加 User:Bob 作为 Test-topic 的 producer 我们可以执行下面的命令：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --producer --topic Test-topic</pre>
-                Similarly to add Alice as a consumer of Test-topic with consumer group Group-1 we just have to pass --consumer option:
+            类似的，如果要添加 Alice 到 consumer group Group-1 中作为 Test-topic 的一个 consumer，我们仅需要传递 --consumer 选项：
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --consumer --topic Test-topic --group Group-1 </pre>
-                Note that for consumer option we must also specify the consumer group.
-                In order to remove a principal from producer or consumer role we just need to pass --remove option. </li>
+                注意：对于 consumer 选项我们必须指定 consumer group。
+                为了从 producer 和 consumer 的角色中移除一个用户我们仅需要传 --remove 选项</li>
         </ul>
 
     <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 Incorporating Security Features in a Running Cluster</a></h3>
