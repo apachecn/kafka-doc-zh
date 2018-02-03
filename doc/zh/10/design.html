@@ -211,7 +211,7 @@ Kafka 使用完全不同的方式解决消息丢失问题。Kafka的 topic 被�
 <p>
 很多系统声称提供了“Exactly once”的消息交付语义, 然而阅读它们的细则很重要, 因为这些声称大多数都是误导性的 (即它们没有考虑 consumer 或 producer 可能失败的情况，以及存在多个 consumer 进行处理的情况，或者写入磁盘的数据可能丢失的情况。).
 <p>
-Kafka 的语义是直截了当的。 发布消息时，我们会有一个消息的概念被“committed”到 log 中。 一旦消息被提交，只要有一个复制了写入该消息的 partition 的 broker 保持 “alive”状态，该消息就不会丢失。
+Kafka 的语义是直截了当的。 发布消息时，我们会有一个消息的概念被“committed”到 log 中。 一旦消息被提交，只要有一个 broker 备份了该消息写入的 partition，并且保持“alive”状态，该消息就不会丢失。
 有关 committed message 和 alive partition 的定义，以及我们试图解决的故障类型都将在下一节进行细致描述。 现在让我们假设存在完美无缺的 broker，然后来试着理解 Kafka 对 producer 和 consumer 的语义保证。如果一个 producer 在试图发送消息的时候发生了网络故障，
 则不确定网络错误发生在消息提交之前还是之后。这与使用自动生成的键插入到数据库表中的语义场景很相似。
 <p>
@@ -229,11 +229,11 @@ Kafka 的语义是直截了当的。 发布消息时，我们会有一个消息�
 在许多应用场景中，消息都设有一个主键，所以更新操作是幂等的（相同的消息接收两次时，第二次写入会覆盖掉第一次写入的记录）。
 </ol>
 <p>
-那么 exactly once 语义（即你真正想要的东西）呢？当从一个 kafka topic 中消费并产生另一个 topic 时 (正如在一个<a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>
-应用中所做的那样)，我们可以使用我们上文提到的 0.11.0.0版本中的事务型 producer，并将 consumer 的位置存储为一个 topic 中的消息，所以我们可以在接收处理数据的输出 topic 的事务中向 Kafka 写入 offset。如果事务被中断，则消费者的位置将恢复到原来的值，而输出 topic 上产生的数据对其他消费者是否可见，取决于事务的“隔离级别”。
+那么 exactly once 语义（即你真正想要的东西）呢？当从一个 kafka topic 中消费并输出到另一个 topic 时 (正如在一个<a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>
+应用中所做的那样)，我们可以使用我们上文提到的 0.11.0.0 版本中的新事务型 producer，并将 consumer 的位置存储为一个 topic 中的消息，所以我们可以在输出 topic 接收已经被处理的数据的时候，在同一个事务中向 Kafka 写入 offset。如果事务被中断，则消费者的位置将恢复到原来的值，而输出 topic 上产生的数据对其他消费者是否可见，取决于事务的“隔离级别”。
 在默认的“read_uncommitted”隔离级别中，所有消息对 consumer 都是可见的，即使它们是中止的事务的一部分，但是在“read_committed”的隔离级别中，消费者只能访问已提交的事务中的消息（以及任何不属于事务的消息）。
 <p>
-在写入外部系统的应用场景中，限制在于需要将 consumer 的位置与输出的实际存储位置进行协调。解决这一问题的经典方法是在 consumer 位置的存储和 consumer 输出的存储之间引入 two-phase commit。但这可以用更简单的方法处理，而且通常的做法是让 consumer 将其 offset 存储在与其输出相同的位置。
+在写入外部系统的应用场景中，限制在于需要在 consumer 的 offset 与实际存储为输出的内容间进行协调。解决这一问题的经典方法是在 consumer offset 的存储和 consumer 的输出结果的存储之间引入 two-phase commit。但这可以用更简单的方法处理，而且通常的做法是让 consumer 将其 offset 存储在与其输出相同的位置。
 这也是一种更好的方式，因为大多数 consumer 想写入的输出系统都不支持 two-phase commit。举个例子，<a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>连接器，它将所读取的数据和数据的 offset 一起写入到 HDFS，以保证数据和 offset 都被更新，或者两者都不被更新。
 对于其它很多需要这些较强语义，并且没有主键来避免消息重复的数据系统，我们也遵循类似的模式。
 <p>
