@@ -82,7 +82,7 @@
             <pre class="brush: bash;">
             keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert</pre>
 
-            <b>Note:</b> 如果你将 Kafka broker 配置成需要客户端认证, 可以在 <a href="#config_broker">Kafka broker 配置</a>中设置 setting ssl.client.auth 属性为 "requested" 或者 "required". 然后你也一定要给 Kafka broker 提供一个信任存储区, 并且这个信任存储区应该拥有所有给客户端密钥签名的 CA 证书.
+            <b>Note:</b> 如果你将 Kafka broker 配置成需要客户端授权, 可以在 <a href="#config_broker">Kafka broker 配置</a>中设置 setting ssl.client.auth 属性为 "requested" 或者 "required". 然后你也一定要给 Kafka broker 提供一个信任存储区, 并且这个信任存储区应该拥有所有给客户端密钥签名的 CA 证书.
             <pre class="brush: bash;">
             keytool -keystore server.truststore.jks -alias CARoot -import -file ca-cert</pre>
 
@@ -148,8 +148,8 @@
 
             值得考虑的可选配置:
             <ol>
-                <li>ssl.client.auth=none ("required" => 客户端认证是必须的, "requested" => 客户端认证是需要的, 但是没有证书依然可以连接. 因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
-                <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list)</li>
+                <li>ssl.client.auth=none ("required" => 客户端授权是必须的, "requested" => 客户端授权是需要的, 但是没有证书依然可以连接. 因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
+                <li>ssl.cipher.suites (可选的). 指定的密码套件, 由授权, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list)</li>
                 <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1 (列出你将要从客户端接收的 SSL 协议. 注意, SSL 已经废弃, 支持 TLS, 并且不建议在生产环境中使用 SSL.)</li>
                 <li>ssl.keystore.type=JKS</li>
                 <li>ssl.truststore.type=JKS</li>
@@ -160,15 +160,14 @@
             security.inter.broker.protocol=SSL</pre>
 
             <p>
-            由于一些国家的进口规定, Oracle 的实现限制了默认加密算法的强度.
-            如果需要更强的算法 (例如, 256 位的 AES 密钥), 必须获得 <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JCE Unlimited Strength Jurisdiction Policy 文件</a>, 并且在 JDK/JRE 中安装.
+            由于一些国家的进口规定, Oracle 的实现限制了默认加密算法的强度. 如果需要更强的算法 (例如, 256 位的 AES 密钥), 必须获得 <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JCE Unlimited Strength Jurisdiction Policy 文件</a>, 并且在 JDK/JRE 中安装.
             参考 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">JCA Providers 文档</a> 获取更多新.
             </p>
 
             <p>
             JRE/JDK 将有一个默认的伪随机数生成器 (PRNG), 用于加密操作, 所以没有要求使用 <pre>ssl.secure.random.implementation</pre> 配置 PRNG 的实现.
-            不过, 某些实现会造成性能问题 (尤其是, Linux 系统的默认选择, <pre>NativePRNG</pre>, 利用了一个全局锁.)
-            万一 SSL 连接的性能变成一个问题, 可以考虑, 明确的设置使用的 PRNG 实现.
+            但是, 其中某些实现会造成性能问题 (尤其是, Linux 系统的默认选择, <pre>NativePRNG</pre>, 利用了一个全局锁.)
+            万一 SSL 连接的性能变成一个问题, 可以考虑, 明确的设置要使用的 PRNG 实现.
             <pre>SHA1PRNG</pre> 实现是非阻塞的, 在高负载 (加上复制消息的流量, 每个 broker 生产消息的速度是 50 MB/sec) 下有非常好的性能表现.
             </p>
 
@@ -188,17 +187,16 @@
             如果没有显示证书信息, 或者有任何其他错误信息, 那么你的 keystore 设置不正确。</li>
 
         <li><h4><a id="security_configclients" href="#security_configclients">配置 Kafka 客户端</a></h4>
-            只有新的 Kafka Producer 和 Consumer 支持 SSL, 旧的 API 不支持 SSL. Producer 和 Consumer 的 SSL 的配置相同.
-            <br>
-            如果在 broker 中不需要客户端认证, 那么下面是最小的配置的例子:
+            只有新的 Kafka Producer 和 Consumer 支持 SSL, 旧的 API 不支持 SSL. Producer 和 Consumer 的 SSL 的配置相同.<br>
+            如果在 broker 中不需要客户端授权, 那么下面是最小的配置的例子:
             <pre class="brush: text;">
             security.protocol=SSL
             ssl.truststore.location=/var/private/ssl/client.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: ssl.truststore.password 严格来讲是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问 truststore, 但是不能进行真实性检查.
+            Note: 严格来讲 ssl.truststore.password 是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问 truststore, 但是不能进行真实性检查.
 
-            如果要求客户端认证, 必须像第一步一样创建一个 keystore, 和配置下面这些信息:
+            如果要求客户端授权, 必须像第一步一样创建一个 keystore, 和配置下面这些信息:
             <pre class="brush: text;">
             ssl.keystore.location=/var/private/ssl/client.keystore.jks
             ssl.keystore.password=test1234
@@ -207,7 +205,7 @@
             根据我们的需求和 broker 的配置, 也需要设置其他的配置:
                 <ol>
                     <li>ssl.provider (可选的). 用于 SSL 连接的安全提供程序名称. 默认值是 JVM 的默认安全提供程序.</li>
-                    <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置.</li>
+                    <li>ssl.cipher.suites (可选的). 指定的密码套件, 由授权, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置.</li>
                     <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1. 需要列出至少一个在 broker 端配置的协议</li>
                     <li>ssl.truststore.type=JKS</li>
                     <li>ssl.keystore.type=JKS</li>
