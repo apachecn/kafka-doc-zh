@@ -144,12 +144,11 @@
             ssl.truststore.location=/var/private/ssl/server.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: ssl.truststore.password 严格来讲是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问信任存储区 (truststore), 但是不能进行真实性检查.
+            Note: 严格来讲 ssl.truststore.password 是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问信任存储区 (truststore), 但是不能进行真实性检查.
 
             值得考虑的可选配置:
             <ol>
-                <li>ssl.client.auth=none ("required" => 客户端认证是必须的, "requested" => 客户端认证是需要的, 但是没有证书依然可以连接.
-                        因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
+                <li>ssl.client.auth=none ("required" => 客户端认证是必须的, "requested" => 客户端认证是需要的, 但是没有证书依然可以连接. 因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
                 <li>ssl.cipher.suites (可选的). 指定的密码套件, 由认证, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list)</li>
                 <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1 (列出你将要从客户端接收的 SSL 协议. 注意, SSL 已经废弃, 支持 TLS, 并且不建议在生产环境中使用 SSL.)</li>
                 <li>ssl.keystore.type=JKS</li>
