@@ -115,11 +115,11 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">KafkaProducer&lt;K,V&gt;</span>
 extends java.lang.Object
 implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.html" title="interface in org.apache.kafka.clients.producer">Producer</a>&lt;K,V&gt;</pre>
-<div class="block">Kafka client 发布记录到 Kafka cluster。
+<div class="block">Kafka 客户端生产数据到 Kafka 集群中。
  <P>
-  生产者是<i>线程安全的</i>，在线程之间共享单个生产者实例通常比拥有多个实例要快。
+  producer 是<i>线程安全的</i>，在线程之间共享单个 producer 实例通常比拥有多个实例要快。
  <p>
-  下面是一个简单的示例，说明如何使用 producer 发送包含序列号的字符串作为 key/value 的记录。
+  下面是一个简单的示例，说明如何使用 producer 发送包含序列号的 key/value 的记录。
  <pre>
  <code>
  Properties props = new Properties();
