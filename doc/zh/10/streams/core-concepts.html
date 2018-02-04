@@ -20,21 +20,22 @@
 <!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
-    <h1>Core Concepts</h1>
+    <h1>核心思想</h1>
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a class="active-menu-item"  href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
-                <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
-                <a href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/">简介</a>
+                <a href="/{{version}}/documentation/streams/developer-guide">开发者指南</a>
+                <a class="active-menu-item"  href="/{{version}}/documentation/streams/core-concepts">核心思想</a>
+                <a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>
+                <a href="/{{version}}/documentation/streams/tutorial">编写自己的流处理程序</a>
             </div>
         </div>
     </div>
     <p>
         Kafka Streams is a client library for processing and analyzing data stored in Kafka.
-        It builds upon important stream processing concepts such as properly distinguishing between event time and processing time, windowing support, and simple yet efficient management and real-time querying of application state.
+        Kafka Streams 是一个处理和分析保存在 Kafka 的数据的客户端库。
+        它建立在重要的流处理概念之上，例如能够恰当地区分事件时间和处理时间、提供窗口功能和简单有效的管理功能、支持实时查询应用程序的状态。
     </p>
     <p>
         Kafka Streams has a <b>low barrier to entry</b>: You can quickly write and run a small-scale proof-of-concept on a single machine; and you only need to run additional instances of your application on multiple machines to scale up to high-volume production workloads.
