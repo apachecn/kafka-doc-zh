@@ -41,7 +41,7 @@
             <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (例如 0.8.2, 0.9.0, 0.10.0, 0.10.1, 0.10.2, 0.11.0)。</li>
         </ul>
     </li>
-    <li> 一次升级一个代理：关闭代理，更新代码并重新启动代理。 </li>
+    <li> 一次升级一个代理：关闭代理，更新代码，重新启动代理。 </li>
     <li> 整个群集升级后，通过编辑修改协议版本<code>inter.broker.protocol.version</code> 并将其设置为1.0。
     <li> 重新启动代理，以使新的协议版本生效。</li>
     <li> 如果您按照上面的指示重写了消息格式版本，则需要再执行一次滚动重启才能将其升级到最新版本。一旦所有（或大部分的）consumer升级到0.11.0或更高版本，请将每个代理上的log.message.format.version更改为1.0，然后逐个重启它们。 
