@@ -123,32 +123,51 @@
 </ol>
 <h5><a id="upgrade_1100_streams" href="#upgrade_1100_streams">升级 0.10.2 Kafka Streams 应用程序</a></h5>
 <ul>
-    <li> Upgrading your Streams application from 0.10.2 to 0.11.0 does not require a broker upgrade.
-        A Kafka Streams 0.11.0 application can connect to 0.11.0, 0.10.2 and 0.10.1 brokers (it is not possible to connect to 0.10.0 brokers though). </li>
-    <li> If you specify customized <code>key.serde</code>, <code>value.serde</code> and <code>timestamp.extractor</code> in configs, it is recommended to use their replaced configure parameter as these configs are deprecated. </li>
-    <li> See <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0110">Streams API changes in 0.11.0</a> for more details. </li>
+    <li> 将Streams应用程序从 0.10.2 升级到 0.11.0 不需要使用代理。Kafka Streams 0.11.0应用程序可以连接到0.11.0，0.10.2和0.10.1的代理（却不能连接到0.10.0代理）。</li>
+    <li> 如果您自定义配置<code>key.serde</code>，<code>value.serde</code> 和 <code>timestamp.extractor</code>，建议使用替换的配置参数，因为这些配置已被弃用。</li>
+    <li> 更多详细信息，请参阅 <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0110"> 0.11.0版本中Streams API 的变化</a>。</li>
+</ul>
+<h5><a id="upgrade_1100_notable" href="#upgrade_1100_notable"> 0.11.0.0版本中显著的变化</a></h5>
+<ul>
+    <li> 现在默认禁用 Unclean leader选择。这一新的默认值有利于耐用性而非可用性。希望保留原有配置的用户可将代理配置<code>unclean.leader.election.enable</code>改为为<code>true</code>。</li>
+    <li> 生产者配置<code>block.on.buffer.full</code>，<code>metadata.fetch.timeout.ms</code> 和<code>timeout.ms</code> 已被删除。他们在 0.9.0.0版本中就被弃用。</li>
+    <li><code>offsets.topic.replication.factor</code>配置现在被限制由 topic 自动生成。当群集大小不满足复制因子要求时，topic 内部自动生成将失败并返回 GROUP_COORDINATOR_NOT_AVAILABLE 错误。</li>
+    <li> 快速压缩数据时，为提高压缩率，制造商和代理默认使用的压缩块大小为（2 x 32 KB）而不是1 KB。有报告表明：使用较小的块压缩后，数据占用的空间比使用大的块多50%对于这种情况来说，拥有5000个分区的生产者需要额外的315 MB的JVM堆。</li>
+    <li> 同样，使用gzip压缩数据时，生产者和代理会将缓冲区大小设置为8 KB而不是1 KB。gzip的默认值过低（512字节）。</li>
+    <li> 代理配置 <code>max.message.bytes</code> 现在指批量消息的大小。之前将其应用于批量压缩的消息，或单独应用于未压缩的消息。批量消息可能只包含单个消息，因此大多数情况下，单个消息的大小只能通过批量格式的上限来控制。不过，消息格式转换有一些微妙的含义（详见 <a href="#upgrade_11_message_format">below</a> for more detail）。请注意，代理以前会确保在每个提取请求中至少返回一条消息（无论总分区级别和分区级别的提取大小），但这一行为现在适用于批量消息。</li>
+    <li>默认启用GC日志旋转，详情请参阅KAFKA-3754。</li>
+    <li>RecordMetadata，MetricName和Cluster类的构造函数已被删除。</li>
+    <li>通过提供用户header读写访问，新Headers接口增加了对用户header的支持。</li>
+    <li>ProducerRecord和ConsumerRecord通过<code>Headers headers()</code>方法调用新的公用Headers API。</li>
+
+
+
+
+
+    <li>ExtendedSerializer and ExtendedDeserializer interfaces are introduced to support serialization and deserialization for headers. Headers will be ignored if the configured serializer and deserializer are not the above classes.</li>
+    <li>A new config, <code>group.initial.rebalance.delay.ms</code>, was introduced.
+        This config specifies the time, in milliseconds, that the <code>GroupCoordinator</code> will delay the initial consumer rebalance.
+        The rebalance will be further delayed by the value of <code>group.initial.rebalance.delay.ms</code> as new members join the group, up to a maximum of <code>max.poll.interval.ms</code>.
+        The default value for this is 3 seconds.
+        During development and testing it might be desirable to set this to 0 in order to not delay test execution time.
+    </li>
+    <li><code>org.apache.kafka.common.Cluster#partitionsForTopic</code>, <code>partitionsForNode</code> and <code>availablePartitionsForTopic</code> methods
+        will return an empty list instead of <code>null</code> (which is considered a bad practice) in case the metadata for the required topic does not exist.
+    </li>
+    <li>Streams API configuration parameters <code>timestamp.extractor</code>, <code>key.serde</code>, and <code>value.serde</code> were deprecated and
+        replaced by <code>default.timestamp.extractor</code>, <code>default.key.serde</code>, and <code>default.value.serde</code>, respectively.
+    </li>
+    <li>For offset commit failures in the Java consumer's <code>commitAsync</code> APIs, we no longer expose the underlying
+        cause when instances of <code>RetriableCommitFailedException</code> are passed to the commit callback. See
+        <a href="https://issues.apache.org/jira/browse/KAFKA-5052">KAFKA-5052</a>  for more detail.
+    </li>
 </ul>
 
-
+   
 
 
 **************
 
-将Streams应用程序从0.10.2升级到0.11.0不需要代理升级。Kafka Streams 0.11.0应用程序可以连接到0.11.0，0.10.2和0.10.1代理（尽管如此，不能连接到0.10.0代理）。
-如果您指定自定义key.serde，value.serde并且timestamp.extractor在配置中，建议使用替换的配置参数，因为这些配置已被弃用。
-有关更多详细信息，请参阅0.11.0中的Streams API更改。
-在0.11.0.0中有显着的变化
-
-不洁净的领导人选举现在默认禁用。新的默认值有利于耐用性而不是可用性。希望保留以前行为的用户应将代理配置设置unclean.leader.election.enable为true。
-生产者配置block.on.buffer.full，metadata.fetch.timeout.ms并timeout.ms已被删除。他们最初在Kafka 0.9.0.0中被弃用。
-该offsets.topic.replication.factor券商的配置现在在强制汽车主题产生。内部自动主题创建将失败并带有GROUP_COORDINATOR_NOT_AVAILABLE错误，直到群集大小满足此复制因子要求。
-当用快速压缩数据时，制造商和代理商将使用压缩方案的默认块大小（2 x 32 KB）而不是1 KB来提高压缩率。已经有数据压缩的数据比用较大的块大小压缩的块大小小50％。对于这种情况来说，拥有5000个分区的制作者需要额外的315 MB的JVM堆。
-同样，使用gzip压缩数据时，生产者和代理将使用8 KB而不是1 KB作为缓冲区大小。gzip的默认值过低（512字节）。
-代理配置max.message.bytes现在适用于一批消息的总大小。之前的设置应用于批量压缩的消息，或单独应用于未压缩的消息。批量消息可能只包含单个消息，因此在大多数情况下，单个消息的大小限制只能通过批量格式的开销来减少。但是，消息格式转换有一些细微的含义（详见下文）。还要注意的是，虽然代理以前会确保在每个提取请求中返回至少一条消息（不管总分区级别和分区级别的提取大小如何），但同样的行为现在适用于一个消息批处理。
-GC日志旋转默认启用，详情请参阅KAFKA-3754。
-RecordMetadata，MetricName和Cluster类的弃用构造函数已被删除。
-通过提供用户头读写访问的新Headers接口增加了用户头支持。
-ProducerRecord和ConsumerRecord通过Headers headers()方法调用公开新的Headers API 。
 ExtendedSerializer和ExtendedDeserializer接口被引入来支持头文件的序列化和反序列化。如果配置的串行器和解串器不是上述类，那么标题将被忽略。
 group.initial.rebalance.delay.ms引入了一个新的配置。该配置指定以毫秒为单位的时间GroupCoordinator将延迟最初的消费者重新平衡。group.initial.rebalance.delay.ms新成员加入团队的价值将进一步推迟重新平衡，最高可达到max.poll.interval.ms。这个的默认值是3秒。在开发和测试过程中，为了不延迟测试执行时间，可能需要将其设置为0。
 org.apache.kafka.common.Cluster#partitionsForTopic，partitionsForNode和availablePartitionsForTopic方法会返回一个空列表，而不是null在的情况下（这被认为是不好的做法）的元数据所要求的主题不存在。
@@ -179,50 +198,7 @@ Kafka的EoS引入了新的请求API，并修改了几个现有的API。有关 �
 *********************
 
 
-<h5><a id="upgrade_1100_notable" href="#upgrade_1100_notable">Notable changes in 0.11.0.0</a></h5>
-<ul>
-    <li>Unclean leader election is now disabled by default. The new default favors durability over availability. Users who wish to
-        to retain the previous behavior should set the broker config <code>unclean.leader.election.enable</code> to <code>true</code>.</li>
-    <li>Producer configs <code>block.on.buffer.full</code>, <code>metadata.fetch.timeout.ms</code> and <code>timeout.ms</code> have been
-        removed. They were initially deprecated in Kafka 0.9.0.0.</li>
-    <li>The <code>offsets.topic.replication.factor</code> broker config is now enforced upon auto topic creation. Internal
-        auto topic creation will fail with a GROUP_COORDINATOR_NOT_AVAILABLE error until the cluster size meets this
-        replication factor requirement.</li>
-    <li> When compressing data with snappy, the producer and broker will use the compression scheme's default block size (2 x 32 KB)
-         instead of 1 KB in order to improve the compression ratio. There have been reports of data compressed with the smaller
-         block size being 50% larger than when compressed with the larger block size. For the snappy case, a producer with 5000
-         partitions will require an additional 315 MB of JVM heap.</li>
-    <li> Similarly, when compressing data with gzip, the producer and broker will use 8 KB instead of 1 KB as the buffer size. The default
-         for gzip is excessively low (512 bytes). </li>
-    <li>The broker configuration <code>max.message.bytes</code> now applies to the total size of a batch of messages.
-        Previously the setting applied to batches of compressed messages, or to non-compressed messages individually.
-        A message batch may consist of only a single message, so in most cases, the limitation on the size of
-        individual messages is only reduced by the overhead of the batch format. However, there are some subtle implications
-        for message format conversion (see <a href="#upgrade_11_message_format">below</a> for more detail). Note also
-        that while previously the broker would ensure that at least one message is returned in each fetch request (regardless of the
-        total and partition-level fetch sizes), the same behavior now applies to one message batch.</li>
-    <li>GC log rotation is enabled by default, see KAFKA-3754 for details.</li>
-    <li>Deprecated constructors of RecordMetadata, MetricName and Cluster classes have been removed.</li>
-    <li>Added user headers support through a new Headers interface providing user headers read and write access.</li>
-    <li>ProducerRecord and ConsumerRecord expose the new Headers API via <code>Headers headers()</code> method call.</li>
-    <li>ExtendedSerializer and ExtendedDeserializer interfaces are introduced to support serialization and deserialization for headers. Headers will be ignored if the configured serializer and deserializer are not the above classes.</li>
-    <li>A new config, <code>group.initial.rebalance.delay.ms</code>, was introduced.
-        This config specifies the time, in milliseconds, that the <code>GroupCoordinator</code> will delay the initial consumer rebalance.
-        The rebalance will be further delayed by the value of <code>group.initial.rebalance.delay.ms</code> as new members join the group, up to a maximum of <code>max.poll.interval.ms</code>.
-        The default value for this is 3 seconds.
-        During development and testing it might be desirable to set this to 0 in order to not delay test execution time.
-    </li>
-    <li><code>org.apache.kafka.common.Cluster#partitionsForTopic</code>, <code>partitionsForNode</code> and <code>availablePartitionsForTopic</code> methods
-        will return an empty list instead of <code>null</code> (which is considered a bad practice) in case the metadata for the required topic does not exist.
-    </li>
-    <li>Streams API configuration parameters <code>timestamp.extractor</code>, <code>key.serde</code>, and <code>value.serde</code> were deprecated and
-        replaced by <code>default.timestamp.extractor</code>, <code>default.key.serde</code>, and <code>default.value.serde</code>, respectively.
-    </li>
-    <li>For offset commit failures in the Java consumer's <code>commitAsync</code> APIs, we no longer expose the underlying
-        cause when instances of <code>RetriableCommitFailedException</code> are passed to the commit callback. See
-        <a href="https://issues.apache.org/jira/browse/KAFKA-5052">KAFKA-5052</a>  for more detail.
-    </li>
-</ul>
+
 
 <h5><a id="upgrade_1100_new_protocols" href="#upgrade_1100_new_protocols">New Protocol Versions</a></h5>
 <ul>
