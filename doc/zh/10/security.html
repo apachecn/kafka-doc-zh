@@ -622,9 +622,9 @@
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_multimechanism" href="#security_sasl_multimechanism">Enabling multiple SASL mechanisms in a broker</a></h4>
+    <li><h4><a id="security_sasl_multimechanism" href="#security_sasl_multimechanism">Enabling multiple SASL mechanisms in a broker（broker 节点上启用多个 SASL 机制                       ）</a></h4>
         <ol>
-        <li>Specify configuration for the login modules of all enabled mechanisms in the <tt>KafkaServer</tt> section of the JAAS config file. For example:
+        <li>在JAAS配置文件的<tt>KafkaServer</tt> 部分中指定所有启用机制的登录模块的配置。例如：
             <pre>
         KafkaServer {
             com.sun.security.auth.module.Krb5LoginModule required
@@ -639,26 +639,27 @@
             user_admin="admin-secret"
             user_alice="alice-secret";
         };</pre></li>
-        <li>Enable the SASL mechanisms in server.properties: <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
-        <li>Specify the SASL security protocol and mechanism for inter-broker communication in server.properties if required:
+        <li>在 server.properties 配置文件中启用 SASL 机制: <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
+        <li>如果需要，可以在 server.properties 中指定 SASL 安全协议和 broker 间的通信机制：
             <pre>
     security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)
     sasl.mechanism.inter.broker.protocol=GSSAPI (or one of the other enabled mechanisms)</pre></li>
-        <li>Follow the mechanism-specific steps in <a href="#security_sasl_kerberos_brokerconfig">GSSAPI (Kerberos)</a>,
-            <a href="#security_sasl_plain_brokerconfig">PLAIN</a> and <a href="#security_sasl_scram_brokerconfig">SCRAM</a>
-            to configure SASL for the enabled mechanisms.</li>
+            遵循GSSAPI (Kerberos)、PLAIN和SCRAM中的机制特定步骤，为启用的机制配置SASL
+        <li>遵循 <a href="#security_sasl_kerberos_brokerconfig">GSSAPI (Kerberos)</a>、
+            <a href="#security_sasl_plain_brokerconfig"> PLAIN </a> 和 <a href="#security_sasl_scram_brokerconfig">SCRAM</a>
+            特定的步骤来配置启用 SASL 机制。</li>
         </ol>
     </li>
-    <li><h4><a id="saslmechanism_rolling_upgrade" href="#saslmechanism_rolling_upgrade">Modifying SASL mechanism in a Running Cluster</a></h4>
-        <p>SASL mechanism can be modified in a running cluster using the following sequence:</p>
+    <li><h4><a id="saslmechanism_rolling_upgrade" href="#saslmechanism_rolling_upgrade">Modifying SASL mechanism in a Running Cluster（在运行的集群里修改 SASL 机制）</a></h4>
+        <p>按照下面的步骤可以修改正在运行中的集群的 SASL 机制：</p>
         <ol>
-        <li>Enable new SASL mechanism by adding the mechanism to <tt>sasl.enabled.mechanisms</tt> in server.properties for each broker. Update JAAS config file to include both
-            mechanisms as described <a href="#security_sasl_multimechanism">here</a>. Incrementally bounce the cluster nodes.</li>
-        <li>Restart clients using the new mechanism.</li>
-        <li>To change the mechanism of inter-broker communication (if this is required), set <tt>sasl.mechanism.inter.broker.protocol</tt> in server.properties to the new mechanism and
-            incrementally bounce the cluster again.</li>
-        <li>To remove old mechanism (if this is required), remove the old mechanism from <tt>sasl.enabled.mechanisms</tt> in server.properties and remove the entries for the
-            old mechanism from JAAS config file. Incrementally bounce the cluster again.</li>
+        <li>为了给每个 broker 启用新的 SASL 机制，需要在 server.properties 中添加 <tt>sasl.enabled.mechanisms</tt> 配置。更新 <a href="#security_sasl_multimechanism">这里</a>描述的两种机制到JAAS配置文件。
+            逐步更新每个集群节点</li>
+        <li>使用新机制重新启动客户端。</li>
+        <li>如果有必要，可以在 server.properties 文件中指定新的<tt>sasl.mechanism.inter.broker.protocol</tt>的配置，来修改 broker 间的通信机制。然后再次逐步的更新集群。
+            </li>
+        <li>如果有必要，可以从 server.properties 文件中的<tt>sasl.enabled.mechanisms</tt> 配置中和 JAAS 配置文件中删除旧的机制条目，来删除旧的机制。
+            然后再次逐步的更新集群。</li>
         </ol>
     </li>
     </ol>
