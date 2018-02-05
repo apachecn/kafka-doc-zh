@@ -51,7 +51,7 @@
 <p><b>其他升级说明：</b></p>
 
 <ol>
-    <li>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重新开始。系统将默认启动新的协议。 </li>
+    <li>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重启。系统将默认启动新的协议。 </li>
     <li>在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。更新消息格式版本也是如此。</li>
 </ol>
 
@@ -109,32 +109,30 @@
         </ul>
     </li>
     <li> 一次升级一个代理：关闭代理，更新代码并重启。 </li>
-    <li> Once the entire cluster is upgraded, bump the protocol version by editing <code>inter.broker.protocol.version</code> and setting it to 0.11.0, but
-      do not change <code>log.message.format.version</code> yet. </li>
-    <li> Restart the brokers one by one for the new protocol version to take effect. </li>
-    <li> Once all (or most) consumers have been upgraded to 0.11.0 or later, then change log.message.format.version to 0.11.0 on each
-      broker and restart them one by one. Note that the older Scala consumer does not support the new message format, so to avoid
-      the performance cost of down-conversion (or to take advantage of <a href="#upgrade_11_exactly_once_semantics">exactly once semantics</a>),
-      the new Java consumer must be used.</li>
+    <li> 整个群集升级后，通过编辑修改协议版本<code>inter.broker.protocol.version</code>为0.11.0，但不要更改<code>log.message.format.version</code>。</li>
+    <li> 重启代理，以使新的协议版本生效。</li>
+    <li> 一旦所有（或大部分）消费者升级到0.11.0及以上版本，则将每个代理的log.message.format.version更改为0.11.0，然后逐一重启它们。请注意，较低版本的Scala消费者不支持新的消息格式，因此为了避免向下转换的性能成本（或者利用<a href="#upgrade_11_exactly_once_semantics">一次语义</a>），必须使用新的Java消费者。</li>
 </ol>
+<p><b>其他升级说明：</b></p>
 
-
+<ol>
+  <li>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重启。系统将默认启动新的协议。</li>
+  <li>在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。更新消息格式版本也是如此。</li>
+  <li>在更新全局设置<code>log.message.format.version</code>之前，也可以使用主题管理工具（<code>bin/kafka-topics.sh</code>）在各个topic上启用0.11.0消息格式。</li>
+  <li>如果要从0.10.0之前的版本升级，则在切换到0.11.0之前，不必先将消息格式更新为0.10.0。</li>
+</ol>
+<h5><a id="upgrade_1100_streams" href="#upgrade_1100_streams">升级 0.10.2 Kafka Streams 应用程序</a></h5>
+<ul>
+    <li> Upgrading your Streams application from 0.10.2 to 0.11.0 does not require a broker upgrade.
+        A Kafka Streams 0.11.0 application can connect to 0.11.0, 0.10.2 and 0.10.1 brokers (it is not possible to connect to 0.10.0 brokers though). </li>
+    <li> If you specify customized <code>key.serde</code>, <code>value.serde</code> and <code>timestamp.extractor</code> in configs, it is recommended to use their replaced configure parameter as these configs are deprecated. </li>
+    <li> See <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0110">Streams API changes in 0.11.0</a> for more details. </li>
+</ul>
 
 
 
 
 **************
-
-整个群集升级后，通过编辑修改协议版本inter.broker.protocol.version并将其设置为0.11.0，但不要更改log.message.format.version。
-重新启动代理，以使新的协议版本生效。
-一旦所有（或大部分）使用者升级到0.11.0或更高版本，则将每个代理上的log.message.format.version更改为0.11.0，然后逐个重新启动它们。请注意，较早的Scala消费者不支持新的消息格式，所以为了避免下转换的性能成本（或者只利用一次语义），必须使用新的Java消费者。
-其他升级说明：
-
-如果你愿意接受停机时间，你可以简单地把所有的经纪人关闭，更新代码并重新开始。他们将默认启动新的协议。
-颠覆协议版本并重新启动可以在代理升级后的任何时候完成。它不一定要在之后立即。同样的消息格式版本。
-bin/kafka-topics.sh在更新全局设置之前，还可以使用主题管理工具（）在各个主题上启用0.11.0消息格式log.message.format.version。
-如果要从0.10.0之前的版本升级，则在切换到0.11.0之前，不必先将消息格式更新为0.10.0。
-升级0.10.2 Kafka Streams应用程序
 
 将Streams应用程序从0.10.2升级到0.11.0不需要代理升级。Kafka Streams 0.11.0应用程序可以连接到0.11.0，0.10.2和0.10.1代理（尽管如此，不能连接到0.10.0代理）。
 如果您指定自定义key.serde，value.serde并且timestamp.extractor在配置中，建议使用替换的配置参数，因为这些配置已被弃用。
@@ -180,28 +178,6 @@ Kafka的EoS引入了新的请求API，并修改了几个现有的API。有关 �
 大多数关于升级到0.10.0消息格式对性能影响的讨论 仍然与0.11.0升级有关。这主要影响不使用TLS进行保护的群集，因为在这种情况下“零复制”传输已经不可行。为了避免下变换成本，您应该确保客户应用程序升级到最新的0.11.0客户端。值得注意的是，由于旧消费者在0.11.0.0已经被弃用，它不支持新的消息格式。您必须升级才能使用新消费者使用新的消息格式，而不需要下转换成本。请注意，0.11.0消费者支持与0.10.0经纪商的向上兼容性和向上兼容性，所以可以先在经纪商之前升级客户端。
 *********************
 
-
-
-<p><b>Additional Upgrade Notes:</b></p>
-
-<ol>
-  <li>If you are willing to accept downtime, you can simply take all the brokers down, update the code and start them back up. They will start
-    with the new protocol by default.</li>
-  <li>Bumping the protocol version and restarting can be done any time after the brokers are upgraded. It does not have to be immediately after.
-    Similarly for the message format version.</li>
-  <li>It is also possible to enable the 0.11.0 message format on individual topics using the topic admin tool (<code>bin/kafka-topics.sh</code>)
-    prior to updating the global setting <code>log.message.format.version</code>.</li>
-  <li>If you are upgrading from a version prior to 0.10.0, it is NOT necessary to first update the message format to 0.10.0
-    before you switch to 0.11.0.</li>
-</ol>
-
-<h5><a id="upgrade_1100_streams" href="#upgrade_1100_streams">Upgrading a 0.10.2 Kafka Streams Application</a></h5>
-<ul>
-    <li> Upgrading your Streams application from 0.10.2 to 0.11.0 does not require a broker upgrade.
-        A Kafka Streams 0.11.0 application can connect to 0.11.0, 0.10.2 and 0.10.1 brokers (it is not possible to connect to 0.10.0 brokers though). </li>
-    <li> If you specify customized <code>key.serde</code>, <code>value.serde</code> and <code>timestamp.extractor</code> in configs, it is recommended to use their replaced configure parameter as these configs are deprecated. </li>
-    <li> See <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0110">Streams API changes in 0.11.0</a> for more details. </li>
-</ul>
 
 <h5><a id="upgrade_1100_notable" href="#upgrade_1100_notable">Notable changes in 0.11.0.0</a></h5>
 <ul>
