@@ -639,12 +639,11 @@
             user_admin="admin-secret"
             user_alice="alice-secret";
         };</pre></li>
-        <li>在 server.properties 配置文件中启用 SASL 机制: <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
+        <li>在 server.properties 配置文件中启用 SASL 机制： <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
         <li>如果需要，可以在 server.properties 中指定 SASL 安全协议和 broker 间的通信机制：
             <pre>
     security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)
     sasl.mechanism.inter.broker.protocol=GSSAPI (or one of the other enabled mechanisms)</pre></li>
-            遵循GSSAPI (Kerberos)、PLAIN和SCRAM中的机制特定步骤，为启用的机制配置SASL
         <li>遵循 <a href="#security_sasl_kerberos_brokerconfig">GSSAPI (Kerberos)</a>、
             <a href="#security_sasl_plain_brokerconfig"> PLAIN </a> 和 <a href="#security_sasl_scram_brokerconfig">SCRAM</a>
             特定的步骤来配置启用 SASL 机制。</li>
