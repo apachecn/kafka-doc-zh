@@ -95,29 +95,20 @@
     <li> 更多详细信息，请参阅 <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_100">1.0.0版本中Streams API 的变化。</a> 。</li>
 </ul>
 
-<h4><a id="upgrade_11_0_0" href="#upgrade_11_0_0">Upgrading from 0.8.x, 0.9.x, 0.10.0.x, 0.10.1.x or 0.10.2.x to 0.11.0.0</a></h4>
-<p>Kafka 0.11.0.0 introduces a new message format version as well as wire protocol changes. By following the recommended rolling upgrade plan below,
-  you guarantee no downtime during the upgrade. However, please review the <a href="#upgrade_1100_notable">notable changes in 0.11.0.0</a> before upgrading.
+<h4><a id="upgrade_11_0_0" href="#upgrade_11_0_0">从 0.8.x, 0.9.x, 0.10.0.x, 0.10.1.x 或 0.10.2.x 升级到 0.11.0.0</a></h4>
+<p>Kafka 0.11.0.0 引入了一个新的消息格式版本，在有线协议方面也有变化。 遵循下面的滚动升级计划，可以保证您在升级过程中不用停机。在升级之前，请先查看<a href="#upgrade_1100_notable">0.11.0.0版本中显著的变化</a>。
 </p>
-
-<p>Starting with version 0.10.2, Java clients (producer and consumer) have acquired the ability to communicate with older brokers. Version 0.11.0
-    clients can talk to version 0.10.0 or newer brokers. However, if your brokers are older than 0.10.0, you must upgrade all the brokers in the
-    Kafka cluster before upgrading your clients. Version 0.11.0 brokers support 0.8.x and newer clients.
+<p>从0.10.2 版本开始，Java客户端（生产者和消费者）已经可以与旧代理进行通信，0.11.0版本客户可以与0.10.0及其以上的代理进行通信。但如果代理版本大于0.10.0，则须先升级Kafka集群中的所有代理，然后再升级客户端。0.11.0版本的代理支持0.8.x及其以上的客户端。
 </p>
-
-<p><b>For a rolling upgrade:</b></p>
-
+<p><b>对于滚动升级：</b></p>
 <ol>
-    <li> Update server.properties on all brokers and add the following properties. CURRENT_KAFKA_VERSION refers to the version you
-      are upgrading from. CURRENT_MESSAGE_FORMAT_VERSION refers to the current message format version currently in use. If you have
-      not overridden the message format previously, then CURRENT_MESSAGE_FORMAT_VERSION should be set to match CURRENT_KAFKA_VERSION.
+    <li> 更新所有代理上的server.properties并添加以下属性：CURRENT_KAFKA_VERSION指将要升级的版本。CURRENT_MESSAGE_FORMAT_VERSION指当前正在使用的消息格式版本。如果您以前没有重写消息格式，那么应该将CURRENT_MESSAGE_FORMAT_VERSION设置为与CURRENT_KAFKA_VERSION匹配的版本。
         <ul>
-            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (e.g. 0.8.2, 0.9.0, 0.10.0, 0.10.1 or 0.10.2).</li>
-            <li>log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION  (See <a href="#upgrade_10_performance_impact">potential performance impact
-		following the upgrade</a> for the details on what this configuration does.)</li>
+            <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (例如： 0.8.2，0.9.0，0.10.0，0.10.1 或0.10.2).</li>
+            <li>log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION  （想了解有关此配置的详细信息，请参阅 <a href="#upgrade_10_performance_impact">升级后潜在的性能影响</a>。）</li>
         </ul>
     </li>
-    <li> Upgrade the brokers one at a time: shut down the broker, update the code, and restart it. </li>
+    <li> 一次升级一个代理：关闭代理，更新代码并重启。 </li>
     <li> Once the entire cluster is upgraded, bump the protocol version by editing <code>inter.broker.protocol.version</code> and setting it to 0.11.0, but
       do not change <code>log.message.format.version</code> yet. </li>
     <li> Restart the brokers one by one for the new protocol version to take effect. </li>
@@ -126,6 +117,70 @@
       the performance cost of down-conversion (or to take advantage of <a href="#upgrade_11_exactly_once_semantics">exactly once semantics</a>),
       the new Java consumer must be used.</li>
 </ol>
+
+
+
+
+
+
+**************
+
+整个群集升级后，通过编辑修改协议版本inter.broker.protocol.version并将其设置为0.11.0，但不要更改log.message.format.version。
+重新启动代理，以使新的协议版本生效。
+一旦所有（或大部分）使用者升级到0.11.0或更高版本，则将每个代理上的log.message.format.version更改为0.11.0，然后逐个重新启动它们。请注意，较早的Scala消费者不支持新的消息格式，所以为了避免下转换的性能成本（或者只利用一次语义），必须使用新的Java消费者。
+其他升级说明：
+
+如果你愿意接受停机时间，你可以简单地把所有的经纪人关闭，更新代码并重新开始。他们将默认启动新的协议。
+颠覆协议版本并重新启动可以在代理升级后的任何时候完成。它不一定要在之后立即。同样的消息格式版本。
+bin/kafka-topics.sh在更新全局设置之前，还可以使用主题管理工具（）在各个主题上启用0.11.0消息格式log.message.format.version。
+如果要从0.10.0之前的版本升级，则在切换到0.11.0之前，不必先将消息格式更新为0.10.0。
+升级0.10.2 Kafka Streams应用程序
+
+将Streams应用程序从0.10.2升级到0.11.0不需要代理升级。Kafka Streams 0.11.0应用程序可以连接到0.11.0，0.10.2和0.10.1代理（尽管如此，不能连接到0.10.0代理）。
+如果您指定自定义key.serde，value.serde并且timestamp.extractor在配置中，建议使用替换的配置参数，因为这些配置已被弃用。
+有关更多详细信息，请参阅0.11.0中的Streams API更改。
+在0.11.0.0中有显着的变化
+
+不洁净的领导人选举现在默认禁用。新的默认值有利于耐用性而不是可用性。希望保留以前行为的用户应将代理配置设置unclean.leader.election.enable为true。
+生产者配置block.on.buffer.full，metadata.fetch.timeout.ms并timeout.ms已被删除。他们最初在Kafka 0.9.0.0中被弃用。
+该offsets.topic.replication.factor券商的配置现在在强制汽车主题产生。内部自动主题创建将失败并带有GROUP_COORDINATOR_NOT_AVAILABLE错误，直到群集大小满足此复制因子要求。
+当用快速压缩数据时，制造商和代理商将使用压缩方案的默认块大小（2 x 32 KB）而不是1 KB来提高压缩率。已经有数据压缩的数据比用较大的块大小压缩的块大小小50％。对于这种情况来说，拥有5000个分区的制作者需要额外的315 MB的JVM堆。
+同样，使用gzip压缩数据时，生产者和代理将使用8 KB而不是1 KB作为缓冲区大小。gzip的默认值过低（512字节）。
+代理配置max.message.bytes现在适用于一批消息的总大小。之前的设置应用于批量压缩的消息，或单独应用于未压缩的消息。批量消息可能只包含单个消息，因此在大多数情况下，单个消息的大小限制只能通过批量格式的开销来减少。但是，消息格式转换有一些细微的含义（详见下文）。还要注意的是，虽然代理以前会确保在每个提取请求中返回至少一条消息（不管总分区级别和分区级别的提取大小如何），但同样的行为现在适用于一个消息批处理。
+GC日志旋转默认启用，详情请参阅KAFKA-3754。
+RecordMetadata，MetricName和Cluster类的弃用构造函数已被删除。
+通过提供用户头读写访问的新Headers接口增加了用户头支持。
+ProducerRecord和ConsumerRecord通过Headers headers()方法调用公开新的Headers API 。
+ExtendedSerializer和ExtendedDeserializer接口被引入来支持头文件的序列化和反序列化。如果配置的串行器和解串器不是上述类，那么标题将被忽略。
+group.initial.rebalance.delay.ms引入了一个新的配置。该配置指定以毫秒为单位的时间GroupCoordinator将延迟最初的消费者重新平衡。group.initial.rebalance.delay.ms新成员加入团队的价值将进一步推迟重新平衡，最高可达到max.poll.interval.ms。这个的默认值是3秒。在开发和测试过程中，为了不延迟测试执行时间，可能需要将其设置为0。
+org.apache.kafka.common.Cluster#partitionsForTopic，partitionsForNode和availablePartitionsForTopic方法会返回一个空列表，而不是null在的情况下（这被认为是不好的做法）的元数据所要求的主题不存在。
+流API的配置参数timestamp.extractor，key.serde以及value.serde被弃用，替换default.timestamp.extractor，default.key.serde和default.value.serde分别。
+对于Java消费者commitAsyncAPI 中的偏移提交失败，当实例RetriableCommitFailedException传递给提交回调时，我们不再公开底层原因。有关 更多详细信息，请参阅 KAFKA-5052。
+新协议版本
+
+KIP-107：FetchRequest v5引入了一个分区级别的log_start_offset字段。
+KIP-107：FetchResponse v5引入了一个分区级别的log_start_offset字段。
+KIP-82：ProduceRequest v3 header在消息协议中引入了一个包含key字段和value字段的数组。
+KIP-82：FetchResponse v5 header在消息协议中引入了一个包含key字段和value字段的数组。
+关于一次语义的注记
+
+卡夫卡0.11.0支持生产者的幂等和事务性能力。幂等式传递确保消息在单个生产者的生命周期内仅传递给特定的主题分区一次。事务交付允许生产者发送数据到多个分区，使得所有的消息都被成功地传递，或者它们都不是。在一起，这些功能使卡夫卡“恰好一次语义”。有关这些功能的更多详细信息，请参阅用户指南，但下面我们添加一些关于在升级群集中启用它们的特定注意事项。请注意，启用EoS不是必需的，如果未使用，则不会影响经纪人的行为。
+
+只有新的Java生产者和消费者支持一次语义。
+这些功能主要取决于0.11.0消息格式。试图以较旧的格式使用它们将导致不受支持的版本错误。
+事务状态存储在一个新的内部主题中__transaction_state。直到首次尝试使用事务性请求API时才创建此主题。类似于消费者偏移主题，有几个设置来控制主题的配置。例如，transaction.state.log.min.isr控制此主题的最小ISR。请参阅用户指南中的配置部分以获取完整的选项列表。
+对于安全集群，事务性API需要新的ACL，可以使用新的ACL打开bin/kafka-acls.sh。工具。
+Kafka的EoS引入了新的请求API，并修改了几个现有的API。有关 完整的详细信息，请参阅 KIP-98
+关于0.11.0中新消息格式的说明
+
+为了支持生产者更好的交付语义（见KIP-98）和改进的复制容错能力（参见KIP-101），0.11.0消息格式包括几个主要的增强功能。虽然新格式包含更多信息以使这些改进成为可能，但是我们已经使批处理格式更有效率。只要每批消息的数量大于2，就可以降低整体开销。然而，对于较小的批次，可能会有一个小的性能影响。请参阅这里了解我们对新消息格式的初始性能分析结果。您也可以在KIP-98提案中找到更多关于信息格式的细节 。
+
+新消息格式的显着差异之一是，即使未压缩的消息一起存储为一个批次。这对代理配置有一些影响max.message.bytes，这会限制单个批次的大小。首先，如果一个较老的客户端使用旧格式产生消息到一个主题分区，并且这些消息比单独的小 max.message.bytes，那么代理可能会在上转换过程中合并成一个批次后仍然拒绝它们。通常，这可能发生在单个消息的聚合大小大于max.message.bytes。老年消费者阅读从新格式下转换的消息也有类似的效果：如果提取大小没有被设置为至少与 max.message.bytes即使单个未压缩的消息小于配置的获取大小，消费者也可能无法取得进展。此行为不影响Java客户端的0.10.1.0及更高版本，因为它使用更新的获取协议，该协议确保即使超过获取大小也能返回至少一条消息。为了解决这些问题，你应该确保1）生产者的批量大小没有被设置得大于max.message.bytes，并且2）消费者的获取大小被设置为至少与max.message.bytes。
+
+大多数关于升级到0.10.0消息格式对性能影响的讨论 仍然与0.11.0升级有关。这主要影响不使用TLS进行保护的群集，因为在这种情况下“零复制”传输已经不可行。为了避免下变换成本，您应该确保客户应用程序升级到最新的0.11.0客户端。值得注意的是，由于旧消费者在0.11.0.0已经被弃用，它不支持新的消息格式。您必须升级才能使用新消费者使用新的消息格式，而不需要下转换成本。请注意，0.11.0消费者支持与0.10.0经纪商的向上兼容性和向上兼容性，所以可以先在经纪商之前升级客户端。
+*********************
+
+
 
 <p><b>Additional Upgrade Notes:</b></p>
 
