@@ -653,12 +653,12 @@
         <p>按照下面的步骤可以修改正在运行中的集群的 SASL 机制：</p>
         <ol>
         <li>为了给每个 broker 启用新的 SASL 机制，需要在 server.properties 中添加 <tt>sasl.enabled.mechanisms</tt> 配置。更新 <a href="#security_sasl_multimechanism">这里</a>描述的两种机制到JAAS配置文件。
-            逐步更新每个集群节点</li>
+            依次更新每个集群节点</li>
         <li>使用新机制重新启动客户端。</li>
-        <li>如果有必要，可以在 server.properties 文件中指定新的<tt>sasl.mechanism.inter.broker.protocol</tt>的配置，来修改 broker 间的通信机制。然后再次逐步的更新集群。
+        <li>如果有必要，可以在 server.properties 文件中指定新的<tt>sasl.mechanism.inter.broker.protocol</tt>的配置，来修改 broker 间的通信机制。然后再次依次的更新集群。
             </li>
         <li>如果有必要，可以从 server.properties 文件中的<tt>sasl.enabled.mechanisms</tt> 配置中和 JAAS 配置文件中删除旧的机制条目，来删除旧的机制。
-            然后再次逐步的更新集群。</li>
+            然后再次依次的更新集群。</li>
         </ol>
     </li>
     </ol>
