@@ -18,16 +18,16 @@
 <script id="implementation-template" type="text/x-handlebars-template">
     <h3><a id="networklayer" href="#networklayer">5.1 网络层</a></h3>
     <p>
-    网络层简单来说就是一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 实现是通过 <code>MessageSet</code> 接口的 <code>writeTo</code> 方法完成的.这样的机制允许消息数据集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
+    网络层相当于一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 的实现是通过 <code>MessageSet</code> 接口的 <code>writeTo</code> 方法完成的.这样的机制允许 file-backed 集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
     </p>
     <h3><a id="messages" href="#messages">5.2 消息</a></h3>
     <p>
     消息包含一个可变长度的 header ,一个可变长度不透明的字节数组 key ,一个可变长度不透明的字节数组 value ,消息中 header 的格式会在下一节描述.
-    保持消息中的 key 和 value 不透明(二进制格式)是正确的决定: 目前构建序列化库取得很大的进展,而且任何单一的序列化方式都不能满足所有的用途.毋庸置疑,使用kafka的特定应用程序可能会要求特定的序列化类型作为自己使用的一部分. <code>RecordBatch</code> 接口就是一种简单的消息迭代器,它可以使用序列化的方法批量读写消息到 NIO 的 <code>Channel</code> 中.
+    保持消息中的 key 和 value 不透明(二进制格式)是正确的决定: 目前构建序列化库取得很大的进展,而且任何单一的序列化方式都不能满足所有的用途.毋庸置疑,使用kafka的特定应用程序可能会要求特定的序列化类型作为自己使用的一部分. <code>RecordBatch</code> 接口就是一种简单的消息迭代器,它可以使用特定的方法批量读写消息到 NIO 的 <code>Channel</code> 中.
 
     <h3><a id="messageformat" href="#messageformat">5.3 消息格式</a></h3>
     <p>
-    消息通常按照批量的方式写入.批量的消息被成为 record batch ,它包含一条或多条 records.不良情况下, record batch 只包含一条 record.
+    消息通常按照批量的方式写入.record batch 是批量消息的技术术语,它包含一条或多条 records.不良情况下, record batch 只包含一条 record.
     Record batches 和 records 都有他们自己的 headers.在 kafka 0.11.0及后续版本中(消息格式的版本为 v2 或者 magic=2)解释了每种消息格式.<a href="https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-Messagesets">点击</a>查看消息格式详情.</p>
 
     <h4><a id="recordbatch" href="#recordbatch">5.3.1 Record Batch</a></h4>
@@ -56,7 +56,7 @@
 		baseSequence: int32
 		records: [Record]
 	</pre></p>
-    <p> 请注意,当压缩开启时,会将多条 records 直接序列化. </p>
+    <p> 请注意,启用压缩时，压缩的记录数据将直接按照记录数进行序列化。</p>
 
     <p> CRC(一种数据校验码) 会覆盖从属性到批处理结束的数据, (即 CRC 后的所有字节数据). CRC 位于 magic 之后,这意味着,在决定如何解释批次的长度和 magic 类型之前,客户端需要解析 magic 类型.CRC 计算不包括分区 learder epoch 字段,是为了避免 broker 收到每个批次的数据时 需要重新分配计算 CRC . CRC-32C (Castagnoli) 多项式用于计算.</p>
 
