@@ -321,7 +321,7 @@ producer uses.
 Note that topics have a setting for the "minimum number" of in-sync replicas that is checked when the producer requests acknowledgment that a message
 has been written to the full set of in-sync replicas. If a less stringent acknowledgement is requested by the producer, then the message can be committed, and consumed,
 even if the number of in-sync replicas is lower than the minimum (e.g. it can be as low as just the leader).
-现在，我们有了一个更精确的定义，只有当消息被所有的同步备份 partition 加入到日志中时，才算是被提交。只有被提交的消息才会被 consumer 消费，这样 consumer 就不用担心一旦 leader 挂掉了，消息可能会丢失的问题。另一方面， producer 也
+现在, 我们可以更精确地定义, 只有当消息被所有的副本节点加入到日志中时, 才算是提交, 只有提交的消息才会被 consumer 消费, 这样就不用担心一旦 leader 挂掉了消息会丢失。另一方面， producer 也
 可以选择是否等待消息被提交，这取决他们的设置在延迟时间和持久性之间的权衡，这个选项是由 producer 使用的 acks 设置控制。
 请注意，Topic 可以设置同步备份的最小数量， producer 请求确认消息是否被写入到所有的备份时, 可以用最小同步数量判断。如果 producer 对同步的备份数没有严格的要求，即使同步的备份数量低于
 最小同步数量（例如，仅仅只有 leader 同步了数据），消息也会被提交，然后被消费。
@@ -330,26 +330,25 @@ The guarantee that Kafka offers is that a committed message will not be lost, as
 在所有时间里，Kafka 保证只要有至少一个同步中的节点存活，提交的消息就不会丢失。
 <p>
 Kafka will remain available in the presence of node failures after a short fail-over period, but may not remain available in the presence of network partitions.
-在短暂的故障节点切换期后，Kafka 将保持可用状态，但在网络分区（ network partitions ）的情况下可能不能保持可用状态。
-
+节点挂掉后，经过短暂的故障转移后，Kafka将仍然保持可用性，但在网络分区（ network partitions ）的情况下可能不能保持可用性。
 <h4><a id="design_replicatedlog" href="#design_replicatedlog">Replicated Logs: Quorums, ISRs, and State Machines (Oh my!)  备份日志：Quorums, ISRs, 和状态机 </a></h4>
 
 At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one. A replicated log can be
 used by other systems as a primitive for implementing other distributed systems in the <a href="http://en.wikipedia.org/wiki/State_machine_replication">state-machine style</a>.
-Kafka的核心是备份日志文件。备份日志文件是分布式数据系统最基础的要素之一，实现方法也有很多种。其他系统也可以使用备份日志，作为在<a href="http://en.wikipedia.org/wiki/State_machine_replication">状态机风格</a>中实现其他分布式系统的要素。 
+Kafka的核心是备份日志文件。备份日志文件是分布式数据系统最基础的要素之一，实现方法也有很多种。其他系统也可以用 kafka 的备份日志模块来实现<a href="http://en.wikipedia.org/wiki/State_machine_replication">状态机风格</a>的分布式系统 
 <p>
 A replicated log models the process of coming into consensus on the order of a series of values (generally numbering the log entries 0, 1, 2, ...). There are many ways to implement this, but the simplest and fastest
 is with a leader who chooses the ordering of values provided to it. As long as the leader remains alive, all followers need to only copy the values and ordering the leader chooses.
-备份日志模拟一系列的值(通常是编号为0、1、2、…)按序来达成一致的过程。有很多方法可以实现这一点，但最简单和最快的方法是由 leader 选择提供给它的值的顺序。只要 leader 还存活，所有的 follower 只需要拷贝值并按照 leader 选择的的顺序排序。
+备份日志按照一系列有序的值(通常是编号为0、1、2、…)进行建模。有很多方法可以实现这一点，但最简单和最快的方法是由 leader 节点选择需要提供的有序的值，只要 leader 节点还存活，所有的 follower 只需要拷贝数据并按照 leader 节点的顺序排序。
 <p>
 Of course if leaders didn't fail we wouldn't need followers! When the leader does die we need to choose a new leader from among the followers. But followers themselves may fall behind or crash so we must ensure we
 choose an up-to-date follower. The fundamental guarantee a log replication algorithm must provide is that if we tell the client a message is committed, and the leader fails, the new leader we elect must also have
 that message. This yields a tradeoff: if the leader waits for more followers to acknowledge a message before declaring it committed then there will be more potentially electable leaders.
-当然，如果 leader 永远都不会挂掉，那我们就不需要 follower 了。 但是如果 leader crash，我们就需要从 follower 中选举出一个新的 leader。 但是 followers 自身也有可能落后或者 crash，所以 我们必须确保我们选择成为 leader 的是一个数据
-最新的 follower。
+当然，如果 leader 永远都不会挂掉，那我们就不需要 follower 了。 但是如果 leader crash，我们就需要从 follower 中选举出一个新的 leader。 但是 followers 自身也有可能落后或者 crash，所以 我们必须确保我们leader的候选者们 是一个数据同步
+最新的 follower 节点。
 <p>
 If you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.
-从选择所需的确认数量（写）和必须比较的日志数量（读）来选择一个为主, 并且确保读和写数量上大于总的备份数，这样的读写机制称为 Quorum。
+如果选择写入时候需要保证一定数量的副本写入成功，读取时需要保证读取一定数量的副本，读取和写入之间有重叠。这样的读写机制称为 Quorum。
 <p>
 A common approach to this tradeoff is to use a majority vote for both the commit decision and the leader election. This is not what Kafka does, but let's explore it anyway to understand the tradeoffs. Let's say we
 have 2<i>f</i>+1 replicas. If <i>f</i>+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least
@@ -458,20 +457,21 @@ used to prefer message durability over availability:
 </ol>
 
 
-<h4><a id="design_replicamanagment" href="#design_replicamanagment">Replica Management 备份管理</a></h4>
+<h4><a id="design_replicamanagment" href="#design_replicamanagment">Replica Management （备份管理）</a></h4>
 
 The above discussion on replicated logs really covers only a single log, i.e. one topic partition. However a Kafka cluster will manage hundreds or thousands of these partitions. We attempt to balance partitions
 within a cluster in a round-robin fashion to avoid clustering all partitions for high-volume topics on a small number of nodes. Likewise we try to balance leadership so that each node is the leader for a proportional
 share of its partitions.
-以上关于备份日志的讨论只涉及单个日志，即一个 topic 分区，事实上，一个Kafka集群管理着成百上千个这样的分区。我们尝试以轮训调度的方式将集群内的分区负载均衡，避免大量的 topic 所有分区集中在
-少数几个节点上。同样，我们也试图让每个节点能按它所占的分区比例份额成为 leader 。
+以上关于备份日志的讨论只涉及单个日志文件，即一个 topic 分区，事实上，一个Kafka集群管理着成百上千个这样的 partitions。我们尝试以轮询调度的方式将集群内的 partition 负载均衡，避免大量topic拥有的分区集中在
+少数几个节点上。同样，我们也试图平衡leadership,以至于每个节点都是部分 partition 的leader节点。
 <p>
 It is also important to optimize the leadership election process as that is the critical window of unavailability. A naive implementation of leader election would end up running an election per partition for all
 partitions a node hosted when that node failed. Instead, we elect one of the brokers as the "controller". This controller detects failures at the broker level and is responsible for changing the leader of all
 affected partitions in a failed broker. The result is that we are able to batch together many of the required leadership change notifications which makes the election process far cheaper and faster for a large number
 of partitions. If the controller fails, one of the surviving brokers will become the new controller.
-优化主从关系的选举过程也是重要的，因为这是数据不可用的关键窗口。为了当有节点挂了后，进行主从关系选举时，能够有节点托管该节点的所有分区运行。我们选择一个 brokers 作为 “controller”。controller 负责检测 brokers 级别故障, 并负责当一个 broker 挂了,
-通知受此 broker 故障影响的分区的 leader 。它可以批量的通知主从关系的变化，这使得选举过程对于拥有大量分区而言要代价低得多并且速度更快。如果 controller 挂了，所有其他存活的 broker 都可能成为新的 controller 。     
+优化主从关系的选举过程也是重要的，这是数据不可用的关键窗口。原始的实现是当有节点挂了后，进行主从关系选举时，会对挂掉节点的所有partition 的领导权重新选举。相反，我们会选择一个 broker 作为 “controller”节点。controller 节点负责
+检测 brokers 级别故障,并负责当一个 broker 挂了,改变该 broker 故障影响 partition 的 leadership。这种方式可以批量的通知主从关系的变化，使得对于拥有大量partition 的broker ,选举过程的代价更便宜并且速度更快。如果 controller 节点挂了，其他
+存活的 broker 都可能成为新的 controller 节点。
 
 <h3><a id="compaction" href="#compaction">4.8 Log Compaction</a></h3>
 
