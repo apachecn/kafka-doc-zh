@@ -16,22 +16,22 @@
 -->
 
 <script id="implementation-template" type="text/x-handlebars-template">
-    <h3><a id="networklayer" href="#networklayer">5.1 Network Layer</a></h3>
+    <h3><a id="networklayer" href="#networklayer">5.1 网络层</a></h3>
     <p>
-    The network layer is a fairly straight-forward NIO server, and will not be described in great detail. The sendfile implementation is done by giving the <code>MessageSet</code> interface a <code>writeTo</code> method. This allows the file-backed message set to use the more efficient <code>transferTo</code> implementation instead of an in-process buffered write. The threading model is a single acceptor thread and <i>N</i> processor threads which handle a fixed number of connections each. This design has been pretty thoroughly tested <a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">elsewhere</a> and found to be simple to implement and fast. The protocol is kept quite simple to allow for future implementation of clients in other languages.
+    网络层简单来说就是一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 实现是通过 <code>MessageSet</code> 接口的 <code>writeTo</code> 方法完成的.这样的机制允许消息数据集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
     </p>
-    <h3><a id="messages" href="#messages">5.2 Messages</a></h3>
+    <h3><a id="messages" href="#messages">5.2 消息</a></h3>
     <p>
-    Messages consist of a variable-length header, a variable length opaque key byte array and a variable length opaque value byte array. The format of the header is described in the following section.
-    Leaving the key and value opaque is the right decision: there is a great deal of progress being made on serialization libraries right now, and any particular choice is unlikely to be right for all uses. Needless to say a particular application using Kafka would likely mandate a particular serialization type as part of its usage. The <code>RecordBatch</code> interface is simply an iterator over messages with specialized methods for bulk reading and writing to an NIO <code>Channel</code>.</p>
+    消息包含一个可变长度的 header ,一个可变长度不透明的字节数组 key ,一个可变长度不透明的字节数组 value ,消息中 header 的格式会在下一节描述.
+    保持消息中的 key 和 value 不透明(二进制格式)是正确的决定: 目前构建序列化库取得很大的进展,而且任何单一的序列化方式都不能满足所有的用途.毋庸置疑,使用kafka的特定应用程序可能会要求特定的序列化类型作为自己使用的一部分. <code>RecordBatch</code> 接口就是一种简单的消息迭代器,它可以使用序列化的方法批量读写消息到 NIO 的 <code>Channel</code> 中.
 
-    <h3><a id="messageformat" href="#messageformat">5.3 Message Format</a></h3>
+    <h3><a id="messageformat" href="#messageformat">5.3 消息格式</a></h3>
     <p>
-    Messages (aka Records) are always written in batches. The technical term for a batch of messages is a record batch, and a record batch contains one or more records. In the degenerate case, we could have a record batch containing a single record.
-    Record batches and records have their own headers. The format of each is described below for Kafka version 0.11.0 and later (message format version v2, or magic=2). <a href="https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-Messagesets">Click here</a> for details about message formats 0 and 1.</p>
+    消息通常按照批量的方式写入.批量的消息被成为 record batch ,它包含一条或多条 records.不良情况下, record batch 只包含一条 record.
+    Record batches 和 records 都有他们自己的 headers.在 kafka 0.11.0及后续版本中(消息格式的版本为 v2 或者 magic=2)解释了每种消息格式.<a href="https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-Messagesets">点击</a>查看消息格式详情.</p>
 
     <h4><a id="recordbatch" href="#recordbatch">5.3.1 Record Batch</a></h4>
-	<p> The following is the on-disk format of a RecordBatch. </p>
+	<p> 以下为 RecordBatch 在硬盘上的格式.</p>
 	<p><pre class="brush: java;">
 		baseOffset: int64
 		batchLength: int32
@@ -56,18 +56,11 @@
 		baseSequence: int32
 		records: [Record]
 	</pre></p>
-    <p> Note that when compression is enabled, the compressed record data is serialized directly following the count of the number of records. </p>
+    <p> 请注意,当压缩开启时,会将多条 records 直接序列化. </p>
 
-    <p>The CRC covers the data from the attributes to the end of the batch (i.e. all the bytes that follow the CRC). It is located after the magic byte, which
-    means that clients must parse the magic byte before deciding how to interpret the bytes between the batch length and the magic byte. The partition leader
-    epoch field is not included in the CRC computation to avoid the need to recompute the CRC when this field is assigned for every batch that is received by
-    the broker. The CRC-32C (Castagnoli) polynomial is used for the computation.</p>
+    <p> CRC(一种数据校验码) 会覆盖从属性到批处理结束的数据, (即 CRC 后的所有字节数据). CRC 位于 magic 之后,这意味着,在决定如何解释批次的长度和 magic 类型之前,客户端需要解析 magic 类型.CRC 计算不包括分区 learder epoch 字段,是为了避免 broker 收到每个批次的数据时 需要重新分配计算 CRC . CRC-32C (Castagnoli) 多项式用于计算.</p>
 
-    <p>On compaction: unlike the older message formats, magic v2 and above preserves the first and last offset/sequence numbers from the original batch when the log is cleaned. This is required in order to be able to restore the
-    producer's state when the log is reloaded. If we did not retain the last sequence number, for example, then after a partition leader failure, the producer might see an OutOfSequence error. The base sequence number must
-    be preserved for duplicate checking (the broker checks incoming Produce requests for duplicates by verifying that the first and last sequence numbers of the incoming batch match the last from that producer). As a result,
-    it is possible to have empty batches in the log when all the records in the batch are cleaned but batch is still retained in order to preserve a producer's last sequence number. One oddity here is that the baseTimestamp
-    field is not preserved during compaction, so it will change if the first record in the batch is compacted away.</p>
+    <p>压缩: 不同于旧的消息格式, magic v2 及以上版本在清理日志时保留原始日志中首次及最后一次 offset/sequence .这是为了能够在日志重新加载时恢复生产者的状态.例如,如果我们不保留最后一次序列号,当分区 learder 失败以后,生产者会报 OutOfSequence 的错误.必须保留基础序列号来做重复检查(broker 通过检查生产者该批次请求中第一次及最后一次序列号是否与上一次的序列号相匹配来判断是否重复).因此,当批次中所有的记录被清理但批次数据依然保留是为了保存生产者最后一次的序列号,日志中可能有空的数据.不解的是在压缩中时间戳可能不会被保留,所以如果批次中的第一条记录被压缩,时间戳也会改变</p>
 
     <h5><a id="controlbatch" href="#controlbatch">5.3.1.1 Control Batches</a></h5>
     <p>A control batch contains a single record called the control record. Control records should not be passed on to applications. Instead, they are used by consumers to filter out aborted transactional messages.</p>
