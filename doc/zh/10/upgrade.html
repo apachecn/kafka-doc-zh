@@ -264,66 +264,22 @@
 
 <h5><a id="upgrade_1010_streams" href="#upgrade_1010_streams">升级0.10.0 Kafka Streams应用程序</a></h5>
 <ul>   
-   
-   
-   
-
-
-********************************************************************
-
-
-将Streams应用程序从0.10.0升级到0.10.1确实需要代理升级，因为Kafka Streams 0.10.1应用程序只能连接到0.10.1代理。
-有几个API的变化，这是不是向后兼容（更多的细节参考0.10.1的Streams API变化）。因此，您需要更新并重新编译您的代码。只需交换Kafka Streams库jar文件将不起作用，并会破坏您的应用程序。
-0.10.1.0中的显着变化
-
-新的Java消费者不再处于测试阶段，我们推荐所有新的开发。旧的Scala消费者仍然支持，但是在下一个版本中它们将被弃用，并将在未来的主要版本中被删除。
-将--new-consumer/ --new.consumer开关不再需要使用像MirrorMaker和控制台消费者与消费者的新工具; 只需要通过卡夫卡经纪人来连接，而不是ZooKeeper合奏。此外，与旧用户一起使用控制台消费者已被弃用，并将在未来的主要版本中删除。
-卡夫卡群集现在可以由群集ID唯一标识。当代理升级到0.10.1.0时，它会自动生成。群集ID可通过kafka.server：type = KafkaServer，name = ClusterId指标获得，它是元数据响应的一部分。串行器，客户端拦截器和度量记录器可以通过实现ClusterResourceListener接口来接收集群ID。
-BrokerState“RunningAsController”（值4）已被删除。由于一个错误，一个经纪人在转换出来之前只会处于这个状态，因此移除的影响应该是最小的。检测指定代理是否为控制器的推荐方法是通过kafka.controller：type = KafkaController，name = ActiveControllerCount指标。
-新的Java使用者现在允许用户通过分区上的时间戳搜索偏移量。
-新的Java使用者现在支持来自后台线程的心跳。有一个新的配置 max.poll.interval.ms，它控制在用户主动离开组之前轮询调用之间的最大时间（默认为5分钟）。配置的值 request.timeout.ms必须总是大于max.poll.interval.ms因为这是JoinGroup请求在服务器上重新平衡时可以阻止的最大时间，所以我们已经将其默认值更改为5分钟以上。最后，默认值session.timeout.ms已经调整到10秒，默认值max.poll.records已经改为500。
-当使用授权人，并且用户没有描述对主题的授权时，代理将不再向请求返回TOPIC_AUTHORIZATION_FAILED错误，因为这会泄漏主题名称。相反，UNKNOWN_TOPIC_OR_PARTITION错误代码将被返回。这可能会导致使用生产者和使用者时出现意外超时或延迟，因为Kafka客户端通常会在未知主题错误时自动重试。如果您怀疑这可能会发生，您应该咨询客户端日志。
-提取响应的默认大小限制（消费者为50 MB，复制为10 MB）。现有的每个分区限制也适用（1 MB用于消费者和复制）。请注意，这些限制都不是下一个解释的绝对最大值。
-如果发现大于响应/分区大小限制的消息，则消费者和副本可以取得进展。更具体地说，如果提取的第一个非空分区中的第一条消息大于一个或两个限制，则该消息仍将被返回。
-被添加的重载构造函数被添加到kafka.api.FetchRequest并kafka.javaapi.FetchRequest允许调用者指定分区的顺序（因为在v3中顺序是重要的）。先前存在的构造函数已被弃用，在发送请求之前将分区进行洗牌以避免饥饿问题。
-
-*********************
-
-
-    <li> Upgrading your Streams application from 0.10.0 to 0.10.1 does require a <a href="#upgrade_10_1">broker upgrade</a> because a Kafka Streams 0.10.1 application can only connect to 0.10.1 brokers. </li>
-    <li> There are couple of API changes, that are not backward compatible (cf. <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0101">Streams API changes in 0.10.1</a> for more details).
-         Thus, you need to update and recompile your code. Just swapping the Kafka Streams library jar file will not work and will break your application. </li>
+    <li>将Streams应用程序从0.10.0升级到0.10.1需要<a href="#upgrade_10_1">代理升级</a>，因为Kafka Streams 0.10.1应用程序只能连接到0.10.1代理。</li>
+    <li>有几个API有变化且不向后兼容(更多的细节请参考<a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0101">0.10.1中Streams API的变化</a>)。因此，您需要更新并重新编译您的代码。只交换Kafka Streams库的jar文件将不起作用，并会破坏您的应用程序。</li>
 </ul>
 
-<h5><a id="upgrade_1010_notable" href="#upgrade_1010_notable">Notable changes in 0.10.1.0</a></h5>
+<h5><a id="upgrade_1010_notable" href="#upgrade_1010_notable">0.10.1.0中的显著变化</a></h5>
 <ul>
-    <li> The new Java consumer is no longer in beta and we recommend it for all new development. The old Scala consumers are still supported, but they will be deprecated in the next release
-         and will be removed in a future major release. </li>
-    <li> The <code>--new-consumer</code>/<code>--new.consumer</code> switch is no longer required to use tools like MirrorMaker and the Console Consumer with the new consumer; one simply
-         needs to pass a Kafka broker to connect to instead of the ZooKeeper ensemble. In addition, usage of the Console Consumer with the old consumer has been deprecated and it will be
-         removed in a future major release. </li>
-    <li> Kafka clusters can now be uniquely identified by a cluster id. It will be automatically generated when a broker is upgraded to 0.10.1.0. The cluster id is available via the kafka.server:type=KafkaServer,name=ClusterId metric and it is part of the Metadata response. Serializers, client interceptors and metric reporters can receive the cluster id by implementing the ClusterResourceListener interface. </li>
-    <li> The BrokerState "RunningAsController" (value 4) has been removed. Due to a bug, a broker would only be in this state briefly before transitioning out of it and hence the impact of the removal should be minimal. The recommended way to detect if a given broker is the controller is via the kafka.controller:type=KafkaController,name=ActiveControllerCount metric. </li>
-    <li> The new Java Consumer now allows users to search offsets by timestamp on partitions. </li>
-    <li> The new Java Consumer now supports heartbeating from a background thread. There is a new configuration
-         <code>max.poll.interval.ms</code> which controls the maximum time between poll invocations before the consumer
-         will proactively leave the group (5 minutes by default). The value of the configuration
-         <code>request.timeout.ms</code> must always be larger than <code>max.poll.interval.ms</code> because this is the maximum
-         time that a JoinGroup request can block on the server while the consumer is rebalancing, so we have changed its default
-         value to just above 5 minutes. Finally, the default value of <code>session.timeout.ms</code> has been adjusted down to
-         10 seconds, and the default value of <code>max.poll.records</code> has been changed to 500.</li>
-    <li> When using an Authorizer and a user doesn't have <b>Describe</b> authorization on a topic, the broker will no
-         longer return TOPIC_AUTHORIZATION_FAILED errors to requests since this leaks topic names. Instead, the UNKNOWN_TOPIC_OR_PARTITION
-         error code will be returned. This may cause unexpected timeouts or delays when using the producer and consumer since
-         Kafka clients will typically retry automatically on unknown topic errors. You should consult the client logs if you
-         suspect this could be happening.</li>
-    <li> Fetch responses have a size limit by default (50 MB for consumers and 10 MB for replication). The existing per partition limits also apply (1 MB for consumers
-         and replication). Note that neither of these limits is an absolute maximum as explained in the next point. </li>
-    <li> Consumers and replicas can make progress if a message larger than the response/partition size limit is found. More concretely, if the first message in the
-         first non-empty partition of the fetch is larger than either or both limits, the message will still be returned. </li>
-    <li> Overloaded constructors were added to <code>kafka.api.FetchRequest</code> and <code>kafka.javaapi.FetchRequest</code> to allow the caller to specify the
-         order of the partitions (since order is significant in v3). The previously existing constructors were deprecated and the partitions are shuffled before
-         the request is sent to avoid starvation issues. </li>
+    <li>新的Java消费者已经通过测试阶段，我们推荐使用它来开发。以前的Scala消费者仍然支持，但是在下一个版本中它们将被弃用，并会在以后的版本中删除。</li>   
+    <li><code>--new-consumer</code>/<code>--new.consumer</code>转换已不再需要MirrorMaker和消费者控制台之类的工具。只需要通过Kafka broker来连接，而不必使用ZooKeeper。此外，旧消费者控制台已被弃用，并将在以后的版本中删除。</li>
+    <li> Kafka群集现在可以由群集ID唯一标识。当代理升级到0.10.1.0后，它会自动生成。群集ID可通过设置kafka.server：type = KafkaServer，name = ClusterId来获得，它是元数据响应的一部分。通过ClusterResourceListener接口，串行器，客户端拦截器和度量记录器可以接收集群ID。</li>   
+    <li>BrokerState "RunningAsController" (value 4)已被删除。由于一个bug，代理在转换出来之前会一直处于这个状态，因此此时移除该BrokerState的影响是最小的。推荐用于检测指定代理是否为控制器的方法是使用kafka.controller：type = KafkaController，name = ActiveControllerCount指标。</li>
+    <li>新的Java消费者允许用户通过分区上的时间戳搜索偏移量。</li>
+    <li>新的Java消费者可以获得后台线程的状态。新的配置<code>max.poll.interval.ms</code>可以控制用户主动离开组前轮询调用的最大时间（默认为5分钟）（在用户主动离开组前）。配置<code>request.timeout.ms</code>的值必须总是大于<code>max.poll.interval.ms</code>，因为这是JoinGroup请求平衡服务器消费的最大时间，所以我们已经将其默认值更改为5分钟以上。<code>session.timeout.ms</code>的默认值已经调整到10秒，<code>max.poll.records</code>的默认值已经改为500。</li>
+    <li>当使用授权并且用户没有相关主题的授权时，代理不再返回TOPIC_AUTHORIZATION_FAILED错误，因为这会泄漏主题名称。相反会返回UNKNOWN_TOPIC_OR_PARTITION错误。这可能会导致在使用生产者和消费者时出现意外超时或延迟，因为Kafka客户端在出现未知主题错误时会自动重试。如果您担心这种情况发生，可以查看客户端日志。</li>   
+    <li>提取响应的默认大小是固定的（消费者为50 MB，复制为10 MB）。现有分区的限制也适用（消费者和复制均为1 MB）。请注意，这些限制都不是以后的绝对最大值。</li>
+    <li> 如果发现大于响应/分区大小限制的消息，则消费者和副本仍然可以进行。更具体地说，如果提取的第一个非空分区中第一条消息大于一个或两个限制，则该消息仍会被返回。</li>
+    <li>重载构造函数被添加到<code>kafka.api.FetchRequest</code>和<code>kafka.javaapi.FetchRequest</code>且可以让调用者指定分区的顺序（因为在v3中顺序是重要的）。原先的构造函数已被弃用，在发送请求之前将对分区进行洗牌以避免饥饿问题。</li>
 </ul>
 
 <h5><a id="upgrade_1010_new_protocols" href="#upgrade_1010_new_protocols">新的版本协议</a></h5>
@@ -359,35 +315,8 @@ BrokerState“RunningAsController”（值4）已被删除。由于一个错误�
 <p><b>注意：</b> 在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。
 
 <h5><a id="upgrade_10_performance_impact" href="#upgrade_10_performance_impact">在升级到0.10.0.0后，可能会对性能造成的影响</a></h5>   
-*******************************************************************
-
 <p>
-    The message format in 0.10.0 includes a new timestamp field and uses relative offsets for compressed messages.
-    The on disk message format can be configured through log.message.format.version in the server.properties file.
-    The default on-disk message format is 0.10.0. If a consumer client is on a version before 0.10.0.0, it only understands
-    message formats before 0.10.0. In this case, the broker is able to convert messages from the 0.10.0 format to an earlier format
-    before sending the response to the consumer on an older version. However, the broker can't use zero-copy transfer in this case.
-
-    Reports from the Kafka community on the performance impact have shown CPU utilization going from 20% before to 100% after an upgrade, which forced an immediate upgrade of all clients to bring performance back to normal.
-
-    To avoid such message conversion before consumers are upgraded to 0.10.0.0, one can set log.message.format.version to 0.8.2 or 0.9.0 when upgrading the broker to 0.10.0.0. This way, the broker can still use zero-copy transfer to send the data to the old consumers. Once consumers are upgraded, one can change the message format to 0.10.0 on the broker and enjoy the new message format that includes new timestamp and improved compression.
-
-    The conversion is supported to ensure compatibility and can be useful to support a few apps that have not updated to newer clients yet, but is impractical to support all consumer traffic on even an overprovisioned cluster. Therefore, it is critical to avoid the message conversion as much as possible when brokers have been upgraded but the majority of clients have not.
-</p>
-
-
-
-
-0.10.0中的消息格式包含一个新的时间戳字段，并使用压缩消息的相对偏移量。磁盘上的消息格式可以通过server.properties文件中的log.message.format.version来配置。默认的磁盘上消息格式是0.10.0。如果消费者客户端使用的是0.10.0.0之前的版本，则只能理解0.10.0之前的消息格式。在这种情况下，代理可以将消息从0.10.0格式转换为较早的格式，然后将响应发送给旧版本的使用者。但是，在这种情况下，经纪人不能使用零复制转移。卡夫卡社区对性能影响的报告显示，在升级之后，CPU使用率从20％上升到100％，迫使所有客户端立即升级，以使性能恢复正常。为避免消费者升级到0.10.0.0之前的这种消息转换，可以将代理升级到0.10.0.0时将log.message.format.version设置为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。将代理升级到0.10.0.0时，message.format.version为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。将代理升级到0.10.0.0时，message.format.version为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。
-
-
-
-
-
-
-
-
-********************************************************
+0.10.0中的消息格式包含一个新的时间戳字段，并使用压缩消息的相对偏移量。磁盘上的消息格式可以通过server.properties文件中的log.message.format.version来配置。磁盘上默认的消息格式是0.10.0。如果消费者客户端使用的是0.10.0.0之前的版本，则只能适用0.10.0之前的消息格式。在这种情况下，代理可以将消息从0.10.0格式转换为较早的格式，然后将响应发送给旧版本的消费者。但在这种情况下，代理不能使用零复制转移。Kafka社区中关于性能影响的报告显示，在升级之后，CPU使用率从20％上升到100％，这会迫使所有客户端立即升级，以使性能恢复正常。为避免这种消息转换，可以在代理升级到0.10.0.0时，将log.message.format.version设置为0.8.2或0.9.0。这样，代理仍可使用零拷贝将数据发送给以前的消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，就可以使用新时间戳和改进压缩的新消息格式。Kafka支持这一转换以确保兼容性也有利于一些尚未更新到较新客户端的应用程序。但即使在过度配置的群集上也不支持所有消费者间的通信。因此，在代理升级后，尽量避免信息转换是非常重要的，但大多数客户端还没有。
 <p>
     对于升级到0.10.0.0的客户端，不会影响性能。
 </p>
