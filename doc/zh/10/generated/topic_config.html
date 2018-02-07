@@ -9,9 +9,9 @@
 <th>重要性</th>
 </tr>
 <tr>
-<td>cleanup.policy</td><td>一个字符串，可以是 "delete" 或 "compact"。 此字符串指定在旧日志段上使用的保留策略。 默认策略 ("delete") 将在达到保留时间或大小限制时丢弃旧段。 "compact" 设置将启用该topic <a href="#compaction">日志压缩</a> 。</td><td>list</td><td>delete</td><td>[compact, delete]</td><td>log.cleanup.policy</td><td>medium</td></tr>
+<td>cleanup.policy</td><td>该配置项可以是 "delete" 或 "compact"。 它指定在旧日志段上使用的保留策略。 默认策略 ("delete") 将在达到保留时间或大小限制时丢弃旧段。 "compact" 设置将启用该topic的<a href="#compaction">日志压缩</a> 。</td><td>list</td><td>delete</td><td>[compact, delete]</td><td>log.cleanup.policy</td><td>medium</td></tr>
 <tr>
-<td>compression.type</td><td>指定给定topic的最终压缩类型。这个配置接受标准的压缩编解码器 ('gzip', 'snappy', lz4) 。它另外接受相当于不压缩的 'uncompressed' 和 'producer'，这意味着保留producer设置的原始压缩编解码器。</td><td>string</td><td>producer</td><td>[uncompressed, snappy, lz4, gzip, producer]</td><td>compression.type</td><td>medium</td></tr>
+<td>compression.type</td><td>为给定的topic指定最终压缩类型。这个配置接受标准的压缩编解码器 ('gzip', 'snappy', lz4) 。它为'uncompressed'时意味着不压缩，当为'producer'时，这意味着保留producer设置的原始压缩编解码器。</td><td>string</td><td>producer</td><td>[uncompressed, snappy, lz4, gzip, producer]</td><td>compression.type</td><td>medium</td></tr>
 <tr>
 <td>delete.retention.ms</td><td>保留 <a href="#compaction">日志压缩</a> topics的删除墓碑标记的时间。此设置还对consumer从偏移量0开始时必须完成读取的时间进行限制，以确保它们获得最后阶段的有效快照(否则，在完成扫描之前可能会收集到删除墓碑)。</td><td>long</td><td>86400000</td><td>[0,...]</td><td>log.cleaner.delete.retention.ms</td><td>medium</td></tr>
 <tr>

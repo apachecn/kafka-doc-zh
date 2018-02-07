@@ -41,23 +41,23 @@
   &gt; bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic my-topic --partitions 1
       --replication-factor 1 --config max.message.bytes=64000 --config flush.messages=1
   </pre>
-  也可以在使用alter configs命令之后更改或设置覆盖值. 本示例更新了 <i>my-topic</i> 的最大消息大小:
+  也可以在使用alter configs命令稍后更改或设置覆盖值. 本示例重置<i>my-topic</i>的最大消息的大小:
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic
       --alter --add-config max.message.bytes=128000
   </pre>
 
-  要检查Topic上设置的覆盖值，你可以执行操作
+  您可以执行如下操作来检查topic设置的覆盖值
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic --describe
   </pre>
 
-  要删除一个覆盖值，你可以执行操作
+  您可以执行如下操作来删除一个覆盖值
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181  --entity-type topics --entity-name my-topic --alter --delete-config max.message.bytes
   </pre>
 
-  以下是Topic级别配置。 该属性的服务器默认配置在“服务器默认属性”标题底下给出。 一个Topic如果没有明确给出一个覆盖值，给定的服务器默认配置就会应用在该Topic上。
+  以下是Topic级别配置。 “服务器默认属性”列是该属性的默认配置。 一个Topic如果没有给出一个明确的覆盖值，相应的服务器默认配置将会生效。
   @@include('generated/topic_config.html')
   <!--#include virtual="generated/topic_config.html" -->
 
