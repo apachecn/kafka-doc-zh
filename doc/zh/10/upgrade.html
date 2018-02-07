@@ -116,7 +116,7 @@
 <p><b>其他升级说明：</b></p>
 
 <ol>
-  <li>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重启。系统将默认启动新的协议。</li>
+  <li></li>
   <li>在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。更新消息格式版本也是如此。</li>
   <li>在更新全局设置<code>log.message.format.version</code>之前，也可以使用主题管理工具（<code>bin/kafka-topics.sh</code>）在各个topic上启用0.11.0消息格式。</li>
   <li>如果要从0.10.0之前的版本升级，则在切换到0.11.0之前，不必先将消息格式更新为0.10.0。</li>
@@ -169,7 +169,6 @@
 </p>
 <p>大多数关于<a href="#upgrade_10_performance_impact">升级到0.10.0消息格式</a>对性能影响的讨论，仍然与0.11.0升级有关。这主要影响不使用TLS保护的群集，因为在这种情况下“零复制”传输是不可行的。为了避免下变换的成本，您应确保客户应用程序升级到最新的0.11.0版本。值得注意的是，由于旧消费者在0.11.0.0已经被弃用，它不支持新的消息格式。您必须升级才能使用新消费者及新的消息格式，这不需要下转换的成本。请注意，0.11.0消费者向后兼容0.10.0及更高版本的代理，所以可以先在升级代理之前升级客户端。
 </p>
-
 
 **************
 
@@ -339,38 +338,44 @@ only support 0.10.1.x or later brokers while 0.10.1.x brokers also support older
          bigger than the limits if required to make progress and the order of partitions in the request is now significant. </li>
     <li> JoinGroup v1 introduces a new field: "rebalance_timeout". </li>
 </ul>
-
-<h4><a id="upgrade_10" href="#upgrade_10">Upgrading from 0.8.x or 0.9.x to 0.10.0.0</a></h4>
-0.10.0.0 has <a href="#upgrade_10_breaking">potential breaking changes</a> (please review before upgrading) and possible <a href="#upgrade_10_performance_impact">  performance impact following the upgrade</a>. By following the recommended rolling upgrade plan below, you guarantee no downtime and no performance impact during and following the upgrade.
+******************************
+<h4><a id="upgrade_10" href="#upgrade_10">从0.8.x或0.9.x升级到0.10.0.0</a></h4>
+0.10.0.0 版本有 <a href="#upgrade_10_breaking">潜在的重大变化</a>（请在升级之前查看）并可能有 <a href="#upgrade_10_performance_impact">升级后的性能影响</a>。请遵循以下建议的滚动升级计划，可确保在升级过程中和升级完成后不会出现停机和性能影响。
 <br>
-Note: Because new protocols are introduced, it is important to upgrade your Kafka clusters before upgrading your clients.
+注意：由于引入了新的协议，在升级客户端之前，升级您的Kafka集群是非常重要的。
 <p/>
-<b>Notes to clients with version 0.9.0.0: </b>Due to a bug introduced in 0.9.0.0,
-clients that depend on ZooKeeper (old Scala high-level Consumer and MirrorMaker if used with the old consumer) will not
-work with 0.10.0.x brokers. Therefore, 0.9.0.0 clients should be upgraded to 0.9.0.1 <b>before</b> brokers are upgraded to
-0.10.0.x. This step is not necessary for 0.8.X or 0.9.0.1 clients.
-
-<p><b>For a rolling upgrade:</b></p>
+<b>针对0.9.0.0版本客户的说明：</b>由于0.9.0.0版本中的一个错误，依赖于ZooKeeper的客户端（使用旧Scala高级Consumer和MirrorMaker的客户端）不能与0.10.0.x代理一起工作。因此，<b>在将</b>代理升级到0.10.0.x <b>之前</b>，应将0.9.0.0客户端升级到0.9.0.1。对于0.8.X或0.9.0.1版本，这一步不是必需的。
+<p><b>对于滚动升级：</b></p>
 
 <ol>
-    <li> Update server.properties file on all brokers and add the following properties:
+    <li>更新所有代理上的server.properties文件并添加以下属性：
          <ul>
-         <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (e.g. 0.8.2 or 0.9.0.0).</li>
-         <li>log.message.format.version=CURRENT_KAFKA_VERSION  (See <a href="#upgrade_10_performance_impact">potential performance impact following the upgrade</a> for the details on what this configuration does.)
+         <li>inter.broker.protocol.version=CURRENT_KAFKA_VERSION (例如 0.8.2 或0.9.0.0).</li>
+         <li>log.message.format.version=CURRENT_KAFKA_VERSION  (请参阅<a href="#upgrade_10_performance_impact">升级后潜在的性能影响</a>，以了解有关此配置的详细信息。)
          </ul>
     </li>
-    <li> Upgrade the brokers. This can be done a broker at a time by simply bringing it down, updating the code, and restarting it. </li>
-    <li> Once the entire cluster is upgraded, bump the protocol version by editing inter.broker.protocol.version and setting it to 0.10.0.0. NOTE: You shouldn't touch log.message.format.version yet - this parameter should only change once all consumers have been upgraded to 0.10.0.0 </li>
-    <li> Restart the brokers one by one for the new protocol version to take effect. </li>
-    <li> Once all consumers have been upgraded to 0.10.0, change log.message.format.version to 0.10.0 on each broker and restart them one by one.
-    </li>
+    <li> 升级代理：关闭代理，更新代码，重启。</li>
+    <li> 整个群集升级完后，设置inter.broker.protocol.version为0.10.0.0来改变协议版本。注意：您不应该编辑log.message.format.version - 只有当所有使用者都升级到0.10.0.0后，该参数才能被更改。</li>
+    <li> 重启代理，以使新的协议版本生效。</li>
+    <li> 如果所有使用者都升级到0.10.0，更改每个代理的log.message.format.version为0.10.0，然后逐个重启。</li>
 </ol>
 
-<p><b>Note:</b> If you are willing to accept downtime, you can simply take all the brokers down, update the code and start all of them. They will start with the new protocol by default.
+<p><b>注意：</b> 如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重启。系统将默认启动新的协议。
+<p><b>注意：</b> 在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。
 
-<p><b>Note:</b> Bumping the protocol version and restarting can be done any time after the brokers were upgraded. It does not have to be immediately after.
+<h5><a id="upgrade_10_performance_impact" href="#upgrade_10_performance_impact">在升级到0.10.0.0后，可能会对性能造成的影响</a></h5>   
 
-<h5><a id="upgrade_10_performance_impact" href="#upgrade_10_performance_impact">Potential performance impact following upgrade to 0.10.0.0</a></h5>
+
+
+
+
+
+
+
+
+
+
+
 <p>
     The message format in 0.10.0 includes a new timestamp field and uses relative offsets for compressed messages.
     The on disk message format can be configured through log.message.format.version in the server.properties file.
@@ -384,22 +389,19 @@ work with 0.10.0.x brokers. Therefore, 0.9.0.0 clients should be upgraded to 0.9
 
     The conversion is supported to ensure compatibility and can be useful to support a few apps that have not updated to newer clients yet, but is impractical to support all consumer traffic on even an overprovisioned cluster. Therefore, it is critical to avoid the message conversion as much as possible when brokers have been upgraded but the majority of clients have not.
 </p>
+
+
+
+
+0.10.0中的消息格式包含一个新的时间戳字段，并使用压缩消息的相对偏移量。磁盘上的消息格式可以通过server.properties文件中的log.message.format.version来配置。默认的磁盘上消息格式是0.10.0。如果消费者客户端使用的是0.10.0.0之前的版本，则只能理解0.10.0之前的消息格式。在这种情况下，代理可以将消息从0.10.0格式转换为较早的格式，然后将响应发送给旧版本的使用者。但是，在这种情况下，经纪人不能使用零复制转移。卡夫卡社区对性能影响的报告显示，在升级之后，CPU使用率从20％上升到100％，迫使所有客户端立即升级，以使性能恢复正常。为避免消费者升级到0.10.0.0之前的这种消息转换，可以将代理升级到0.10.0.0时将log.message.format.version设置为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。将代理升级到0.10.0.0时，message.format.version为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。将代理升级到0.10.0.0时，message.format.version为0.8.2或0.9.0。这样，经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。经纪人仍然可以使用零拷贝转移将数据发送给旧消费者。消费者升级之后，可以将代理上的消息格式更改为0.10.0，并享受包含新时间戳和改进压缩的新消息格式。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。支持该转换以确保兼容性，对于支持一些尚未更新到较新客户端的应用程序可能会有用，但即使在过度配置的群集上也不支持所有消费者通信。因此，在经纪人升级后尽可能避免信息转换是非常重要的，但大多数客户还没有。
 <p>
-    For clients that are upgraded to 0.10.0.0, there is no performance impact.
+    对于升级到0.10.0.0的客户端，不会影响性能。
 </p>
 <p>
-    <b>Note:</b> By setting the message format version, one certifies that all existing messages are on or below that
-    message format version. Otherwise consumers before 0.10.0.0 might break. In particular, after the message format
-    is set to 0.10.0, one should not change it back to an earlier format as it may break consumers on versions before 0.10.0.0.
-</p>
+    <b>注意：</b>通过设置消息格式版本，可以让所有现有消息都在该版本及其以下。且10.0.0之前的消费者可能会中断。尤其是，把消息格式设置为0.10.0后，不应将其更改回以前的格式，因为它可能会中断0.10.0.0版本前的使用者。</p>
 <p>
-    <b>Note:</b> Due to the additional timestamp introduced in each message, producers sending small messages may see a
-    message throughput degradation because of the increased overhead.
-    Likewise, replication now transmits an additional 8 bytes per message.
-    If you're running close to the network capacity of your cluster, it's possible that you'll overwhelm the network cards
-    and see failures and performance issues due to the overload.
-</p>
-    <b>Note:</b> If you have enabled compression on producers, you may notice reduced producer throughput and/or
+    <b>注意：</b>由于在每条消息中额外地引入了时间戳，由于增加开销，发送小消息的生产者可能会产生消息吞吐量下降。同样，复制里现在每个消息额外传输8个字节。如果您运行的集群接近网络容量，则可能会压垮网卡，并由过载而导致故障和性能问题。</p>
+    <b>注意：</b> If you have enabled compression on producers, you may notice reduced producer throughput and/or
     lower compression rate on the broker in some cases. When receiving compressed messages, 0.10.0
     brokers avoid recompressing the messages, which in general reduces the latency and improves the throughput. In
     certain cases, however, this may reduce the batching size on the producer, which could lead to worse throughput. If this
@@ -408,6 +410,41 @@ work with 0.10.0.x brokers. Therefore, 0.9.0.0 clients should be upgraded to 0.9
     impact on the compression ratio for the messages on disk. We intend to make this configurable in a future Kafka
     release.
 <p>
+
+
+注意：
+
+注意：如果您在生产者上启用了压缩，在某些情况下，您可能会注意到生产者吞吐量降低和/或代理上的压缩率降低。在接收压缩消息时，0.10.0的代理避免重新压缩消息，这通常减少了延迟并提高了吞吐量。然而，在某些情况下，这可能会减少生产者的配料尺寸，这可能导致更差的吞吐量。如果发生这种情况，用户可以调整生产者的linger.ms和batch.size以获得更好的吞吐量。另外，用于压缩snappy消息的生产者缓冲区比代理使用的缓冲区小，这可能会对磁盘上​​的消息的压缩率产生负面影响。我们打算在未来的Kafka版本中进行配置。
+0.10.0.0中潜在的重大更改
+
+
+
+
+
+
+
+从Kafka 0.10.0.0开始，Kafka中的消息格式版本被表示为Kafka版本。例如，消息格式0.9.0指的是Kafka 0.9.0支持的最高消息版本。
+消息格式0.10.0已经被引入，并被默认使用。它包含消息中的时间戳字段，相对偏移量用于压缩消息。
+ProduceRequest / Response v2已被引入，默认情况下使用它来支持消息格式0.10.0
+FetchRequest / Response v2已被引入，默认情况下使用FetchRequest / Response v2来支持消息格式0.10.0
+MessageFormatter接口已从更改def writeTo(key: Array[Byte], value: Array[Byte], output: PrintStream)为 def writeTo(consumerRecord: ConsumerRecord[Array[Byte], Array[Byte]], output: PrintStream)
+MessageReader接口从def readMessage(): KeyedMessage[Array[Byte], Array[Byte]]改为 def readMessage(): ProducerRecord[Array[Byte], Array[Byte]]
+MessageFormatter的包已经被更改kafka.tools为kafka.common
+MessageReader的包已经被更改kafka.tools为kafka.common
+MirrorMakerMessageHandler不再公开该handle(record: MessageAndMetadata[Array[Byte], Array[Byte]])方法，因为它从来没有被调用过。
+0.7 KafkaMigrationTool不再与Kafka打包在一起。如果您需要从0.7迁移到0.10.0，请先迁移到0.8，然后按照记录的升级过程从0.8升级到0.10.0。
+新的消费者已经将它的API标准化为接受java.util.Collection作为方法参数的序列类型。现有的代码可能需要更新才能使用0.10.0客户端库。
+LZ4压缩的消息处理已更改为使用可互操作的帧规范（LZ4f v1.5.1）。为了保持与旧客户端的兼容性，此更改仅适用于消息格式0.10.0及更高版本。使用v0 / v1（消息格式0.9.0）生成/获取LZ4压缩消息的客户端应该继续使用0.9.0成帧实现。使用Produce / Fetch协议v2或更高版本的客户端应使用可互操作的LZ4f成帧。可在http://www.lz4.org/上找到可互操作的LZ4库列表。
+0.10.0.0中的显着变化
+
+从Kafka 0.10.0.0开始，一个名为Kafka Streams的新客户端库可用于对存储在Kafka主题中的数据进行流处理。由于上面提到的消息格式更改，这个新的客户端库仅适用于0.10.x版本和向上版本的代理。欲了解更多信息，请阅读Streams文档。
+新用户的配置参数的默认值receive.buffer.bytes现在是64K。
+新的使用者现在公开配置参数exclude.internal.topics以限制内部主题（例如消费者偏移主题）被意外地包含在正则表达式订阅中。默认情况下，它被启用。
+旧的斯卡拉生产者已被弃用。用户应尽快将其代码迁移到包含在kafka-clients JAR中的Java生产者。
+新的消费者API已被标记为稳定。
+**********************************
+
+
 
 </p>
 
