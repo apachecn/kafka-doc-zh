@@ -68,57 +68,78 @@
 <p>
 We have put significant effort into efficiency. One of our primary use cases is handling web activity data, which is very high volume: each page view may generate dozens of writes. Furthermore, we assume each
 message published is read by at least one consumer (often many), hence we strive to make consumption as cheap as possible.
+我们在性能上已经做了很大的努力。 我们主要的使用场景是处理WEB活动数据，这个数据量非常大，因为每个页面都有可能大量的写入。此外我们假设每个发布 message 至少被一个consumer (通常很多个consumer) 消费， 因此我们尽可能的去降低消费的代价。
 <p>
 We have also found, from experience building and running a number of similar systems, that efficiency is a key to effective multi-tenant operations. If the downstream infrastructure service can easily become a
 bottleneck due to a small bump in usage by the application, such small changes will often create problems. By being very fast we help ensure that the application will tip-over under load before the infrastructure.
 This is particularly important when trying to run a centralized service that supports dozens or hundreds of applications on a centralized cluster as changes in usage patterns are a near-daily occurrence.
+我们还发现，从构建和运行许多相似系统的经验上来看，性能是多租户运营的关键。如果下游的基础设施服务很轻易被应用层冲击形成瓶颈，那么一些小的改变也会造成问题。通过非常快的(缓存)技术，我们能确保应用层冲击基础设施之前，将负载稳定下来。
+当尝试去运行支持集中式集群上成百上千个应用程序的集中式服务时，这一点很重要，因为应用层使用方式几乎每天都会发生变化。
 <p>
 We discussed disk efficiency in the previous section. Once poor disk access patterns have been eliminated, there are two common causes of inefficiency in this type of system: too many small I/O operations, and
 excessive byte copying.
+我们在上一节讨论了磁盘性能。 一旦消除了磁盘访问模式不佳的情况，该类系统性能低下的主要原因就剩下了两个：大量的小型 I/O 操作，以及过多的字节拷贝。
 <p>
 The small I/O problem happens both between the client and the server and in the server's own persistent operations.
+小型的 I/O 操作发生在客户端和服务端之间以及服务端自身的持久化操作中。
 <p>
 To avoid this, our protocol is built around a "message set" abstraction that naturally groups messages together. This allows network requests to group messages together and amortize the overhead of the network
 roundtrip rather than sending a single message at a time. The server in turn appends chunks of messages to its log in one go, and the consumer fetches large linear chunks at a time.
+为了避免这种情况，我们的协议是建立在一个 “消息块” 的抽象基础上，合理将消息分组。 这使得网络请求将多个消息打包成一组，而不是每次发送一条消息，从而使整组消息分担网络中往返的开销。Consumer 每次获取多个大型有序的消息块，并由服务端
+依次将消息块一次加载到它的日志中。
 <p>
 This simple optimization produces orders of magnitude speed up. Batching leads to larger network packets, larger sequential disk operations, contiguous memory blocks, and so on, all of which allows Kafka to turn
 a bursty stream of random message writes into linear writes that flow to the consumers.
+这个简单的优化对速度有着数量级的提升。批处理允许更大的网络数据包，更大的顺序读写磁盘操作，连续的内存块等等，所有这些都使 KafKa 将随机流消息顺序写入到磁盘， 再由 consumers 进行消费。
 <p>
 The other inefficiency is in byte copying. At low message rates this is not an issue, but under load the impact is significant. To avoid this we employ a standardized binary message format that is shared by the
 producer, the broker, and the consumer (so data chunks can be transferred without modification between them).
+另一个低效率的操作是字节拷贝，在消息量少时，这不是什么问题。但是在高负载的情况下，影响就不容忽视。为了避免这种情况，我们使用 producer ，broker 和 consumer 都共享的标准化的二进制消息格式，这样数据块不用修改就能在他们之间传递。
 <p>
 The message log maintained by the broker is itself just a directory of files, each populated by a sequence of message sets that have been written to disk in the same format used by the producer and consumer.
 Maintaining this common format allows optimization of the most important operation: network transfer of persistent log chunks. Modern unix operating systems offer a highly optimized code path for transferring data
 out of pagecache to a socket; in Linux this is done with the <a href="http://man7.org/linux/man-pages/man2/sendfile.2.html">sendfile system call</a>.
+broker 维护的消息日志本身就是一个文件目录，每个文件都由一系列以相同格式写入到磁盘的消息集合组成，这种写入格式被 producer 和 consumer 共用。保持这种通用格式可以对一些很重要的操作进行优化: 持久化日志块的网络传输。
+现代的unix 操作系统提供了一个高度优化的编码方式，用于将数据从 pagecache 转移到 socket 网络连接中；在 Linux 中系统调用<a href="http://man7.org/linux/man-pages/man2/sendfile.2.html"> sendfile </a>做到这一点。
 <p>
 To understand the impact of sendfile, it is important to understand the common data path for transfer of data from file to socket:
+为了理解 sendfile 的意义，了解数据从文件到套接字的常见数据传输路径就非常重要：
 <ol>
-    <li>The operating system reads data from the disk into pagecache in kernel space</li>
-    <li>The application reads the data from kernel space into a user-space buffer</li>
-    <li>The application writes the data back into kernel space into a socket buffer</li>
-    <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network</li>
+    <li>The operating system reads data from the disk into pagecache in kernel space 操作系统从磁盘读取数据到内核空间的 pagecache </li>
+    <li>The application reads the data from kernel space into a user-space buffer  应用程序读取内核空间的数据到用户空间的缓冲区</li>
+    <li>The application writes the data back into kernel space into a socket buffer  应用程序将数据(用户空间的缓冲区)写回内核空间到套接字缓冲区(内核空间)</li>
+    <li>The operating system copies the data from the socket buffer to the NIC buffer where it is sent over the network 操作系统将数据从套接字缓冲区(内核空间)复制到通过网络发送的 NIC 缓冲区 </li>
 </ol>
 <p>
 This is clearly inefficient, there are four copies and two system calls. Using sendfile, this re-copying is avoided by allowing the OS to send the data from pagecache to the network directly. So in this optimized
 path, only the final copy to the NIC buffer is needed.
+这显然是低效的，有四次 copy 操作和两次系统调用。使用 sendfile 方法，可以允许操作系统将数据从 pagecache 直接发送到网络，这样避免重新复制数据。所以这种优化方式，只需要最后一步的copy操作，将数据复制到 NIC 缓冲区。
 <p>
 We expect a common use case to be multiple consumers on a topic. Using the zero-copy optimization above, data is copied into pagecache exactly once and reused on each consumption instead of being stored in memory
 and copied out to user-space every time it is read. This allows messages to be consumed at a rate that approaches the limit of the network connection.
+我们期望一个普遍的应用场景，一个 topic 被多消费者消费。使用上面提交的 zero-copy（零拷贝）优化，数据在使用时只会被复制到 pagecache 中一次，节省了每次拷贝到用户空间内存中，再从用户空间进行读取的消耗。这使得消息能够以接近网络连接速度的
+上限进行消费。
 <p>
 This combination of pagecache and sendfile means that on a Kafka cluster where the consumers are mostly caught up you will see no read activity on the disks whatsoever as they will be serving data entirely from cache.
+pagecache 和 sendfile 的组合使用意味着，在一个kafka集群中，大多数 consumer 消费时，您将看不到磁盘上的读取活动，因为数据将完全由缓存提供。
 <p>
 For more background on the sendfile and zero-copy support in Java, see this <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">article</a>.
+JAVA 中更多有关 sendfile 方法和 zero-copy （零拷贝）相关的资料，可以参考这里的  <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">文章</a>。
 
-<h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression</a></h4>
+<h4><a id="design_compression" href="#design_compression">End-to-end Batch Compression 端到端的批量压缩</a></h4>
 <p>
 In some cases the bottleneck is actually not CPU or disk but network bandwidth. This is particularly true for a data pipeline that needs to send messages between data centers over a wide-area network. Of course,
 the user can always compress its messages one at a time without any support needed from Kafka, but this can lead to very poor compression ratios as much of the redundancy is due to repetition between messages of
 the same type (e.g. field names in JSON or user agents in web logs or common string values). Efficient compression requires compressing multiple messages together rather than compressing each message individually.
+在某些情况下，数据传输的瓶颈不是 CPU ，也不是磁盘，而是网络带宽。对于需要通过广域网在数据中心之间发送消息的数据管道尤其如此。当然，用户可以在不需要 Kakfa 支持下一次一个的压缩消息。但是这样会造成非常差的压缩比和消息重复类型的冗余，比如
+JSON 中的字段名称或者是或 Web 日志中的用户代理或公共字符串值。高性能的压缩是一次压缩多个消息，而不是压缩单个消息。
 <p>
 Kafka supports this with an efficient batching format. A batch of messages can be clumped together compressed and sent to the server in this form. This batch of messages will be written in compressed form and will
 remain compressed in the log and will only be decompressed by the consumer.
+Kafka 以高效的批处理格式支持一批消息可以压缩在一起发送到服务器。这批消息将以压缩格式写入，并且在日志中保持压缩，只会在 consumer 消费时解压缩。 
 <p>
 Kafka supports GZIP, Snappy and LZ4 compression protocols. More details on compression can be found <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">here</a>.
+Kafka 支持 GZIP，Snappy 和 LZ4 压缩协议，更多有关压缩的资料参看 <a href="https://cwiki.apache.org/confluence/display/KAFKA/Compression">这里</a>。
 
 <h3><a id="theproducer" href="#theproducer">4.4 The Producer</a></h3>
 
@@ -191,97 +212,91 @@ Kafka 使用完全不同的方式解决消息丢失问题。Kafka的 topic 被�
 <p>
 在 Hadoop 的应用场景中，我们通过将数据加载分配到多个独立的 map 任务来实现并行化，每一个 map 任务负责一个 node/topic/partition，从而达到充分并行化。Hadoop 提供了任务管理机制，失败的任务可以重新启动而不会有重复数据的风险，只需要简单的从原来的位置重启即可。
 
-<h3><a id="semantics" href="#semantics">4.6 Message Delivery Semantics</a></h3>
+<h3><a id="semantics" href="#semantics">4.6 消息交付语义</a></h3>
 <p>
-Now that we understand a little about how producers and consumers work, let's discuss the semantic guarantees Kafka provides between producer and consumer. Clearly there are multiple possible message delivery
-guarantees that could be provided:
+
+现在我们对于 producer 和 consumer 的工作原理已将有了一点了解，让我们接着讨论 Kafka 在 producer 和 consumer 之间提供的语义保证。显然，Kafka可以提供的消息交付语义保证有多种：
 <ul>
 <li>
-    <i>At most once</i>&mdash;Messages may be lost but are never redelivered.
+    <i>At most once</i>——消息可能会丢失但绝不重传。
 </li>
 <li>
-    <i>At least once</i>&mdash;Messages are never lost but may be redelivered.
+    <i>At least once</i>——消息可以重传但绝不丢失。
 </li>
 <li>
-    <i>Exactly once</i>&mdash;this is what people actually want, each message is delivered once and only once.
+    <i>Exactly once</i>——这正是人们想要的, 每一条消息只被传递一次.
 </li>
 </ul>
 
-It's worth noting that this breaks down into two problems: the durability guarantees for publishing a message and the guarantees when consuming a message.
+值得注意的是，这个问题被分成了两部分：发布消息的持久性保证和消费消息的保证。
 <p>
-Many systems claim to provide "exactly once" delivery semantics, but it is important to read the fine print, most of these claims are misleading (i.e. they don't translate to the case where consumers or producers
-can fail, cases where there are multiple consumer processes, or cases where data written to disk can be lost).
+很多系统声称提供了“Exactly once”的消息交付语义, 然而阅读它们的细则很重要, 因为这些声称大多数都是误导性的 (即它们没有考虑 consumer 或 producer 可能失败的情况，以及存在多个 consumer 进行处理的情况，或者写入磁盘的数据可能丢失的情况。).
 <p>
-Kafka's semantics are straight-forward. When publishing a message we have a notion of the message being "committed" to the log. Once a published message is committed it will not be lost as long as one broker that
-replicates the partition to which this message was written remains "alive". The definition of committed message, alive partition as well as a description of which types of failures we attempt to handle will be
-described in more detail in the next section. For now let's assume a perfect, lossless broker and try to understand the guarantees to the producer and consumer. If a producer attempts to publish a message and
-experiences a network error it cannot be sure if this error happened before or after the message was committed. This is similar to the semantics of inserting into a database table with an autogenerated key.
+Kafka 的语义是直截了当的。 发布消息时，我们会有一个消息的概念被“committed”到 log 中。 一旦消息被提交，只要有一个 broker 备份了该消息写入的 partition，并且保持“alive”状态，该消息就不会丢失。
+有关 committed message 和 alive partition 的定义，以及我们试图解决的故障类型都将在下一节进行细致描述。 现在让我们假设存在完美无缺的 broker，然后来试着理解 Kafka 对 producer 和 consumer 的语义保证。如果一个 producer 在试图发送消息的时候发生了网络故障，
+则不确定网络错误发生在消息提交之前还是之后。这与使用自动生成的键插入到数据库表中的语义场景很相似。
 <p>
-Prior to 0.11.0.0, if a producer failed to receive a response indicating that a message was committed, it had little choice but to resend the message. This provides at-least-once delivery semantics since the
-message may be written to the log again during resending if the original request had in fact succeeded. Since 0.11.0.0, the Kafka producer also supports an idempotent delivery option which guarantees that resending
-will not result in duplicate entries in the log. To achieve this, the broker assigns each producer an ID and deduplicates messages using a sequence number that is sent by the producer along with every message.
-Also beginning with 0.11.0.0, the producer supports the ability to send messages to multiple topic partitions using transaction-like semantics: i.e. either all messages are successfully written or none of them are.
-The main use case for this is exactly-once processing between Kafka topics (described below).
+在 0.11.0.0 之前的版本中, 如果 producer 没有收到表明消息已经被提交的响应, 那么 producer 除了将消息重传之外别无选择。 这里提供的是 at-least-once 的消息交付语义，因为如果最初的请求事实上执行成功了，那么重传过程中该消息就会被再次写入到 log 当中。
+从 0.11.0.0 版本开始，Kafka producer新增了幂等性的传递选项，该选项保证重传不会在 log 中产生重复条目。 为实现这个目的, broker 给每个 producer 都分配了一个 ID ，并且 producer 给每条被发送的消息分配了一个序列号来避免产生重复的消息。
+同样也是从 0.11.0.0 版本开始, producer 新增了使用类似事务性的语义将消息发送到多个 topic partition 的功能： 也就是说，要么所有的消息都被成功的写入到了 log，要么一个都没写进去。这种语义的主要应用场景就是 Kafka topic 之间的 exactly-once 的数据传递(如下所述)。
 <p>
-Not all use cases require such strong guarantees. For uses which are latency sensitive we allow the producer to specify the durability level it desires. If the producer specifies that it wants to wait on the message
-being committed this can take on the order of 10 ms. However the producer can also specify that it wants to perform the send completely asynchronously or that it wants to wait only until the leader (but not
-necessarily the followers) have the message.
+并非所有使用场景都需要这么强的保证。对于延迟敏感的应用场景，我们允许生产者指定它需要的持久性级别。如果 producer 指定了它想要等待消息被提交，则可以使用10ms的量级。然而， producer 也可以指定它想要完全异步地执行发送，或者它只想等待直到 leader 节点拥有该消息（follower 节点有没有无所谓）。
 <p>
-Now let's describe the semantics from the point-of-view of the consumer. All replicas have the exact same log with the same offsets. The consumer controls its position in this log. If the consumer never crashed it
-could just store this position in memory, but if the consumer fails and we want this topic partition to be taken over by another process the new process will need to choose an appropriate position from which to start
-processing. Let's say the consumer reads some messages -- it has several options for processing the messages and updating its position.
+现在让我们从 consumer 的视角来描述语义。 所有的副本都有相同的 log 和相同的 offset。consumer 负责控制它在 log 中的位置。如果 consumer 永远不崩溃，那么它可以将这个位置信息只存储在内存中。但如果 consumer 发生了故障，我们希望这个 topic partition 被另一个进程接管，
+那么新进程需要选择一个合适的位置开始进行处理。假设 consumer 要读取一些消息——它有几个处理消息和更新位置的选项。
 <ol>
-<li>It can read the messages, then save its position in the log, and finally process the messages. In this case there is a possibility that the consumer process crashes after saving its position but before saving
-the output of its message processing. In this case the process that took over processing would start at the saved position even though a few messages prior to that position had not been processed. This corresponds
-to "at-most-once" semantics as in the case of a consumer failure messages may not be processed.
-<li>It can read the messages, process the messages, and finally save its position. In this case there is a possibility that the consumer process crashes after processing messages but before saving its position.
-In this case when the new process takes over the first few messages it receives will already have been processed. This corresponds to the "at-least-once" semantics in the case of consumer failure. In many cases
-messages have a primary key and so the updates are idempotent (receiving the same message twice just overwrites a record with another copy of itself).
+<li>Consumer 可以先读取消息，然后将它的位置保存到 log 中，最后再对消息进行处理。在这种情况下，消费者进程可能会在保存其位置之后，带还没有保存消息处理的输出之前发生崩溃。而在这种情况下，即使在此位置之前的一些消息没有被处理，接管处理的进程将从保存的位置开始。在 consumer 发生故障的情况下，这对应于“at-most-once”的语义，可能会有消息得不到处理。
+<li>Consumer 可以先读取消息，然后处理消息，最后再保存它的位置。在这种情况下，消费者进程可能会在处理了消息之后，但还没有保存位置之前发生崩溃。而在这种情况下，当新的进程接管后，它最初收到的一部分消息都已经被处理过了。在 consumer 发生故障的情况下，这对应于“at-least-once”的语义。
+在许多应用场景中，消息都设有一个主键，所以更新操作是幂等的（相同的消息接收两次时，第二次写入会覆盖掉第一次写入的记录）。
 </ol>
 <p>
-So what about exactly once semantics (i.e. the thing you actually want)? When consuming from a Kafka topic and producing to another topic (as in a <a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>
-application), we can leverage the new transactional producer capabilities in 0.11.0.0 that were mentioned above. The consumer's position is stored as a message in a topic, so we can write the offset to Kafka in the
-same transaction as the output topics receiving the processed data. If the transaction is aborted, the consumer's position will revert to its old value and the produced data on the output topics will not be visible
-to other consumers, depending on their "isolation level." In the default "read_uncommitted" isolation level, all messages are visible to consumers even if they were part of an aborted transaction,
-but in "read_committed," the consumer will only return messages from transactions which were committed (and any messages which were not part of a transaction).
+那么 exactly once 语义（即你真正想要的东西）呢？当从一个 kafka topic 中消费并输出到另一个 topic 时 (正如在一个<a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>
+应用中所做的那样)，我们可以使用我们上文提到的 0.11.0.0 版本中的新事务型 producer，并将 consumer 的位置存储为一个 topic 中的消息，所以我们可以在输出 topic 接收已经被处理的数据的时候，在同一个事务中向 Kafka 写入 offset。如果事务被中断，则消费者的位置将恢复到原来的值，而输出 topic 上产生的数据对其他消费者是否可见，取决于事务的“隔离级别”。
+在默认的“read_uncommitted”隔离级别中，所有消息对 consumer 都是可见的，即使它们是中止的事务的一部分，但是在“read_committed”的隔离级别中，消费者只能访问已提交的事务中的消息（以及任何不属于事务的消息）。
 <p>
-When writing to an external system, the limitation is in the need to coordinate the consumer's position with what is actually stored as output. The classic way of achieving this would be to introduce a two-phase
-commit between the storage of the consumer position and the storage of the consumers output. But this can be handled more simply and generally by letting the consumer store its offset in the same place as
-its output. This is better because many of the output systems a consumer might want to write to will not support a two-phase commit. As an example of this, consider a
-<a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a> connector which populates data in HDFS along with the offsets of the data it reads so that it is guaranteed that either data and
-offsets are both updated or neither is. We follow similar patterns for many other data systems which require these stronger semantics and for which the messages do not have a primary key to allow for deduplication.
+在写入外部系统的应用场景中，限制在于需要在 consumer 的 offset 与实际存储为输出的内容间进行协调。解决这一问题的经典方法是在 consumer offset 的存储和 consumer 的输出结果的存储之间引入 two-phase commit。但这可以用更简单的方法处理，而且通常的做法是让 consumer 将其 offset 存储在与其输出相同的位置。
+这也是一种更好的方式，因为大多数 consumer 想写入的输出系统都不支持 two-phase commit。举个例子，<a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>连接器，它将所读取的数据和数据的 offset 一起写入到 HDFS，以保证数据和 offset 都被更新，或者两者都不被更新。
+对于其它很多需要这些较强语义，并且没有主键来避免消息重复的数据系统，我们也遵循类似的模式。
 <p>
-So effectively Kafka supports exactly-once delivery in <a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>, and the transactional producer/consumer can be used generally to provide
-exactly-once delivery when transfering and processing data between Kafka topics. Exactly-once delivery for other destination systems generally requires cooperation with such systems, but Kafka provides the
-offset which makes implementing this feasible (see also <a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>). Otherwise, Kafka guarantees at-least-once delivery by default, and allows
-the user to implement at-most-once delivery by disabling retries on the producer and committing offsets in the consumer prior to processing a batch of messages.
-
+因此，事实上 Kafka 在<a href="https://kafka.apache.org/documentation/streams">Kafka Streams</a>中支持了exactly-once 的消息交付功能，并且在 topic 之间进行数据传递和处理时，通常使用事务型 producer/consumer 提供 exactly-once 的消息交付功能。
+到其它目标系统的 exactly-once 的消息交付通常需要与该类系统协作，但 Kafka 提供了 offset，使得这种应用场景的实现变得可行。(详见 <a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>)。否则，Kafka 默认保证 at-least-once 的消息交付，
+并且 Kafka 允许用户通过禁用 producer 的重传功能和让 consumer 在处理一批消息之前提交 offset，来实现 at-most-once 的消息交付。
 <h3><a id="replication" href="#replication">4.7 Replication</a></h3>
 <p>
 Kafka replicates the log for each topic's partitions across a configurable number of servers (you can set this replication factor on a topic-by-topic basis). This allows automatic failover to these replicas when a
 server in the cluster fails so messages remain available in the presence of failures.
+Kafka 允许 topic 的 partition 拥有若干副本，你可以在server端配置partition 的副本数量。当集群中的节点出现故障时，能自动进行故障转移，保证数据的可用性。
 <p>
 Other messaging systems provide some replication-related features, but, in our (totally biased) opinion, this appears to be a tacked-on thing, not heavily used, and with large downsides: slaves are inactive,
 throughput is heavily impacted, it requires fiddly manual configuration, etc. Kafka is meant to be used with replication by default&mdash;in fact we implement un-replicated topics as replicated topics where the
 replication factor is one.
+其他的消息系统也提供了副本相关的特性，但是在我们（带有偏见）看来，他们的副本功能不常用，而且有很大缺点：slaves 处于非活动状态，导致吞吐量受到严重影响，并且还要手动配置副本机制。Kafka 默认使用备份机制，事实上，我们将没有设置副本数
+的 topic 实现为副本数为1的 topic 。
 <p>
 The unit of replication is the topic partition. Under non-failure conditions, each partition in Kafka has a single leader and zero or more followers. The total number of replicas including the leader constitute the
 replication factor. All reads and writes go to the leader of the partition. Typically, there are many more partitions than brokers and the leaders are evenly distributed among brokers. The logs on the followers are
 identical to the leader's log&mdash;all have the same offsets and messages in the same order (though, of course, at any given time the leader may have a few as-yet unreplicated messages at the end of its log).
+创建副本的单位是 topic 的 partition ，正常情况下， 每个分区都有一个 leader 和零或多个 followers 。 总的副本数是包含 leader 的总和。 所有的读写操作都由 leader 处理，一般 partition 的数量都比 broker 的数量多的多，各分区的 leader 均
+匀的分布在brokers 中。所有的 followers 节点都同步 leader 节点的日志，日志中的消息和偏移量都和 leader 中的一致。（当然, 在任何给定时间, leader 节点的日志末尾时可能有几个消息尚未被备份完成）。
 <p>
 Followers consume messages from the leader just as a normal Kafka consumer would and apply them to their own log. Having the followers pull from the leader has the nice property of allowing the follower to naturally
 batch together log entries they are applying to their log.
+Followers 节点就像普通的 consumer 那样从 leader 节点那里拉取消息并保存在自己的日志文件中。Followers 节点可以从 leader 节点那里批量拉取消息日志到自己的日志文件中。
 <p>
 As with most distributed systems automatically handling failures requires having a precise definition of what it means for a node to be "alive". For Kafka node liveness has two conditions
+与大多数分布式系统一样，自动处理故障需要精确定义节点 “alive” 的概念。Kafka 判断节点是否存活有两种方式。
 <ol>
-    <li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper's heartbeat mechanism)
-    <li>If it is a slave it must replicate the writes happening on the leader and not fall "too far" behind
+    <li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper's heartbeat mechanism) 节点必须可以维护和 ZooKeeper 的连接，Zookeeper 通过心跳机制检查每个节点的连接。
+    <li>If it is a slave it must replicate the writes happening on the leader and not fall "too far" behind 如果节点是个 follower ，它必须能及时的同步 leader 的写操作，并且延时不能太久。
 </ol>
 We refer to nodes satisfying these two conditions as being "in sync" to avoid the vagueness of "alive" or "failed". The leader keeps track of the set of "in sync" nodes. If a follower dies, gets stuck, or falls
 behind, the leader will remove it from the list of in sync replicas. The determination of stuck and lagging replicas is controlled by the replica.lag.time.max.ms configuration.
+我们认为满足这两个条件的节点处于 “in sync” 状态，区别于 “alive” 和 “failed” 。 Leader会追踪所有 “in sync” 的节点。如果有节点挂掉了, 或是写超时, 或是心跳超时, leader 就会把它从同步副本列表中移除。
+同步超时和写超时的时间由 replica.lag.time.max.ms 配置确定。
 <p>
 In distributed systems terminology we only attempt to handle a "fail/recover" model of failures where nodes suddenly cease working and then later recover (perhaps without knowing that they have died). Kafka does not
 handle so-called "Byzantine" failures in which nodes produce arbitrary or malicious responses (perhaps due to bugs or foul play).
+分布式系统中，我们只尝试处理 “fail/recover” 模式的故障，即节点突然停止工作，然后又恢复（节点可能不知道自己曾经挂掉）的状况。Kafka 没有处理所谓的 “Byzantine” 故障，即一个节点出现了随意响应和恶意响应（可能由于 bug 或 非法操作导致）。
 <p>
 We can now more precisely define that a message is considered committed when all in sync replicas for that partition have applied it to their log.
 Only committed messages are ever given out to the consumer. This means that the consumer need not worry about potentially seeing a message that could be lost if the leader fails. Producers, on the other hand,
@@ -290,38 +305,54 @@ producer uses.
 Note that topics have a setting for the "minimum number" of in-sync replicas that is checked when the producer requests acknowledgment that a message
 has been written to the full set of in-sync replicas. If a less stringent acknowledgement is requested by the producer, then the message can be committed, and consumed,
 even if the number of in-sync replicas is lower than the minimum (e.g. it can be as low as just the leader).
+现在, 我们可以更精确地定义, 只有当消息被所有的副本节点加入到日志中时, 才算是提交, 只有提交的消息才会被 consumer 消费, 这样就不用担心一旦 leader 挂掉了消息会丢失。另一方面， producer 也
+可以选择是否等待消息被提交，这取决他们的设置在延迟时间和持久性之间的权衡，这个选项是由 producer 使用的 acks 设置控制。
+请注意，Topic 可以设置同步备份的最小数量， producer 请求确认消息是否被写入到所有的备份时, 可以用最小同步数量判断。如果 producer 对同步的备份数没有严格的要求，即使同步的备份数量低于
+最小同步数量（例如，仅仅只有 leader 同步了数据），消息也会被提交，然后被消费。
 <p>
 The guarantee that Kafka offers is that a committed message will not be lost, as long as there is at least one in sync replica alive, at all times.
+在所有时间里，Kafka 保证只要有至少一个同步中的节点存活，提交的消息就不会丢失。
 <p>
 Kafka will remain available in the presence of node failures after a short fail-over period, but may not remain available in the presence of network partitions.
-
-<h4><a id="design_replicatedlog" href="#design_replicatedlog">Replicated Logs: Quorums, ISRs, and State Machines (Oh my!)</a></h4>
+节点挂掉后，经过短暂的故障转移后，Kafka将仍然保持可用性，但在网络分区（ network partitions ）的情况下可能不能保持可用性。
+<h4><a id="design_replicatedlog" href="#design_replicatedlog">Replicated Logs: Quorums, ISRs, and State Machines (Oh my!)  备份日志：Quorums, ISRs, 和状态机 </a></h4>
 
 At its heart a Kafka partition is a replicated log. The replicated log is one of the most basic primitives in distributed data systems, and there are many approaches for implementing one. A replicated log can be
 used by other systems as a primitive for implementing other distributed systems in the <a href="http://en.wikipedia.org/wiki/State_machine_replication">state-machine style</a>.
+Kafka的核心是备份日志文件。备份日志文件是分布式数据系统最基础的要素之一，实现方法也有很多种。其他系统也可以用 kafka 的备份日志模块来实现<a href="http://en.wikipedia.org/wiki/State_machine_replication">状态机风格</a>的分布式系统 
 <p>
 A replicated log models the process of coming into consensus on the order of a series of values (generally numbering the log entries 0, 1, 2, ...). There are many ways to implement this, but the simplest and fastest
 is with a leader who chooses the ordering of values provided to it. As long as the leader remains alive, all followers need to only copy the values and ordering the leader chooses.
+备份日志按照一系列有序的值(通常是编号为0、1、2、…)进行建模。有很多方法可以实现这一点，但最简单和最快的方法是由 leader 节点选择需要提供的有序的值，只要 leader 节点还存活，所有的 follower 只需要拷贝数据并按照 leader 节点的顺序排序。
 <p>
 Of course if leaders didn't fail we wouldn't need followers! When the leader does die we need to choose a new leader from among the followers. But followers themselves may fall behind or crash so we must ensure we
 choose an up-to-date follower. The fundamental guarantee a log replication algorithm must provide is that if we tell the client a message is committed, and the leader fails, the new leader we elect must also have
 that message. This yields a tradeoff: if the leader waits for more followers to acknowledge a message before declaring it committed then there will be more potentially electable leaders.
+当然，如果 leader 永远都不会挂掉，那我们就不需要 follower 了。 但是如果 leader crash，我们就需要从 follower 中选举出一个新的 leader。 但是 followers 自身也有可能落后或者 crash，所以 我们必须确保我们leader的候选者们 是一个数据同步
+最新的 follower 节点。
 <p>
 If you choose the number of acknowledgements required and the number of logs that must be compared to elect a leader such that there is guaranteed to be an overlap, then this is called a Quorum.
+如果选择写入时候需要保证一定数量的副本写入成功，读取时需要保证读取一定数量的副本，读取和写入之间有重叠。这样的读写机制称为 Quorum。
 <p>
 A common approach to this tradeoff is to use a majority vote for both the commit decision and the leader election. This is not what Kafka does, but let's explore it anyway to understand the tradeoffs. Let's say we
 have 2<i>f</i>+1 replicas. If <i>f</i>+1 replicas must receive a message prior to a commit being declared by the leader, and if we elect a new leader by electing the follower with the most complete log from at least
 <i>f</i>+1 replicas, then, with no more than <i>f</i> failures, the leader is guaranteed to have all committed messages. This is because among any <i>f</i>+1 replicas, there must be at least one replica that contains
 all committed messages. That replica's log will be the most complete and therefore will be selected as the new leader. There are many remaining details that each algorithm must handle (such as precisely defined what
 makes a log more complete, ensuring log consistency during leader failure or changing the set of servers in the replica set) but we will ignore these for now.
+这种权衡的一种常见方法是对提交决策和 leader 选举使用多数投票机制。Kafka 没有采取这种方式，但是我们还是要研究一下这种投票机制，来理解其中蕴含的权衡。假设我们有2<i>f</i> + 1个副本，如果在 leader 宣布消息提交之前必须有<i>f</i>+1个副本收到
+该消息，并且如果我们从这至少<i>f</i>+1个副本之中，有着最完整的日志记录的 follower 里来选择一个新的 leader，那么在故障次数少于<i>f</i>的情况下，选举出的 leader 保证具有所有提交的消息。这是因为在任意<i>f</i>+1个副本中，至少有一个副本一定包含
+了所有提交的消息。该副本的日志将是最完整的，因此将被选为新的 leader。这个算法都必须处理许多其他细节（例如精确定义怎样使日志更加完整，确保在 leader down 掉期间, 保证日志一致性或者副本服务器的副本集的改变），但是现在我们将忽略这些细节。
 <p>
 This majority vote approach has a very nice property: the latency is dependent on only the fastest servers. That is, if the replication factor is three, the latency is determined by the faster slave not the slower one.
+这种大多数投票方法有一个非常好的优点：延迟是取决于最快的服务器。也就是说，如果副本数是3，则备份完成的等待时间取决于最快的 Follwer 。
 <p>
 There are a rich variety of algorithms in this family including ZooKeeper's
+这里有很多分布式算法，包含 ZooKeeper 的
 <a href="http://web.archive.org/web/20140602093727/http://www.stanford.edu/class/cs347/reading/zab.pdf">Zab</a>,
 <a href="https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf">Raft</a>,
 and <a href="http://pmg.csail.mit.edu/papers/vr-revisited.pdf">Viewstamped Replication</a>.
 The most similar academic publication we are aware of to Kafka's actual implementation is
+我们所知道的与 Kafka 实际执行情况最相似的学术刊物是来自微软的
 <a href="http://research.microsoft.com/apps/pubs/default.aspx?id=66814">PacificA</a> from Microsoft.
 <p>
 The downside of majority vote is that it doesn't take many failures to leave you with no electable leaders. To tolerate one failure requires three copies of the data, and to tolerate two failures requires five copies
@@ -329,72 +360,102 @@ of the data. In our experience having only enough redundancy to tolerate a singl
 throughput, is not very practical for large volume data problems. This is likely why quorum algorithms more commonly appear for shared cluster configuration such as ZooKeeper but are less common for primary data
 storage. For example in HDFS the namenode's high-availability feature is built on a <a href="http://blog.cloudera.com/blog/2012/10/quorum-based-journaling-in-cdh4-1">majority-vote-based journal</a>, but this more
 expensive approach is not used for the data itself.
+大多数投票的缺点是，多数的节点挂掉让你不能选择 leader。要冗余单点故障需要三份数据，并且要冗余两个故障需要五份的数据。根据我们的经验，在一个系统中，仅仅靠冗余来避免单点故障是不够的，但是每写5次，对磁盘空间需求是5倍，
+吞吐量下降到 1/5，这对于处理海量数据问题是不切实际的。这可能是为什么 quorum 算法更常用于共享集群配置（如 ZooKeeper ）， 而不适用于原始数据存储的原因，例如 HDFS 中 namenode 的高可用是建立在  
+<a href="http://blog.cloudera.com/blog/2012/10/quorum-based-journaling-in-cdh4-1">基于投票的元数据</a> ，这种代价高昂的存储方式不适用数据本身。
 <p>
 Kafka takes a slightly different approach to choosing its quorum set. Instead of majority vote, Kafka dynamically maintains a set of in-sync replicas (ISR) that are caught-up to the leader. Only members of this set
 are eligible for election as leader. A write to a Kafka partition is not considered committed until <i>all</i> in-sync replicas have received the write. This ISR set is persisted to ZooKeeper whenever it changes.
 Because of this, any replica in the ISR is eligible to be elected leader. This is an important factor for Kafka's usage model where there are many partitions and ensuring leadership balance is important.
 With this ISR model and <i>f+1</i> replicas, a Kafka topic can tolerate <i>f</i> failures without losing committed messages.
+Kafka 采取了一种稍微不同的方法来选择它的投票集。 Kafka 不是用大多数投票选择 leader 。Kafka 动态维护了一个同步状态的备份的集合 （a set of in-sync replicas）， 简称 ISR ，在这个集合中的节点都是和 leader 保持高度一致的，只有这个集合的成员才
+有资格被选举为 leader，一条消息必须被这个集合 <i>所有</i> 节点读取并追加到日志中了，这条消息才能视为提交。这个 ISR 集合发生变化会在 ZooKeeper 持久化，正因为如此，这个集合中的任何一个节点都有资格被选为 leader 。这对于 Kafka 使用模型中，
+有很多分区和并确保主从关系是很重要的。因为 ISR 模型和 <i>f+1</i> 副本，一个 Kafka topic 冗余 <i>f</i> 个节点故障而不会丢失任何已经提交的消息。
 <p>
 For most use cases we hope to handle, we think this tradeoff is a reasonable one. In practice, to tolerate <i>f</i> failures, both the majority vote and the ISR approach will wait for the same number of replicas to
 acknowledge before committing a message (e.g. to survive one failure a majority quorum needs three replicas and one acknowledgement and the ISR approach requires two replicas and one acknowledgement).
 The ability to commit without the slowest servers is an advantage of the majority vote approach. However, we think it is ameliorated by allowing the client to choose whether they block on the message commit or not,
 and the additional throughput and disk space due to the lower required replication factor is worth it.
+我们认为对于希望处理的大多数场景这种策略是合理的。在实际中，为了冗余 <i>f</i> 节点故障，大多数投票和 ISR 都会在提交消息前确认相同数量的备份被收到（例如在一次故障生存之后，大多数的 quorum
+需要三个备份节点和一次确认，ISR 只需要两个备份节点和一次确认），多数投票方法的一个优点是提交时能避免最慢的服务器。但是，我们认为通过允许客户端选择是否阻塞消息提交来改善，和所需的备份数较低而产生的额外的吞吐量和磁盘空间是值得的。
 <p>
 Another important design distinction is that Kafka does not require that crashed nodes recover with all their data intact. It is not uncommon for replication algorithms in this space to depend on the existence of
 "stable storage" that cannot be lost in any failure-recovery scenario without potential consistency violations. There are two primary problems with this assumption. First, disk errors are the most common problem we
 observe in real operation of persistent data systems and they often do not leave data intact. Secondly, even if this were not a problem, we do not want to require the use of fsync on every write for our consistency
 guarantees as this can reduce performance by two to three orders of magnitude. Our protocol for allowing a replica to rejoin the ISR ensures that before rejoining, it must fully re-sync again even if it lost unflushed
 data in its crash.
+另一个重要的设计区别是，Kafka 不要求崩溃的节点恢复所有的数据，在这种空间中的复制算法经常依赖于存在 “稳定存储”，在没有违反潜在的一致性的情况下，出现任何故障再恢复情况下都不会丢失。
+这个假设有两个主要的问题。首先，我们在持久性数据系统的实际操作中观察到的最常见的问题是磁盘错误，并且它们通常不能保证数据的完整性。其次，即使磁盘错误不是问题，我们也不希望在每次写入时都要求使用 fsync 来保证一致性，
+因为这会使性能降低两到三个数量级。我们的协议能确保备份节点重新加入ISR 之前，即使它挂时没有新的数据, 它也必须完整再一次同步数据。
 
-<h4><a id="design_uncleanleader" href="#design_uncleanleader">Unclean leader election: What if they all die?</a></h4>
+<h4><a id="design_uncleanleader" href="#design_uncleanleader">Unclean leader election: What if they all die? 如果节点全挂了</a></h4>
 
 Note that Kafka's guarantee with respect to data loss is predicated on at least one replica remaining in sync. If all the nodes replicating a partition die, this guarantee no longer holds.
+请注意，Kafka 对于数据不会丢失的保证，是基于至少一个节点在保持同步状态，一旦分区上的所有备份节点都挂了，就无法保证了。
 <p>
 However a practical system needs to do something reasonable when all the replicas die. If you are unlucky enough to have this occur, it is important to consider what will happen. There are two behaviors that could be
 implemented:
+但是，实际在运行的系统需要去考虑假设一旦所有的备份都挂了，怎么去保证数据不会丢失，这里有两种实现的方法
 <ol>
-    <li>Wait for a replica in the ISR to come back to life and choose this replica as the leader (hopefully it still has all its data).
-    <li>Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.
+    <li>Wait for a replica in the ISR to come back to life and choose this replica as the leader (hopefully it still has all its data). 等待一个 ISR 的副本重新恢复正常服务，并选择这个副本作为领 leader (它有极大可能拥有全部数据).
+    <li>Choose the first replica (not necessarily in the ISR) that comes back to life as the leader.选择第一个重新恢复正常服务的副本（不一定是 ISR 中的）作为leader
 </ol>
 <p>
 This is a simple tradeoff between availability and consistency. If we wait for replicas in the ISR, then we will remain unavailable as long as those replicas are down. If such replicas were destroyed or their data
 was lost, then we are permanently down. If, on the other hand, a non-in-sync replica comes back to life and we allow it to become leader, then its log becomes the source of truth even though it is not guaranteed to
 have every committed message. By default, Kafka chooses the second strategy and favor choosing a potentially inconsistent replica when all replicas in the ISR are dead. This behavior can be disabled using
 configuration property unclean.leader.election.enable, to support use cases where downtime is preferable to inconsistency.
+这是可用性和一致性之间的简单妥协，如果我只等待 ISR 的备份节点，那么只要 ISR 备份节点都挂了，我们的服务将一直会不可用，如果它们的数据损坏了或者丢失了，那就会是长久的宕机。另一方面，如果不是 ISR 中的节点恢复服务并且我们也许它成为 leader ，
+那么它的数据就是可信的来源，即使它不能保证记录了每一个已经提交的消息。 kafka 默认选择第二种策略，当所有的 ISR 副本都挂掉时，会选择一个可能不同步的备份作为 leader ，可以配置属性 unclean.leader.election.enable 禁用此策略，那么就会使用第
+一种策略即停机时间优于不同步。
 <p>
 This dilemma is not specific to Kafka. It exists in any quorum-based scheme. For example in a majority voting scheme, if a majority of servers suffer a permanent failure, then you must either choose to lose 100% of
 your data or violate consistency by taking what remains on an existing server as your new source of truth.
+这种困境不只有 Kafka 遇到，它存在于任何 quorum-based 规则中。例如，在大多数投票算法当中，如果大多数服务器永久性的挂了，那么您要么选择丢失100%的数据，要么违背数据的一致性选择一个存活的服务器作为数据可信的来源。
 
 
-<h4><a id="design_ha" href="#design_ha">Availability and Durability Guarantees</a></h4>
+<h4><a id="design_ha" href="#design_ha">Availability and Durability Guarantees  可用性和持久性保证</a></h4>
 
 When writing to Kafka, producers can choose whether they wait for the message to be acknowledged by 0,1 or all (-1) replicas.
 Note that "acknowledgement by all replicas" does not guarantee that the full set of assigned replicas have received the message. By default, when acks=all, acknowledgement happens as soon as all the current in-sync
 replicas have received the message. For example, if a topic is configured with only two replicas and one fails (i.e., only one in sync replica remains), then writes that specify acks=all will succeed. However, these
 writes could be lost if the remaining replica also fails.
+向 Kafka 写数据时，producers 设置 ack 是否提交完成， 0：不等待broker返回确认消息,1: leader保存成功返回或, -1(all): 所有备份都保存成功返回.请注意. 设置 “ack = all” 并不能保证所有的副本都写入了消息。默认情况下，当 acks = all 时，只要
+ISR 副本同步完成，就会返回消息已经写入。例如，一个 topic 仅仅设置了两个副本，那么只有一个 ISR 副本，那么当设置acks = all时返回写入成功时，剩下了的那个副本数据也可能数据没有写入。
 
 Although this ensures maximum availability of the partition, this behavior may be undesirable to some users who prefer durability over availability. Therefore, we provide two topic-level configurations that can be
 used to prefer message durability over availability:
+尽管这确保了分区的最大可用性，但是对于偏好数据持久性而不是可用性的一些用户，可能不想用这种策略，因此，我们提供了两个topic 配置，可用于优先配置消息数据持久性：
 <ol>
     <li> Disable unclean leader election - if all replicas become unavailable, then the partition will remain unavailable until the most recent leader becomes available again. This effectively prefers unavailability
-    over the risk of message loss. See the previous section on Unclean Leader Election for clarification. </li>
+    over the risk of message loss. See the previous section on Unclean Leader Election for clarification. 
+    禁用 unclean leader 选举机制 - 如果所有的备份节点都挂了,分区数据就会不可用，直到最近的 leader 恢复正常。这种策略优先于数据丢失的风险， 参看上一节的 unclean leader 选举机制。
+    </li>
     <li> Specify a minimum ISR size - the partition will only accept writes if the size of the ISR is above a certain minimum, in order to prevent the loss of messages that were written to just a single replica,
     which subsequently becomes unavailable. This setting only takes effect if the producer uses acks=all and guarantees that the message will be acknowledged by at least this many in-sync replicas.
-This setting offers a trade-off between consistency and availability. A higher setting for minimum ISR size guarantees better consistency since the message is guaranteed to be written to more replicas which reduces
-the probability that it will be lost. However, it reduces availability since the partition will be unavailable for writes if the number of in-sync replicas drops below the minimum threshold. </li>
+    This setting offers a trade-off between consistency and availability. A higher setting for minimum ISR size guarantees better consistency since the message is guaranteed to be written to more replicas which reduces
+    the probability that it will be lost. However, it reduces availability since the partition will be unavailable for writes if the number of in-sync replicas drops below the minimum threshold.
+    指定最小的 ISR 集合大小，只有当 ISR 的大小大于最小值，分区才能接受写入操作，以防止仅写入单个备份的消息丢失造成消息不可用的情况，这个设置只有在生产者使用 acks = all 的情况下才会生效，这至少保证消息被 ISR 副本写入。此设置是一致性和可用性
+    之间的折衷，对于设置更大的最小ISR大小保证了更好的一致性，因为它保证将消息被写入了更多的备份，减少了消息丢失的可能性。但是，这会降低可用性，因为如果 ISR 副本的数量低于最小阈值，那么分区将无法写入。
+    </li>
 </ol>
 
 
-<h4><a id="design_replicamanagment" href="#design_replicamanagment">Replica Management</a></h4>
+<h4><a id="design_replicamanagment" href="#design_replicamanagment">Replica Management （备份管理）</a></h4>
 
 The above discussion on replicated logs really covers only a single log, i.e. one topic partition. However a Kafka cluster will manage hundreds or thousands of these partitions. We attempt to balance partitions
 within a cluster in a round-robin fashion to avoid clustering all partitions for high-volume topics on a small number of nodes. Likewise we try to balance leadership so that each node is the leader for a proportional
 share of its partitions.
+以上关于备份日志的讨论只涉及单个日志文件，即一个 topic 分区，事实上，一个Kafka集群管理着成百上千个这样的 partitions。我们尝试以轮询调度的方式将集群内的 partition 负载均衡，避免大量topic拥有的分区集中在
+少数几个节点上。同样，我们也试图平衡leadership,以至于每个节点都是部分 partition 的leader节点。
 <p>
 It is also important to optimize the leadership election process as that is the critical window of unavailability. A naive implementation of leader election would end up running an election per partition for all
 partitions a node hosted when that node failed. Instead, we elect one of the brokers as the "controller". This controller detects failures at the broker level and is responsible for changing the leader of all
 affected partitions in a failed broker. The result is that we are able to batch together many of the required leadership change notifications which makes the election process far cheaper and faster for a large number
 of partitions. If the controller fails, one of the surviving brokers will become the new controller.
+优化主从关系的选举过程也是重要的，这是数据不可用的关键窗口。原始的实现是当有节点挂了后，进行主从关系选举时，会对挂掉节点的所有partition 的领导权重新选举。相反，我们会选择一个 broker 作为 “controller”节点。controller 节点负责
+检测 brokers 级别故障,并负责当一个 broker 挂了,改变该 broker 故障影响 partition 的 leadership。这种方式可以批量的通知主从关系的变化，使得对于拥有大量partition 的broker ,选举过程的代价更便宜并且速度更快。如果 controller 节点挂了，其他
+存活的 broker 都可能成为新的 controller 节点。
 
 <h3><a id="compaction" href="#compaction">4.8 Log Compaction</a></h3>
 
