@@ -165,33 +165,26 @@
 <h5><a id="upgrade_11_message_format" href="#upgrade_11_message_format">有关0.11.0中新消息格式的说明</a></h5>
 <p>为了更好地支持生产者的交付语义（见<a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging">KIP-98</a>）以及提升复制容错能力（参见<a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-101+-+Alter+Replication+Protocol+to+use+Leader+Epoch+rather+than+High+Watermark+for+Truncation">KIP-101</a>），0.11.0消息格式增强了几个主要的功能。虽然新格式包含了更多信息以实现这些改进，但我们已经使批处理格式更有效率。只要每批消息的数量大于2，就可以降低整体开销。然而，对于单批次，可能会有一些轻微的性能影响。请参阅<a href="bit.ly/kafka-eos-perf">这里</a> 以便了解我们对新消息格式初始性能的分析结果。您也可以在<a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging#KIP-98-ExactlyOnceDeliveryandTransactionalMessaging-MessageFormat">KIP-98</a>方案中找到更多有关信息格式的细节。
 </p>
-<p>新消息格式中，一个显著的差异是：未压缩的消息会被存储为一个批次。这会对代理配置<code>max.message.bytes</code>（它限制单个批次的大小）有一些影响。首先，如果一个旧版的客户端使用旧格式生产消息到主题分区，且每个消息都比<code>max.message.bytes</code>小，max.message.bytes，那么通过上述转换合并成单批次后，代理仍可能会拒绝它们。通常，这可能发生在单个消息的聚合大小大于<code>max.message.bytes</code>时。
- There is a similar
-  effect for older consumers reading messages down-converted from the new format: if the fetch size is not set at least as large as
-  <code>max.message.bytes</code>, the consumer may not be able to make progress even if the individual uncompressed messages are smaller
-  than the configured fetch size. This behavior does not impact the Java client for 0.10.1.0 and later since it uses an updated fetch protocol
-  which ensures that at least one message can be returned even if it exceeds the fetch size. To get around these problems, you should ensure
-  1) that the producer's batch size is not set larger than <code>max.message.bytes</code>, and 2) that the consumer's fetch size is set at
-  least as large as <code>max.message.bytes</code>.
+<p>新消息格式中，一个显著的差异是：未压缩的消息会被存储为一个批次。这会对代理配置<code>max.message.bytes</code>（它限制单个批次的大小）有一些影响。首先，如果一个旧版的客户端使用旧格式生产消息到主题分区，且每个消息都比<code>max.message.bytes</code>小,那么通过上述转换,合并成单批次后，代理仍可能会拒绝它们。通常，这可能发生在单个消息的聚合大小大于<code>max.message.bytes</code>时。旧的消费者阅读从新格式转换来的消息时也有类似的影响：如果提取大小未被设置为 <code>max.message.bytes</code>，即使单个未压缩的消息小于已配置的获取大小，消费者也可能无法取得进展。此行为不影响0.10.1.0及更高版本的Java客户端，因为它的获取协议是新的，该协议保证即使超过获取大小也能返回至少一条消息。为了解决这些问题，你应该确保：1）生产者的批量大小没有大于<code>max.message.bytes</code>，并且2）消费者的获取大小为<code>max.message.bytes</code>。
 </p>
-**************
-老年消费者阅读从新格式下转换的消息也有类似的效果：如果提取大小没有被设置为至少与 max.message.bytes即使单个未压缩的消息小于配置的获取大小，消费者也可能无法取得进展。此行为不影响Java客户端的0.10.1.0及更高版本，因为它使用更新的获取协议，该协议确保即使超过获取大小也能返回至少一条消息。为了解决这些问题，你应该确保1）生产者的批量大小没有被设置得大于max.message.bytes，并且2）消费者的获取大小被设置为至少与max.message.bytes。
+<p>大多数关于<a href="#upgrade_10_performance_impact">升级到0.10.0消息格式</a>对性能影响的讨论，仍然与0.11.0升级有关。这主要影响不使用TLS保护的群集，因为在这种情况下“零复制”传输是不可行的。为了避免下变换的成本，您应确保客户应用程序升级到最新的0.11.0版本。值得注意的是，由于旧消费者在0.11.0.0已经被弃用，它不支持新的消息格式。您必须升级才能使用新消费者及新的消息格式，这不需要下转换的成本。请注意，0.11.0消费者向后兼容0.10.0及更高版本的代理，所以可以先在升级代理之前升级客户端。
+</p>
 
-大多数关于升级到0.10.0消息格式对性能影响的讨论 仍然与0.11.0升级有关。这主要影响不使用TLS进行保护的群集，因为在这种情况下“零复制”传输已经不可行。为了避免下变换成本，您应该确保客户应用程序升级到最新的0.11.0客户端。值得注意的是，由于旧消费者在0.11.0.0已经被弃用，它不支持新的消息格式。您必须升级才能使用新消费者使用新的消息格式，而不需要下转换成本。请注意，0.11.0消费者支持与0.10.0经纪商的向上兼容性和向上兼容性，所以可以先在经纪商之前升级客户端。
+
+
+
+
+
+**************
+
+
 *********************
 
 
 
 
 
-<p>Most of the discussion on the performance impact of <a href="#upgrade_10_performance_impact">upgrading to the 0.10.0 message format</a>
-  remains pertinent to the 0.11.0 upgrade. This mainly affects clusters that are not secured with TLS since "zero-copy" transfer
-  is already not possible in that case. In order to avoid the cost of down-conversion, you should ensure that consumer applications
-  are upgraded to the latest 0.11.0 client. Significantly, since the old consumer has been deprecated in 0.11.0.0, it does not support
-  the new message format. You must upgrade to use the new consumer to use the new message format without the cost of down-conversion.
-  Note that 0.11.0 consumers support backwards compatibility with 0.10.0 brokers and upward, so it is possible to upgrade the
-  clients first before the brokers.
-</p>
+
 
 <h4><a id="upgrade_10_2_0" href="#upgrade_10_2_0">Upgrading from 0.8.x, 0.9.x, 0.10.0.x or 0.10.1.x to 0.10.2.0</a></h4>
 <p>0.10.2.0 has wire protocol changes. By following the recommended rolling upgrade plan below, you guarantee no downtime during the upgrade.
