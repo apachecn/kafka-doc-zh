@@ -149,8 +149,7 @@ implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.ht
   如果请求失败，producer 会自动重试，除非我们指定的 <code>retries</code> 参数为0。启用 retries 同样也可能导致数据重复的可能性
   （详细信息请查看文档 <a href="http://kafka.apache.org/documentation.html#semantics">message delivery semantics</a>）。
  <p>
-  producer 维护了每个分区未被发送记录的缓存。这些缓冲区的大小由 <code>batch.size</code> 配置指定。配置这个参数足够大，可以缓存更多的记录，但同时也需要更多
-  的内存（因为每一个分区都有一个这样的缓存）。
+  producer 为每个 partition 维护了一块缓冲区，用于缓存尚未被发送的记录。这些缓冲区的大小由 <code>batch.size</code> 配置指定。缓冲区越大，批处理的任务数也就越多，但同时也需要更多的内存（因为每一个正在使用分区都要有一个这样的缓存）。
  <p>
   默认情况下，尽管缓存还有额外的未用空间，缓存可以被立即发送。 但是，如果希望减少请求的次数，可以将 <code>linger.ms</code> 设置为大于0的值。这个参数会通知 producer 在发送前去等待指定时间的毫秒数，以便有足够的记录到达并填满同一个批次。
   这类似于 TCP 中的 Nagle 算法。例如，在上面的代码片段中，由于我们将逗留时间设置为1毫秒，很可能所有100条记录都会在一个请求中发送。但是，如果我们没有填满缓冲区，这个设置将给我们的请求增加1毫秒的延迟，等待更多的记录到达。
@@ -171,9 +170,9 @@ implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.ht
   The idempotent producer 的 API 是没有改变的，因此已经存在的 application 不需要去修改去适应这个特性。
  </p>
  <p>
-  为了发挥 the idempotent producer 的优势，需要尽量避免应用级别重发，因此这个可能会导致消息重复。同样的，如果一个应用开启了幂等性，建议不要设置 <code>retries</code> 参数，因为他默认被设置为 <code>Integer.MAX_VALUE</code>。
-  此外，如果一次发送<a href="../../../../../org/apache/kafka/clients/producer/KafkaProducer.html#send-org.apache.kafka.clients.producer.ProducerRecord-"><code>send(ProducerRecord)</code></a>
-  重试了无穷次还是返回一个错误（比如这个消息在发送之前，在缓存里到期了），因此建议停止 producer 并且检查最后一个消息的内容，以确认这个消息没有重复。最后，producer 只能保证一个事务中的消息发送的幂等性。
+  为了发挥 the idempotent producer 的优势，需要尽量避免应用级别重发，因此这个可能会导致消息重复。同样的，如果一个应用开启了幂等性，建议不要设置 <code>retries</code> 参数，因为该参数默认被设置为 <code>Integer.MAX_VALUE</code>。
+  此外，如果一个 <a href="../../../../../org/apache/kafka/clients/producer/KafkaProducer.html#send-org.apache.kafka.clients.producer.ProducerRecord-"><code>send(ProducerRecord)</code></a>
+  请求重试了无穷次还是返回错误（比如这个消息在发送之前，在缓存里到期了），那么建议停止 producer 并且检查最后一个消息的内容，以确认这个消息没有重复。最后，producer 只能保证单个会话中发送的消息的幂等性。
  </p>
  <p>
   为了使用 the transactional producer 和 attendant APIs，你必须设置 <code>transactional.id</code> 配置信息。如果 <code>transactional.id</code> 被设置。幂等性及其依赖的 producer 配置是自动被开启的。进一步的，包含这个事务的 topic 也将会配置以保证持久化。
@@ -183,7 +182,7 @@ implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.ht
   <code>transactional.id</code> 参数的目的是为了单个 producer 的事务可以通过多个 session 来恢复。它通常从一个分区、状态和应用中的分片标识符中获得。因此，对于在分区应用程序中运行的每个生产者实例，它应该是唯一的。
  </p>
  <p>
-  所有新的事务性API都是阻塞的，并在失败时抛出异常。下面的示例说明了如何使用新的 API。它与上面的示例类似，只是所有100条消息都是单个事务的一部分。
+  所有新的事务性 API 都是阻塞的，并且会在失败时抛出异常。下面的示例阐述了如何使用新的 API。它与上面的示例类似，区别在于这里的100条消息都是单个事务的一部分。
  </p>
  <p>
  <pre>
@@ -216,14 +215,14 @@ implements <a href="../../../../../org/apache/kafka/clients/producer/Producer.ht
   当指定 <code>transactional.id</code> 时，producer 发送的所有消息都必须是事务的一部分。
  </p>
  <p>
-  The transactional producer 使用异常来传递错误状态。特别是，它不需要为 <code>producer.send()</code> 指定回调或在返回的 Future 上调用 <code>.get()</code> 方法：如果任何 <code>producer.send()</code> 或事务性调用在事务过程中遇到不可恢复的错误，则会抛出 <code>KafkaException</code>。
+  The transactional producer 使用 exceptions 来通信错误状态。所以它不需要为 <code>producer.send()</code> 指定回调或在返回的 Future 上调用 <code>.get()</code> 方法：在调用 <code>producer.send()</code> 方法或者事务性调用的过程中遇到不可恢复的错误，就会抛出 <code>KafkaException</code> 异常。
   有关从事务性发送检测错误的详细信息，请参阅 <a href="../../../../../org/apache/kafka/clients/producer/KafkaProducer.html#send-org.apache.kafka.clients.producer.ProducerRecord-"><code>send(ProducerRecord)</code></a> 文档。
  </p>
- </p>通过在接收到 <code>KafkaException</code> 时调用 <code>producer.abortTransaction()</code>，我们可以确保任何成功的写入都被标记为中止，从而保持事务担保。
+ </p>接收到 <code>KafkaException</code> 异常时调用 <code>producer.abortTransaction()</code> 方法，我们可以确保任何成功的写入的数据都被标记为中止状态，从而保持事务担保。
  </p>
  <p>
-  此客户端可以与 0.10.0 版或更高版本的代理进行通信。旧的或较新的代理可能不支持某些客户端功能。例如，事务性 API 需要代理版本 0.11.0 或更高版本。
-  在调用运行代理版本中不可用的 API 时，您将收到一个 <code>UnsupportedVersionException</code>。
+  此客户端可以与 0.10.0 版或更高版本的 broker 进行通信。旧的或较新的 broker 可能不支持某些客户端功能。例如，事务性 API 需要 broker 版本 0.11.0 或更高版本。
+  在某些运行的 broker 上调用不可用的 API 的时候，您将收到一个 <code>UnsupportedVersionException</code> 异常。
  </p></div>
 </li>
 </ul>
