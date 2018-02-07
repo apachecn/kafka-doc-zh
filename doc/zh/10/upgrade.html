@@ -251,32 +251,26 @@
     <li>重启代理，以使新的协议版本生效。</li>
     <li>如果此时log.message.format.version仍然低于0.10.0，请等到所有使用者都升级到0.10.0及以上版本，然后将每个代理的log.message.format.version改为0.10.1，并逐一重启。</li>
 </ol>
-
 <p><b>注意：</b>如果你可以接受停机，那么你可以把所有的broker关闭，更新代码并重启。系统将默认启动新的协议。 
 <p><b>注意：</b>在升级broker后，可以随时更新协议版本并重启。这不需要在升级broker后立即进行。 
+<h5><a id="upgrade_10_1_breaking" href="#upgrade_10_1_breaking">0.10.1.0中潜在的突出变化</a></h5>
+<ul>
+    <li>日志保留时间不再基于日志段的上次修改时间。相反，它将基于日志段消息的最大时间戳。</li>
+    <li>日志滚动时间不再取决于日志段创建时间。相反，它现在基于消息中的时间戳。进一步来说，如果段中第一条消息的时间戳是T，则当新消息的时间戳大于或等于T + log.roll.ms时，日志滚动。</li>
+    <li>由于每个段添加了时间索引文件，0.10.0的开放文件处理程序将增加33％。</li>
+    <li>时间索引和偏移索引共享相同的索引大小配置。由于每次索引条目是偏移索引大小的1.5倍,用户可能需要增加log.index.size.max.bytes以避免可能的日志频繁滚动。</li>
+    <li>由于索引文件数量的增加，在一些具有大量日志段（如大于15K）的代理中，代理启动期间的日志加载过程可能会更长。根据我们的实验，将num.recovery.threads.per.data.dir设置为1可能会减少日志加载时间。</li>
+</ul>
+
+<h5><a id="upgrade_1010_streams" href="#upgrade_1010_streams">升级0.10.0 Kafka Streams应用程序</a></h5>
+<ul>   
    
    
    
-   
-
-
-
-
-
 
 
 ********************************************************************
 
-
-
-0.10.1.0中潜在的突破变化
-
-日志保留时间不再基于日志段的上次修改时间。相反，它将基于日志段中消息的最大时间戳。
-日志滚动时间不再取决于日志段创建时间。相反，它现在基于消息中的时间戳。进一步来说。如果段中第一条消息的时间戳是T，则当新消息的时间戳大于或等于T + log.roll.ms
-由于每个段添加了时间索引文件，0.10.0的开放文件处理程序将增加〜33％。
-时间索引和偏移索引共享相同的索引大小配置。由于每次索引条目是偏移索引条目大小的1.5倍。用户可能需要增加log.index.size.max.bytes以避免潜在的频繁的日志滚动。
-由于索引文件数量的增加，在一些具有大量日志段（例如大于15K）的代理上，代理启动期间的日志加载过程可能会更长。根据我们的实验，将num.recovery.threads.per.data.dir设置为1可能会减少日志加载时间。
-升级0.10.0 Kafka Streams应用程序
 
 将Streams应用程序从0.10.0升级到0.10.1确实需要代理升级，因为Kafka Streams 0.10.1应用程序只能连接到0.10.1代理。
 有几个API的变化，这是不是向后兼容（更多的细节参考0.10.1的Streams API变化）。因此，您需要更新并重新编译您的代码。只需交换Kafka Streams库jar文件将不起作用，并会破坏您的应用程序。
@@ -292,35 +286,10 @@ BrokerState“RunningAsController”（值4）已被删除。由于一个错误�
 提取响应的默认大小限制（消费者为50 MB，复制为10 MB）。现有的每个分区限制也适用（1 MB用于消费者和复制）。请注意，这些限制都不是下一个解释的绝对最大值。
 如果发现大于响应/分区大小限制的消息，则消费者和副本可以取得进展。更具体地说，如果提取的第一个非空分区中的第一条消息大于一个或两个限制，则该消息仍将被返回。
 被添加的重载构造函数被添加到kafka.api.FetchRequest并kafka.javaapi.FetchRequest允许调用者指定分区的顺序（因为在v3中顺序是重要的）。先前存在的构造函数已被弃用，在发送请求之前将分区进行洗牌以避免饥饿问题。
-新协议版本
-
-ListOffsetRequest v1支持基于时间戳的精确偏移搜索。
-MetadataResponse v2引入了一个新的字段：“cluster_id”。
-FetchRequest v3支持限制响应大小（除现有的每个分区限制之外），如果需要进行更改，则返回大于限制的消息，并且请求中分区的顺序现在很重要。
-JoinGroup v1引入了一个新的字段：“rebalance_timeout”。
-
 
 *********************
 
 
-
-
- 
-
-
-
-
-<h5><a id="upgrade_10_1_breaking" href="#upgrade_10_1_breaking">Potential breaking changes in 0.10.1.0</a></h5>
-<ul>
-    <li> The log retention time is no longer based on last modified time of the log segments. Instead it will be based on the largest timestamp of the messages in a log segment.</li>
-    <li> The log rolling time is no longer depending on log segment create time. Instead it is now based on the timestamp in the messages. More specifically. if the timestamp of the first message in the segment is T, the log will be rolled out when a new message has a timestamp greater than or equal to T + log.roll.ms </li>
-    <li> The open file handlers of 0.10.0 will increase by ~33% because of the addition of time index files for each segment.</li>
-    <li> The time index and offset index share the same index size configuration. Since each time index entry is 1.5x the size of offset index entry. User may need to increase log.index.size.max.bytes to avoid potential frequent log rolling. </li>
-    <li> Due to the increased number of index files, on some brokers with large amount the log segments (e.g. >15K), the log loading process during the broker startup could be longer. Based on our experiment, setting the num.recovery.threads.per.data.dir to one may reduce the log loading time. </li>
-</ul>
-
-<h5><a id="upgrade_1010_streams" href="#upgrade_1010_streams">Upgrading a 0.10.0 Kafka Streams Application</a></h5>
-<ul>
     <li> Upgrading your Streams application from 0.10.0 to 0.10.1 does require a <a href="#upgrade_10_1">broker upgrade</a> because a Kafka Streams 0.10.1 application can only connect to 0.10.1 brokers. </li>
     <li> There are couple of API changes, that are not backward compatible (cf. <a href="/{{version}}/documentation/streams/upgrade-guide#streams_api_changes_0101">Streams API changes in 0.10.1</a> for more details).
          Thus, you need to update and recompile your code. Just swapping the Kafka Streams library jar file will not work and will break your application. </li>
@@ -357,15 +326,14 @@ JoinGroup v1引入了一个新的字段：“rebalance_timeout”。
          the request is sent to avoid starvation issues. </li>
 </ul>
 
-<h5><a id="upgrade_1010_new_protocols" href="#upgrade_1010_new_protocols">New Protocol Versions</a></h5>
+<h5><a id="upgrade_1010_new_protocols" href="#upgrade_1010_new_protocols">新的版本协议</a></h5>
 <ul>
-    <li> ListOffsetRequest v1 supports accurate offset search based on timestamps. </li>
-    <li> MetadataResponse v2 introduces a new field: "cluster_id". </li>
-    <li> FetchRequest v3 supports limiting the response size (in addition to the existing per partition limit), it returns messages
-         bigger than the limits if required to make progress and the order of partitions in the request is now significant. </li>
-    <li> JoinGroup v1 introduces a new field: "rebalance_timeout". </li>
+    <li> ListOffsetRequest v1支持基于时间戳的精确偏移搜索。</li>
+    <li> MetadataResponse v2 引入了一个新的字段： "cluster_id"。 </li>
+    <li> FetchRequest v3可以限制响应大小（除已存在的分区限制外），如果请求进行更改，则返回大于限制的消息，而且分区的顺序是很重要的。</li>
+    <li> JoinGroup v1 引入了一个新的字段："rebalance_timeout"。 </li>
 </ul>
-******************************
+
 <h4><a id="upgrade_10" href="#upgrade_10">从0.8.x或0.9.x升级到0.10.0.0</a></h4>
 0.10.0.0 版本有 <a href="#upgrade_10_breaking">潜在的重大变化</a>（请在升级之前查看）并可能有 <a href="#upgrade_10_performance_impact">升级后的性能影响</a>。请遵循以下建议的滚动升级计划，可确保在升级过程中和升级完成后不会出现停机和性能影响。
 <br>
