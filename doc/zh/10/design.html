@@ -536,42 +536,39 @@
     <p>
     Further cleaner configurations are described <a href="/documentation.html#brokerconfigs">here</a>.
 
-    <h3><a id="design_quotas" href="#design_quotas">4.9 Quotas</a></h3>
+    <h3><a id="design_quotas" href="#design_quotas">4.9 Quotas 配额</a></h3>
     <p>
-    Kafka cluster has the ability to enforce quotas on requests to control the broker resources used by clients. Two types
-    of client quotas can be enforced by Kafka brokers for each group of clients sharing a quota:
+    Kafka 集群可以对客户端请求进行配额，控制集群资源的使用。Kafka broker 可以对客户端做两种类型资源的配额限制，同一个group的client 共享配额。
     <ol>
-      <li>Network bandwidth quotas define byte-rate thresholds (since 0.9)</li>
-      <li>Request rate quotas define CPU utilization thresholds as a percentage of network and I/O threads (since 0.11)</li>
+      <li>定义字节率的阈值来限定网络带宽的配额。 (从 0.9 版本开始)</li>
+      <li>请求率的配额，将cpu利用率设置为网络和 I/O线程的百分比。 rate quotas define CPU utilization thresholds as a percentage of network and I/O threads (从 0.11 版本开始)</li>
     </ol>
     </p>
 
-    <h4><a id="design_quotasnecessary" href="#design_quotasnecessary">Why are quotas necessary?</a></h4>
+    <h4><a id="design_quotasnecessary" href="#design_quotasnecessary">为什么要对资源进行配额?</a></h4>
     <p>
-    It is possible for producers and consumers to produce/consume very high volumes of data or generate requests at a very high
-    rate and thus monopolize broker resources, cause network saturation and generally DOS other clients and the brokers themselves.
-    Having quotas protects against these issues and is all the more important in large multi-tenant clusters where a small set of badly behaved clients can degrade user experience for the well behaved ones.
-    In fact, when running Kafka as a service this even makes it possible to enforce API limits according to an agreed upon contract.
+    producers和consumers可能会生产或者消费大量的数据或者产生大量的请求，导致 broker 资源的垄断，引起网络的饱和，对其他clients和brokers本身造成DOS攻击。
+    资源的配额保护可以有效防止这些问题，在大型多租户集群中，因为一小部分表现不佳的客户端降低了良好的用户体验，这种情况下非常需要资源的配额保护。
+    实际情况中，当把Kafka当做一种服务提供的时候，可以根据客户端和服务端的契约对API做限制。
     </p>
-    <h4><a id="design_quotasgroups" href="#design_quotasgroups">Client groups</a></h4>
-        The identity of Kafka clients is the user principal which represents an authenticated user in a secure cluster. In a cluster that supports unauthenticated clients, user principal is a grouping of unauthenticated
-        users
-        chosen by the broker using a configurable <code>PrincipalBuilder</code>. Client-id is a logical grouping of clients with a meaningful name chosen by the client application. The tuple (user, client-id) defines
-        a secure logical group of clients that share both user principal and client-id.
+    <h4><a id="design_quotasgroups" href="#design_quotasgroups">Client groups (客户端 group)</a></h4>
+        Kafka client 是一个用户的概念， 是在一个安全的集群中经过身份验证的用户。在一个支持非授权客户端的集群中，用户是一组非授权的用户。broker可以使用一个可配置的  <code>PrincipalBuilder</code> 类来限制。
+        Client-id 是客户端的逻辑分组，客户端应用使用一个有意义的名称进行标识。(user, client-id)元组定义了一个安全的客户端分区，共享用户主体和client-id。
+
     <p>
-        Quotas can be applied to (user, client-id), user or client-id groups. For a given connection, the most specific quota matching the connection is applied. All connections of a quota group share the quota configured for the group.
-        For example, if (user="test-user", client-id="test-client") has a produce quota of 10MB/sec, this is shared across all producer instances of user "test-user" with the client-id "test-client".
-    </p>
-    <h4><a id="design_quotasconfig" href="#design_quotasconfig">Quota Configuration</a></h4>
+        资源配额可以针对 （user,client-id），users 或者client-id groups 三种规则进行配置。对于一个连接，连接会匹配最细化的配额规则的限制。同一个配额规则的 group 所有连接共享这个group的资源配额。
+        举个例子，如果 (user="test-user", client-id="test-client") 客户端producer 有10MB/sec 的生产资源配置，这10MB/sec 的资源在所有 "test-user" 用户，client-id是 "test-client" 的producer实例中是共享。
+       </p>
+    <h4><a id="design_quotasconfig" href="#design_quotasconfig">Quota Configuration（资源配额的配置）</a></h4>
     <p>
-        Quota configuration may be defined for (user, client-id), user and client-id groups. It is possible to override the default quota at any of the quota levels that needs a higher (or even lower) quota.
-        The mechanism is similar to the per-topic log config overrides.
-        User and (user, client-id) quota overrides are written to ZooKeeper under <i><b>/config/users</b></i> and client-id quota overrides are written under <i><b>/config/clients</b></i>.
-        These overrides are read by all brokers and are effective immediately. This lets us change quotas without having to do a rolling restart of the entire cluster. See <a href="#quotas">here</a> for details.
-        Default quotas for each group may also be updated dynamically using the same mechanism.
+        资源配额的配置可以根据 (user, client-id)，user 和 client-id 三种规则进行定义。在配额级别需要更高（或者更低）的配额的时候，是可以覆盖默认配额设置的。
+        这种机制和每个 topic 可以自定义日志配置属性类似。
+        User 和 (user, client-id) 配额的配置覆盖会写到zookeeper的 <i><b>/config/users</b></i>路径下，client-id 配额的配置会写到  <i><b>/config/clients</b></i> 路径下。
+        这些配置的覆盖会被所有的brokers 实时的监听到并生效。所以这使得我们修改配额配置不需要重启整个集群。更多细节参考 <a href="#quotas">here</a>。
+        每个 group 的默认配额可以使用相同的机制进行动态更新。
     </p>
     <p>
-        The order of precedence for quota configuration is:
+        配额配置的优先级顺序是:
         <ol>
             <li>/config/users/&lt;user&gt;/clients/&lt;client-id&gt;</li>
             <li>/config/users/&lt;user&gt;/clients/&lt;default&gt;</li>
@@ -583,41 +580,38 @@
             <li>/config/clients/&lt;default&gt;</li>
         </ol>
 
-        Broker properties (quota.producer.default, quota.consumer.default) can also be used to set defaults of network bandwidth quotas for client-id groups. These properties are being deprecated and will be removed in a later release.
-        Default quotas for client-id can be set in Zookeeper similar to the other quota overrides and defaults.
+        Broker 的配置属性 (quota.producer.default, quota.consumer.default) 也可以用来设置 client-id groups 默认的网络带宽配置。这些配置属性在未来的 release版本会被 deprecated。
+        client-id 的默认配额也是用zookeeper配置，和其他配额配置的覆盖和默认方式是相似的。
+
     </p>
-    <h4><a id="design_quotasbandwidth" href="#design_quotasbandwidth">Network Bandwidth Quotas</a></h4>
+    <h4><a id="design_quotasbandwidth" href="#design_quotasbandwidth">Network Bandwidth Quotas（网络带宽配额配置）</a></h4>
     <p>
-        Network bandwidth quotas are defined as the byte rate threshold for each group of clients sharing a quota.
-        By default, each unique client group receives a fixed quota in bytes/sec as configured by the cluster.
-        This quota is defined on a per-broker basis. Each group of clients can publish/fetch a maximum of X bytes/sec
-        per broker before clients are throttled.
+        网络带宽配额使用字节速率阈值来定义每个 group 客户端的共享配额。
+        默认情况下，每个不同的客户端 group 接受集群配置的固定配额，单位是 bytes/sec。
+        这个配额会在每个 broker 上进行定义。在 clients 被限制之前，每个 group 的clients可以发布和拉取单个broker 的最大速率，单位是 bytes/sec。
     </p>
-    <h4><a id="design_quotascpu" href="#design_quotascpu">Request Rate Quotas</a></h4>
+    <h4><a id="design_quotascpu" href="#design_quotascpu">Request Rate Quotas 请求速率配额</a></h4>
     <p>
-        Request rate quotas are defined as the percentage of time a client can utilize on request handler I/O
-        threads and network threads of each broker within a quota window. A quota of <tt>n%</tt> represents
-        <tt>n%</tt> of one thread, so the quota is out of a total capacity of <tt>((num.io.threads + num.network.threads) * 100)%</tt>.
-        Each group of clients may use a total percentage of upto <tt>n%</tt> across all I/O and network threads in a quota
-        window before being throttled. Since the number of threads allocated for I/O and network threads are typically based
-        on the number of cores available on the broker host, request rate quotas represent the total percentage of CPU
-        that may be used by each group of clients sharing the quota.
+        请求速率的配额定义了一个客户端可以使用 broker request handler I/O 线程和网络线程在一个配额窗口时间内使用的百分比。
+        <tt>n%</tt> 的配置代表一个线程的  <tt>n%</tt>，所以这种配额超出了总容量 <tt>((num.io.threads + num.network.threads) * 100)%</tt>.
+        每个group的client 在被限制之前可以使用单位配额时间窗口内I/O线程和网络线程利用率的 <tt>n%</tt>。
+        由于分配给 I/O和网络线程的数量是基于 broker 的核数，所以请求量的配额代表每个group 的client 使用cpu的百分比。
     </p>
-    <h4><a id="design_quotasenforcement" href="#design_quotasenforcement">Enforcement</a></h4>
+    <h4><a id="design_quotasenforcement" href="#design_quotasenforcement">Enforcement（限制）</a></h4>
     <p>
+        默认情况下，集群给每个不同的客户端group 配置固定的配额。
+        这个配额是以broker为基础定义的。每个 client 在受到限制之前可以利用每个broker配置的配额资源。
+        我们觉得给每个broker配置资源配额比为每个客户端配置一个固定的集群带宽资源要好，为每个客户端配置一个固定的集群带宽资源需要一个机制来共享client 在brokers上的配额使用情况。这可能比配额本身实现更难。
         By default, each unique client group receives a fixed quota as configured by the cluster.
         This quota is defined on a per-broker basis. Each client can utilize this quota per broker before it gets throttled. We decided that defining these quotas per broker is much better than
         having a fixed cluster wide bandwidth per client because that would require a mechanism to share client quota usage among all the brokers. This can be harder to get right than the quota implementation itself!
     </p>
     <p>
-        How does a broker react when it detects a quota violation? In our solution, the broker does not return an error rather it attempts to slow down a client exceeding its quota.
-        It computes the amount of delay needed to bring a guilty client under its quota and delays the response for that time. This approach keeps the quota violation transparent to clients
-        (outside of client-side metrics). This also keeps them from having to implement any special backoff and retry behavior which can get tricky. In fact, bad client behavior (retry without backoff)
-        can exacerbate the very problem quotas are trying to solve.
+        broker在检测到有配额资源使用违反规则会怎么办？在我们计划中，broker不会返回error，而会尝试减速client 超出的配额设置。
+        broker 会计算出将客户端限制到配额之下的延迟时间，并且延迟response响应。这种方法对于客户端来说也是透明的（客户端指标除外）。这也使得client不需要执行任何特殊的 backoff 和重试行为。而且不友好的客户端行为（没有backoff的重试）会加剧正在解决的资源配额问题。
     </p>
     <p>
-    Byte-rate and thread utilization are measured over multiple small windows (e.g. 30 windows of 1 second each) in order to detect and correct quota violations quickly. Typically, having large measurement windows
-    (for e.g. 10 windows of 30 seconds each) leads to large bursts of traffic followed by long delays which is not great in terms of user experience.
+    网络字节速率和线程利用率可以用多种小窗口来衡量（例如 1秒30个窗口），以便快速的检测和修正配额规则的违反行为。实际情况中 较大的测量窗口（例如，30秒10个窗口）会导致大量的突发流量，随后长时间的延迟，使得用户体验不是很好。
     </p>
 </script>
 
