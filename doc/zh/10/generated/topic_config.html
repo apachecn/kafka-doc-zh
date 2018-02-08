@@ -17,29 +17,29 @@
 <tr>
 <td>file.delete.delay.ms</td><td>删除文件系统上的一个文件之前所需等待的时间。</td><td>long</td><td>60000</td><td>[0,...]</td><td>log.segment.delete.delay.ms</td><td>medium</td></tr>
 <tr>
-<td>flush.messages</td><td>这个设置允许指定一个时间间隔，在这个时间间隔中我们将强制执行一个写入日志的数据的fsync。例如，如果这个设置为1，我们会在每条消息之后同步。如果是5，我们会在每五个消息之后进行fsync。一般来说，我们建议您不要设置它，而是通过使用复制来提高耐久性，并且允许操作系统使用后台刷新功能，因为它更高效。这个设置可以在每个topic的基础上被覆盖 (请参阅 <a href="#topicconfigs">每个topic的配置部分</a>).</td><td>long</td><td>9223372036854775807</td><td>[0,...]</td><td>log.flush.interval.messages</td><td>medium</td></tr>
+<td>flush.messages</td><td>这个设置允许指定一个时间间隔n，每隔n个消息我们会强制把数据fsync到log。例如，如果设置为1，我们会在每条消息之后同步。如果是5，我们会在每五个消息之后进行fsync。一般来说，我们建议您不要设置它，而是通过使用replication机制来持久化数据，和允许更高效的操作系统后台刷新功能。这个设置可以针对每个topic的情况自定义 (请参阅 <a href="#topicconfigs">topic的配置部分</a>).</td><td>long</td><td>9223372036854775807</td><td>[0,...]</td><td>log.flush.interval.messages</td><td>medium</td></tr>
 <tr>
-<td>flush.ms</td><td>这个设置允许指定一个时间间隔，在这个时间间隔中我们将强制执行一个写入日志的数据的fsync。例如，如果这个设置为1000，我们将在1000 ms后通过fsync。一般来说，我们建议您不要设置它，而是通过使用复制来提高耐久性，并且允许操作系统使用后台刷新功能，因为它更高效。</td><td>long</td><td>9223372036854775807</td><td>[0,...]</td><td>log.flush.interval.ms</td><td>medium</td></tr>
+<td>flush.ms</td><td>这个设置允许指定一个时间间隔，每隔一段时间我们将强制把数据fsync到log。例如，如果这个设置为1000，我们将在1000 ms后执行fsync。一般来说，我们建议您不要设置它，而是通过使用replication机制来持久化数据，和允许更高效的操作系统后台刷新功能。</td><td>long</td><td>9223372036854775807</td><td>[0,...]</td><td>log.flush.interval.ms</td><td>medium</td></tr>
 <tr>
 <td>follower.replication.throttled.replicas</td><td>应该在follower侧限制日志复制的副本列表。该列表应以[PartitionId]：[BrokerId]，[PartitionId]：[BrokerId]：...的形式描述一组副本，或者也可以使用通配符“*”来限制该topic的所有副本。</td><td>list</td><td>""</td><td>[partitionId],[brokerId]:[partitionId],[brokerId]:...</td><td>follower.replication.throttled.replicas</td><td>medium</td></tr>
 <tr>
-<td>index.interval.bytes</td><td>此设置控制Kafka向其偏移索引添加索引条目的频率。默认设置确保我们大约每4096个字节索引一条消息。更多的索引允许读取更接近日志中的确切位置，但这会使索引更大。你可能不需要改变这个参数。</td><td>int</td><td>4096</td><td>[0,...]</td><td>log.index.interval.bytes</td><td>medium</td></tr>
+<td>index.interval.bytes</td><td>此设置控制Kafka向其偏移索引添加索引条目的频率。默认设置确保我们大约每4096个字节索引一条消息。更多的索引允许读取更接近日志中的确切位置，但这会使索引更大。您可能不需要改变该值。</td><td>int</td><td>4096</td><td>[0,...]</td><td>log.index.interval.bytes</td><td>medium</td></tr>
 <tr>
 <td>leader.replication.throttled.replicas</td><td>应该在leader侧限制日志复制的副本列表。该列表应以[PartitionId]：[BrokerId]，[PartitionId]：[BrokerId]：...的形式描述一组副本，或者也可以使用通配符“*”来限制该topic的所有副本。</td><td>list</td><td>""</td><td>[partitionId],[brokerId]:[partitionId],[brokerId]:...</td><td>leader.replication.throttled.replicas</td><td>medium</td></tr>
 <tr>
-<td>max.message.bytes</td><td><p>Kafka允许的一个批次最大消息量。如果这个参数被增加了且consumers是早于0.10.2版本，那么consumers的fetch size必须增加到该值，以便他们可以取得这么大的记录批次。 </p><p>在最新的消息格式版本中，记录总是分组成多个批次以提高效率。在以前的消息格式版本中，未压缩的记录不会分组到多个批次，并且限制在该情况下只能应用单条记录。</p></td><td>int</td><td>1000012</td><td>[0,...]</td><td>message.max.bytes</td><td>medium</td></tr>
+<td>max.message.bytes</td><td><p>Kafka允许的最大记录批次大小。如果这个参数被增加了且consumers是早于0.10.2版本，那么consumers的fetch size必须增加到该值，以便他们可以取得这么大的记录批次。 </p><p>在最新的消息格式版本中，记录总是分组成多个批次以提高效率。在以前的消息格式版本中，未压缩的记录不会分组到多个批次，并且限制在该情况下只能应用单条记录。</p></td><td>int</td><td>1000012</td><td>[0,...]</td><td>message.max.bytes</td><td>medium</td></tr>
 <tr>
-<td>message.format.version</td><td>指定broker将用于将消息附加到日志的消息格式版本。该值应该是有效的ApiVersion。一些例子是：0.8.2，0.9.0.0，0.10.0，查看ApiVersion获取更多细节。通过设置特定的消息格式版本，用户将证明磁盘上的所有现有消息都小于或等于指定的版本。不正确地设置此值将导致旧版本的使用者中断，因为他们将收到他们不理解的格式的消息。</td><td>string</td><td>1.0-IV0</td><td></td><td>log.message.format.version</td><td>medium</td></tr>
+<td>message.format.version</td><td>指定broker将用于将消息附加到日志的消息格式版本。该值应该是有效的ApiVersion。如：0.8.2，0.9.0.0，0.10.0，查看ApiVersion获取更多细节。通过设置特定的消息格式版本，用户将发现磁盘上的所有现有消息都小于或等于指定的版本。不正确地设置此值将导致旧版本的使用者中断，因为他们将收到他们不理解的格式的消息。</td><td>string</td><td>1.0-IV0</td><td></td><td>log.message.format.version</td><td>medium</td></tr>
 <tr>
 <td>message.timestamp.difference.max.ms</td><td>broker接收消息时所允许的时间戳与消息中指定的时间戳之间的最大差异。如果message.timestamp.type=CreateTime，则如果时间戳的差异超过此阈值，则将拒绝消息。如果message.timestamp.type=LogAppendTime，则忽略此配置。</td><td>long</td><td>9223372036854775807</td><td>[0,...]</td><td>log.message.timestamp.difference.max.ms</td><td>medium</td></tr>
 <tr>
 <td>message.timestamp.type</td><td>定义消息中的时间戳是消息创建时间还是日志附加时间。值应该是“CreateTime”或“LogAppendTime”</td><td>string</td><td>CreateTime</td><td></td><td>log.message.timestamp.type</td><td>medium</td></tr>
 <tr>
-<td>min.cleanable.dirty.ratio</td><td>此配置控制日志压缩程序尝试清理日志的频率(假设启用了<a href="#compaction">日志压缩</a> )。默认情况下，我们将避免清除超过50%的日志已经压缩的日志。这个比率限制了重复在日志中浪费的最大空间(最多为50%，日志中最多有50%可能是重复的)。一个更高的比率将意味着更少，更有效的清理，但将意味着在日志中浪费更多的空间。</td><td>double</td><td>0.5</td><td>[0,...,1]</td><td>log.cleaner.min.cleanable.ratio</td><td>medium</td></tr>
+<td>min.cleanable.dirty.ratio</td><td>此配置控制日志compaction程序尝试清理日志的频率(假设启用了<a href="#compaction">log compaction</a> )。默认情况下，我们将避免清除超过50%的日志已经合并的日志。这个比率限制了重复在日志中浪费的最大空间(最多为50%，日志中最多有50%可能是重复的)。一个更高的比率将意味着更少，更高效的清理，但将意味着在日志中浪费更多的空间。</td><td>double</td><td>0.5</td><td>[0,...,1]</td><td>log.cleaner.min.cleanable.ratio</td><td>medium</td></tr>
 <tr>
-<td>min.compaction.lag.ms</td><td>消息在日志中保持未压缩的最短时间。仅适用于正在压缩的日志。</td><td>long</td><td>0</td><td>[0,...]</td><td>log.cleaner.min.compaction.lag.ms</td><td>medium</td></tr>
+<td>min.compaction.lag.ms</td><td>消息在日志中保持未压缩的最短时间。仅适用于被合并的日志。</td><td>long</td><td>0</td><td>[0,...]</td><td>log.cleaner.min.compaction.lag.ms</td><td>medium</td></tr>
 <tr>
-<td>min.insync.replicas</td><td>当producer将ack设置为“all”(或“-1”)时，此配置指定必须确认写入才能被认为成功的副本的最小数量。如果这个最小值无法满足，那么producer将引发一个异常(NotEnough Replicas或NotEnough ReplicasAfterAppend)。<br>当使用时，min.insync.Copicas和ack允许您执行更好的持久性保证。一个典型的场景是创建一个复制因子为3的topic，将min.insync.Copicas设置为2，并生成带有“All”的ack。这将确保如果大多数副本没有接收到写，则producer将引发异常。</td><td>int</td><td>1</td><td>[1,...]</td><td>min.insync.replicas</td><td>medium</td></tr>
+<td>min.insync.replicas</td><td>当producer将ack设置为“all”(或“-1”)时，此配置指定必须确认写入才能被认为成功的副本的最小数量。如果这个最小值无法满足，那么producer将引发一个异常(NotEnough Replicas或NotEnough ReplicasAfterAppend)。<br>当使用时，min.insync.Copicas和ack允许您执行更好的持久化保证。一个典型的场景是创建一个复制因子为3的topic，将min.insync.Copicas设置为2，并生成带有“All”的ack。这将确保如果大多数副本没有接收到写，则producer将引发异常。</td><td>int</td><td>1</td><td>[1,...]</td><td>min.insync.replicas</td><td>medium</td></tr>
 <tr>
 <td>preallocate</td><td>如果在创建新的日志段时应该预先分配磁盘上的文件，则为True。</td><td>boolean</td><td>false</td><td></td><td>log.preallocate</td><td>medium</td></tr>
 <tr>
@@ -53,7 +53,7 @@
 <tr>
 <td>segment.jitter.ms</td><td>从预定的分段滚动时间减去最大随机抖动，以避免段滚动产生惊群效应。</td><td>long</td><td>0</td><td>[0,...]</td><td>log.roll.jitter.ms</td><td>medium</td></tr>
 <tr>
-<td>segment.ms</td><td>这个配置控制在一段时间后，Kafka将强制日志滚动，即使段文件没有满，以确保保留空间可以删除或压缩旧数据。</td><td>long</td><td>604800000</td><td>[0,...]</td><td>log.roll.ms</td><td>medium</td></tr>
+<td>segment.ms</td><td>这个配置控制在一段时间后，Kafka将强制日志滚动，即使段文件没有满，以确保保留空间可以删除或合并旧数据。</td><td>long</td><td>604800000</td><td>[0,...]</td><td>log.roll.ms</td><td>medium</td></tr>
 <tr>
-<td>unclean.leader.election.enable</td><td>指示是否启用ISR中没有的副本作为当选为领导者的最后手段，即使这样做可能导致数据丢失。</td><td>boolean</td><td>false</td><td></td><td>unclean.leader.election.enable</td><td>medium</td></tr>
+<td>unclean.leader.election.enable</td><td>指示是否启用不在ISR集合中的副本选为领导者作为最后的手段，即使这样做可能导致数据丢失。</td><td>boolean</td><td>false</td><td></td><td>unclean.leader.election.enable</td><td>medium</td></tr>
 </tbody></table>

@@ -19,19 +19,19 @@
     <h3><a id="security_overview" href="#security_overview">7.1 安全总览</a></h3>
     在0.9.0.0版中，Kafka社区添加了一些特性，通过单独使用或者一起使用这些特性，提高了Kafka集群的安全性。目前支持下列安全措施：
     <ol>
-        <li>使用SSL或SASL验证来自客户(producers和consumers)、其他brokers和brokers工具的连接。Kafka支持以下SASL机制：
+        <li>使用SSL或SASL验证来自客户端(producers和consumers)、其他brokers和工具的连接。Kafka支持以下SASL机制：
         <ul>
             <li>SASL/GSSAPI (Kerberos) - 从版本0.9.0.0开始</li>
             <li>SASL/PLAIN - 从版本0.10.0.0开始</li>
             <li>SASL/SCRAM-SHA-256 和 SASL/SCRAM-SHA-512 - 从版本0.10.2.0开始</li>
         </ul></li>
         <li>验证从brokers 到 ZooKeeper的连接</li>
-        <li>对brokers与clients之间、brokers之间或brokers与工具之间使用SSL传输的数据加密(注意，启用SSL时性能会下降，其大小取决于CPU类型和JVM实现)。</li>
+        <li>对brokers与clients之间、brokers之间或brokers与工具之间使用SSL传输对数据加密(注意，启用SSL时性能会下降，其大小取决于CPU类型和JVM实现)。</li>
         <li>授权客户端的读写操作</li>
         <li>授权是可插拔的，并且支持与外部授权服务的集成</li>
     </ol>
 
-    值得注意的是，安全是可选的 - 支持非安全集群，以及经过身份验证，未经身份验证，加密和未加密clients的混合。
+    值得注意的是，安全是可选的 - 支持非安全集群，也支持需要认证，不需要认证，加密和未加密clients的混合集群。
 
     以下指南介绍了如何在clients和brokers中配置和使用安全功能。
 
