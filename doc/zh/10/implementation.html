@@ -148,15 +148,14 @@
     </pre>
     <h4><a id="impl_deletes" href="#impl_deletes">Deletes</a></h4>
     <p>
-      a modification time of more than <i>N</i> days ago, though a policy which retained the last <i>N</i> GB could also be useful. To avoid locking reads while still allowing deletes that modify the segment list we use a copy-on-write style segment list implementation that provides consistent views to allow a binary search to proceed on an immutable static snapshot view of the log segments while deletes are progressing.
-    数据只能一次删除一个日志分片.日志管理器允许使用可插拔的删除策略来选择哪些文件符合删除条件.当前的删除策略会删除 <i>N</i> 天之前改动的日志,尽管保留最后的 <i>N</i> GB 数据可能有用.
+    数据只能一次删除一个日志分片.日志管理器允许使用可插拔的删除策略来选择哪些文件符合删除条件.当前的删除策略会删除 <i>N</i> 天之前改动的日志,尽管保留最后的 <i>N</i> GB 数据可能有用.为了避免锁定读，同时允许删除修改 segment 列表，我们使用 copy-on-write 形式的 segment 列表实现，在删除的同时它提供了一致的视图允许在多个 segment 列表视图上执行二进制的搜索。
     </p>
     <h4><a id="impl_guarantees" href="#impl_guarantees">Guarantees</a></h4>
     <p>
-    The log provides a configuration parameter <i>M</i> which controls the maximum number of messages that are written before forcing a flush to disk. On startup a log recovery process is run that iterates over all messages in the newest log segment and verifies that each message entry is valid. A message entry is valid if the sum of its size and offset are less than the length of the file AND the CRC32 of the message payload matches the CRC stored with the message. In the event corruption is detected the log is truncated to the last valid offset.
+    日志提供了配置项 <i>M</i> ，它控制了在强制刷盘之前的最大消息数。启动时，日志恢复线程会运行，对最新的日志片段进行迭代，验证每条消息是否合法。如果消息对象的总数和偏移量小于文件的长度并且 消息数据包的 CRC32 校验值与存储在消息中的 CRC 校验值相匹配的话，说明这个消息对象是合法的。如果检测到损坏，日志会在最后一个合法 offset 处截断。
     </p>
     <p>
-    Note that two kinds of corruption must be handled: truncation in which an unwritten block is lost due to a crash, and corruption in which a nonsense block is ADDED to the file. The reason for this is that in general the OS makes no guarantee of the write order between the file inode and the actual block data so in addition to losing written data the file can gain nonsense data if the inode is updated with a new size but a crash occurs before the block containing that data is written. The CRC detects this corner case, and prevents it from corrupting the log (though the unwritten messages are, of course, lost).
+    请注意，有两种损坏必须处理：由于崩溃导致的未写入的数据块的丢失和将无意义已损坏的数据块添加到文件。原因是：通常系统不能保证文件索引节点和实际数据快之间的写入顺序，除此之外，如果在块数据被写入之前，文件索引已更新为新的大小，若此时系统崩溃，文件不会的到有意义的数据，则会导致数据丢失。
     </p>
 
     <h3><a id="distributionimpl" href="#distributionimpl">5.5 Distribution</a></h3>
