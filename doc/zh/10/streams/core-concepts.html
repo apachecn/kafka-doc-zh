@@ -69,23 +69,23 @@
     拓扑结构中有两种特殊的处理器：
 
     <ul>
-        <li><b>Source Processor</b>: A source processor is a special type of stream processor that does not have any upstream processors. It produces an input stream to its topology from one or multiple Kafka topics by consuming records from these topics and forwarding them to its down-stream processors.</li>
-        <li><b>Sink Processor</b>: A sink processor is a special type of stream processor that does not have down-stream processors. It sends any received records from its up-stream processors to a specified Kafka topic.</li>
+        <li><b>源处理器（Source Processor）</b> ： 源处理器是一种没有前置节点的特殊流处理器。它从一个或者多个 Kafka Topic 消费记录并产出一个输入流给到拓扑结构的后续处理节点。</li>
+        <li><b>Sink Processor</b> ： sink processor 是一种特殊的流处理器，没有处理器需要依赖于它。 它从前置流处理器接受数据并传输给指定的 Kafka Topic 。 </li>
     </ul>
 
-    Note that in normal processor nodes other remote systems can also be accessed while processing the current record. Therefore the processed results can either be streamed back into Kafka or written to an external system.
+    注意：一个正常的处理器节点在处理记录的同时是可以访问其他远程系统。因此，它的处理结果既可以写入到其他远程系统，也可以回流到 Kafka 系统中。
 
     <img class="centered" src="/{{version}}/images/streams-architecture-topology.jpg" style="width:400px">
 
     <p>
-        Kafka Streams offers two ways to define the stream processing topology: the <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a> provides
-        the most common data transformation operations such as <code>map</code>, <code>filter</code>, <code>join</code> and <code>aggregations</code> out of the box; the lower-level <a href="/{{version}}/documentation/streams/developer-guide#streams_processor"><b>Processor API</b></a> allows
-        developers define and connect custom processors as well as to interact with <a href="#streams_state">state stores</a>.
+        Kafka Streams 提供两种定义流处理拓扑结构的方式： <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a> 提供
+        了一些常用的、开箱即用的数据转换操作，比如： <code>map</code>， <code>filter</code>， <code>join</code> 和 <code>aggregations</code> ；而底层的 <a href="/{{version}}/documentation/streams/developer-guide#streams_processor"><b>Processor API</b></a> 则允许
+        开发者定义和连接自定义的处理器，并且可以与 <a href="#streams_state">state stores</a> 交互。
     </p>
 
     <p>
-        A processor topology is merely a logical abstraction for your stream processing code.
-        At runtime, the logical topology is instantiated and replicated inside the application for parallel processing (see <a href="#streams_architecture_tasks"><b>Stream Partitions and Tasks</b></a> for details).
+        处理器拓扑结构仅仅是对流处理代码的高度抽象。
+        在程序运行时，逻辑拓扑结构会实例化并在应用程序中复制以进行并行处理。（详细信息可参考 <a href="#streams_architecture_tasks"><b>Stream Partitions and Tasks</b></a> ）。
     </p>
 
     <h3><a id="streams_time" href="#streams_time">Time</a></h3>
