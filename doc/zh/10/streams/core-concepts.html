@@ -84,24 +84,24 @@
     </p>
 
     <p>
-        处理器拓扑结构仅仅是对流处理代码的高度抽象。
+        处理器拓扑结构仅仅是对流处理代码的抽象。
         在程序运行时，逻辑拓扑结构会实例化并在应用程序中复制以进行并行处理。（详细信息可参考 <a href="#streams_architecture_tasks"><b>Stream Partitions and Tasks</b></a> ）。
     </p>
 
     <h3><a id="streams_time" href="#streams_time">Time</a></h3>
 
     <p>
-        A critical aspect in stream processing is the notion of <b>time</b>, and how it is modeled and integrated.
-        For example, some operations such as <b>windowing</b> are defined based on time boundaries.
+        流处理中很关键的一点是 <b>时间（time）</b> 的概念，以及它的模型设计、如何被整合到系统中。
+        比如有些操作（如 <b>窗口（windowing）</b> ) 就是基于时间边界进行定义的。
     </p>
     <p>
-        Common notions of time in streams are:
+        流处理中关于时间的一些常见概念：
     </p>
 
     <ul>
-        <li><b>Event time</b> - The point in time when an event or data record occurred, i.e. was originally created "at the source". <b>Example:</b> If the event is a geo-location change reported by a GPS sensor in a car, then the associated event-time would be the time when the GPS sensor captured the location change.</li>
-        <li><b>Processing time</b> - The point in time when the event or data record happens to be processed by the stream processing application, i.e. when the record is being consumed. The processing time may be milliseconds, hours, or days etc. later than the original event time. <b>Example:</b> Imagine an analytics application that reads and processes the geo-location data reported from car sensors to present it to a fleet management dashboard. Here, processing-time in the analytics application might be milliseconds or seconds (e.g. for real-time pipelines based on Apache Kafka and Kafka Streams) or hours (e.g. for batch pipelines based on Apache Hadoop or Apache Spark) after event-time.</li>
-        <li><b>Ingestion time</b> - The point in time when an event or data record is stored in a topic partition by a Kafka broker. The difference to event time is that this ingestion timestamp is generated when the record is appended to the target topic by the Kafka broker, not when the record is created "at the source". The difference to processing time is that processing time is when the stream processing application processes the record. <b>For example,</b> if a record is never processed, there is no notion of processing time for it, but it still has an ingestion time.</li>
+        <li><b>事件时间（Event time）</b> ： 事件或者数据记录产生的时间点，即事件在“源头”发生时的原始时间点。 <b>举个例子：</b> 如果是汽车GPS传感器产生的地理位置变化的事件，则事件时间就是GPS传感器捕获到位置发生变更的时间。</li>
+        <li><b>处理事件（Processing time）</b> ： The point in time when the event or data record happens to be processed by the stream processing application, i.e. when the record is being consumed. The processing time may be milliseconds, hours, or days etc. later than the original event time. <b>Example:</b> Imagine an analytics application that reads and processes the geo-location data reported from car sensors to present it to a fleet management dashboard. Here, processing-time in the analytics application might be milliseconds or seconds (e.g. for real-time pipelines based on Apache Kafka and Kafka Streams) or hours (e.g. for batch pipelines based on Apache Hadoop or Apache Spark) after event-time.</li>
+        <li><b>提取时间（Ingestion time）</b> ： The point in time when an event or data record is stored in a topic partition by a Kafka broker. The difference to event time is that this ingestion timestamp is generated when the record is appended to the target topic by the Kafka broker, not when the record is created "at the source". The difference to processing time is that processing time is when the stream processing application processes the record. <b>For example,</b> if a record is never processed, there is no notion of processing time for it, but it still has an ingestion time.</li>
     </ul>
     <p>
         The choice between event-time and ingestion-time is actually done through the configuration of Kafka (not Kafka Streams): From Kafka 0.10.x onwards, timestamps are automatically embedded into Kafka messages. Depending on Kafka's configuration these timestamps represent event-time or ingestion-time. The respective Kafka configuration setting can be specified on the broker level or per topic. The default timestamp extractor in Kafka Streams will retrieve these embedded timestamps as-is. Hence, the effective time semantics of your application depend on the effective Kafka configuration for these embedded timestamps.
@@ -179,11 +179,11 @@
 @@include('../../includes/_top.htm')
 <!--#include virtual="../../includes/_top.htm" -->
 <div class="content documentation documentation--current">
-        @@include('../../includes/_nav.htm')
-        <!--#include virtual="../../includes/_nav.htm" -->
-        <div class="right">
-                @@include('../../includes/_docs_banner.htm')
-            <!--#include virtual="../../includes/_docs_banner.htm" -->
+    @@include('../../includes/_nav.htm')
+    <!--#include virtual="../../includes/_nav.htm" -->
+    <div class="right">
+        @@include('../../includes/_docs_banner.htm')
+        <!--#include virtual="../../includes/_docs_banner.htm" -->
         <ul class="breadcrumbs">
             <li><a href="/documentation">Documentation</a></li>
             <li><a href="/documentation/streams">Kafka Streams API</a></li>
