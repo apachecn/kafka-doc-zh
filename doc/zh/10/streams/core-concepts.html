@@ -20,88 +20,88 @@
 <!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
-    <h1>Core Concepts</h1>
+    <h1>核心思想</h1>
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a class="active-menu-item"  href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
-                <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
-                <a href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/">简介</a>
+                <a href="/{{version}}/documentation/streams/developer-guide">开发者指南</a>
+                <a class="active-menu-item"  href="/{{version}}/documentation/streams/core-concepts">核心思想</a>
+                <a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>
+                <a href="/{{version}}/documentation/streams/tutorial">编写自己的流处理程序</a>
             </div>
         </div>
     </div>
     <p>
-        Kafka Streams is a client library for processing and analyzing data stored in Kafka.
-        It builds upon important stream processing concepts such as properly distinguishing between event time and processing time, windowing support, and simple yet efficient management and real-time querying of application state.
+        Kafka Streams 是一个处理和分析保存在 Kafka 的数据的客户端库。
+        它建立在重要的流处理概念之上，例如能够恰当地区分事件时间和处理时间、提供窗口功能以及简单有效、支持实时查询的应用程序状态管理。
     </p>
     <p>
-        Kafka Streams has a <b>low barrier to entry</b>: You can quickly write and run a small-scale proof-of-concept on a single machine; and you only need to run additional instances of your application on multiple machines to scale up to high-volume production workloads.
-        Kafka Streams transparently handles the load balancing of multiple instances of the same application by leveraging Kafka's parallelism model.
+        Kafka Streams 的<b>入门门槛很低</b>。我们可以在单节点环境上快速实现一个小规模的验证性的程序，只要程序能在多节点的集群环境成功运行即可部署到高负载的生产环境。
+        Kafka Streams 通过利用 Kafka 的并行模型实现对相同应用程序的多个实例的负载平衡，这对于用户来说是透明的。
     </p>
     <p>
-        Some highlights of Kafka Streams:
+        Kafka Streams 的一些亮点：
     </p>
 
     <ul>
-        <li>Designed as a <b>simple and lightweight client library</b>, which can be easily embedded in any Java application and integrated with any existing packaging, deployment and operational tools that users have for their streaming applications.</li>
-        <li>Has <b>no external dependencies on systems other than Apache Kafka itself</b> as the internal messaging layer; notably, it uses Kafka's partitioning model to horizontally scale processing while maintaining strong ordering guarantees.</li>
-        <li>Supports <b>fault-tolerant local state</b>, which enables very fast and efficient stateful operations like windowed joins and aggregations.</li>
-        <li>Supports <b>exactly-once</b> processing semantics to guarantee that each record will be processed once and only once even when there is a failure on either Streams clients or Kafka brokers in the middle of processing.</li>
-        <li>Employs <b>one-record-at-a-time processing</b> to achieve millisecond processing latency, and supports <b>event-time based windowing operations</b> with late arrival of records.</li>
-        <li>Offers necessary stream processing primitives, along with a <b>high-level Streams DSL</b> and a <b>low-level Processor API</b>.</li>
+        <li>被设计为<b>简单且轻量级的客户端库</b>，可以轻松嵌入到任何Java应用程序中，也可轻松地集成到用户的任何流式应用程序的打包，部署和操作工具。</li>
+        <li><b>除了使用 Apache Kafka 作为内部消息传递层之外， Kafka Streams 没有外部依赖关系</b>; 值得注意的是，它使用 Kafka 的分区模型来实现横向扩展处理，并同时保证强有力的有序性。</li>
+        <li><b>支持容错的本地状态</b>，它支持非常快速和高效的有状态操作，如窗口连接和聚合。</li>
+        <li>支持<b>一次处理语义</b>，以确保每个记录只被处理一次，即使错误发生在 Streams 客户端或 Kafka Broker 中也仅处理一次。</li>
+        <li>采用<b>一次一个记录的处理方式</b>，以实现毫秒级的处理延迟，并支持对延迟的记录使用<b>基于事件时间的窗口化操作</b>。</li>
+        <li>提供必要的流处理元操作的，包括<b>高度抽象的流 DSL 语言</b>和<b>底层流处理器的 API </b></li>。
 
     </ul>
 
     <p>
-        We first summarize the key concepts of Kafka Streams.
+        以下是 Kafka Stream 的几个重要概念。
     </p>
 
-    <h3><a id="streams_topology" href="#streams_topology">Stream Processing Topology</a></h3>
+    <h3><a id="streams_topology" href="#streams_topology">流处理拓扑结构</a></h3>
 
     <ul>
-        <li>A <b>stream</b> is the most important abstraction provided by Kafka Streams: it represents an unbounded, continuously updating data set. A stream is an ordered, replayable, and fault-tolerant sequence of immutable data records, where a <b>data record</b> is defined as a key-value pair.</li>
-        <li>A <b>stream processing application</b> is any program that makes use of the Kafka Streams library. It defines its computational logic through one or more <b>processor topologies</b>, where a processor topology is a graph of stream processors (nodes) that are connected by streams (edges).</li>
-        <li>A <b>stream processor</b> is a node in the processor topology; it represents a processing step to transform data in streams by receiving one input record at a time from its upstream processors in the topology, applying its operation to it, and may subsequently produce one or more output records to its downstream processors. </li>
+        <li><b>流（Stream）</b> 是 Kafka Stream 的一个非常重要的抽象概念，代表一个无界的、持续更新的数据集。 Stream 是一个有序、可重演、容错并且不可变的数据集，它的<b>数据</b> 是以键-值对的方式定义的。</li>
+        <li><b>流处理程序（stream processing application）</b> 是指所有应用了 Kafka Streams library 的程序。 流处理程序通过一个以上的 <b>处理器拓扑结构（processor topology）</b> 定义计算逻辑，其中 <b>处理器拓扑结构</b> 是一个连接到流（的边界）的流处理器（节点）。</li>
+        <li><b>流处理器（stream processor）</b> 是处理器拓扑结构的一个节点；它代表一个处理步骤：从拓扑结构中的前置流处理器接受输入数据并按逻辑转换数据，随后向拓扑结构的后续流处理器提供一个或者多个结果数据。 </li>
     </ul>
 
-    There are two special processors in the topology:
+    拓扑结构中有两种特殊的处理器：
 
     <ul>
-        <li><b>Source Processor</b>: A source processor is a special type of stream processor that does not have any upstream processors. It produces an input stream to its topology from one or multiple Kafka topics by consuming records from these topics and forwarding them to its down-stream processors.</li>
-        <li><b>Sink Processor</b>: A sink processor is a special type of stream processor that does not have down-stream processors. It sends any received records from its up-stream processors to a specified Kafka topic.</li>
+        <li><b>源处理器（Source Processor）</b> ： 源处理器是一种没有前置节点的特殊流处理器。它从一个或者多个 Kafka Topic 消费记录并产出一个输入流给到拓扑结构的后续处理节点。</li>
+        <li><b>Sink Processor</b> ： sink processor 是一种特殊的流处理器，没有处理器需要依赖于它。 它从前置流处理器接受数据并传输给指定的 Kafka Topic 。 </li>
     </ul>
 
-    Note that in normal processor nodes other remote systems can also be accessed while processing the current record. Therefore the processed results can either be streamed back into Kafka or written to an external system.
+    注意：一个正常的处理器节点在处理记录的同时是可以访问其他远程系统。因此，它的处理结果既可以写入到其他远程系统，也可以回流到 Kafka 系统中。
 
     <img class="centered" src="/{{version}}/images/streams-architecture-topology.jpg" style="width:400px">
 
     <p>
-        Kafka Streams offers two ways to define the stream processing topology: the <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a> provides
-        the most common data transformation operations such as <code>map</code>, <code>filter</code>, <code>join</code> and <code>aggregations</code> out of the box; the lower-level <a href="/{{version}}/documentation/streams/developer-guide#streams_processor"><b>Processor API</b></a> allows
-        developers define and connect custom processors as well as to interact with <a href="#streams_state">state stores</a>.
+        Kafka Streams 提供两种定义流处理拓扑结构的方式： <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a> 提供
+        了一些常用的、开箱即用的数据转换操作，比如： <code>map</code>， <code>filter</code>， <code>join</code> 和 <code>aggregations</code> ；而底层的 <a href="/{{version}}/documentation/streams/developer-guide#streams_processor"><b>Processor API</b></a> 则允许
+        开发者定义和连接自定义的处理器，并且可以与 <a href="#streams_state">state stores</a> 交互。
     </p>
 
     <p>
-        A processor topology is merely a logical abstraction for your stream processing code.
-        At runtime, the logical topology is instantiated and replicated inside the application for parallel processing (see <a href="#streams_architecture_tasks"><b>Stream Partitions and Tasks</b></a> for details).
+        处理器拓扑结构仅仅是对流处理代码的抽象。
+        在程序运行时，逻辑拓扑结构会实例化并在应用程序中复制以进行并行处理。（详细信息可参考 <a href="#streams_architecture_tasks"><b>Stream Partitions and Tasks</b></a> ）。
     </p>
 
     <h3><a id="streams_time" href="#streams_time">Time</a></h3>
 
     <p>
-        A critical aspect in stream processing is the notion of <b>time</b>, and how it is modeled and integrated.
-        For example, some operations such as <b>windowing</b> are defined based on time boundaries.
+        流处理中很关键的一点是 <b>时间（time）</b> 的概念，以及它的模型设计、如何被整合到系统中。
+        比如有些操作（如 <b>窗口（windowing）</b> ) 就是基于时间边界进行定义的。
     </p>
     <p>
-        Common notions of time in streams are:
+        流处理中关于时间的一些常见概念：
     </p>
 
     <ul>
-        <li><b>Event time</b> - The point in time when an event or data record occurred, i.e. was originally created "at the source". <b>Example:</b> If the event is a geo-location change reported by a GPS sensor in a car, then the associated event-time would be the time when the GPS sensor captured the location change.</li>
-        <li><b>Processing time</b> - The point in time when the event or data record happens to be processed by the stream processing application, i.e. when the record is being consumed. The processing time may be milliseconds, hours, or days etc. later than the original event time. <b>Example:</b> Imagine an analytics application that reads and processes the geo-location data reported from car sensors to present it to a fleet management dashboard. Here, processing-time in the analytics application might be milliseconds or seconds (e.g. for real-time pipelines based on Apache Kafka and Kafka Streams) or hours (e.g. for batch pipelines based on Apache Hadoop or Apache Spark) after event-time.</li>
-        <li><b>Ingestion time</b> - The point in time when an event or data record is stored in a topic partition by a Kafka broker. The difference to event time is that this ingestion timestamp is generated when the record is appended to the target topic by the Kafka broker, not when the record is created "at the source". The difference to processing time is that processing time is when the stream processing application processes the record. <b>For example,</b> if a record is never processed, there is no notion of processing time for it, but it still has an ingestion time.</li>
+        <li><b>事件时间（Event time）</b> ： 事件或者数据记录产生的时间点，即事件在“源头”发生时的原始时间点。 <b>举个例子：</b> 如果是汽车GPS传感器产生的地理位置变化的事件，则事件时间就是GPS传感器捕获到位置发生变更的时间。</li>
+        <li><b>处理事件（Processing time）</b> ： The point in time when the event or data record happens to be processed by the stream processing application, i.e. when the record is being consumed. The processing time may be milliseconds, hours, or days etc. later than the original event time. <b>Example:</b> Imagine an analytics application that reads and processes the geo-location data reported from car sensors to present it to a fleet management dashboard. Here, processing-time in the analytics application might be milliseconds or seconds (e.g. for real-time pipelines based on Apache Kafka and Kafka Streams) or hours (e.g. for batch pipelines based on Apache Hadoop or Apache Spark) after event-time.</li>
+        <li><b>提取时间（Ingestion time）</b> ： The point in time when an event or data record is stored in a topic partition by a Kafka broker. The difference to event time is that this ingestion timestamp is generated when the record is appended to the target topic by the Kafka broker, not when the record is created "at the source". The difference to processing time is that processing time is when the stream processing application processes the record. <b>For example,</b> if a record is never processed, there is no notion of processing time for it, but it still has an ingestion time.</li>
     </ul>
     <p>
         The choice between event-time and ingestion-time is actually done through the configuration of Kafka (not Kafka Streams): From Kafka 0.10.x onwards, timestamps are automatically embedded into Kafka messages. Depending on Kafka's configuration these timestamps represent event-time or ingestion-time. The respective Kafka configuration setting can be specified on the broker level or per topic. The default timestamp extractor in Kafka Streams will retrieve these embedded timestamps as-is. Hence, the effective time semantics of your application depend on the effective Kafka configuration for these embedded timestamps.
