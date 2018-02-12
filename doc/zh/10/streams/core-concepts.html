@@ -70,7 +70,7 @@
 
     <ul>
         <li><b>源处理器（Source Processor）</b> ： 源处理器是一种没有前置节点的特殊流处理器。它从一个或者多个 Kafka Topic 消费记录并产出一个输入流给到拓扑结构的后续处理节点。</li>
-        <li><b>Sink Processor</b> ： sink processor 是一种特殊的流处理器，没有处理器需要依赖于它。 它从前置流处理器接受数据并传输给指定的 Kafka Topic 。 </li>
+        <li><b>Sink Processor</b> ： sink processor 是一种特殊的流处理器，没有处理器需要依赖于它。 它从前置流处理器接收数据并传输给指定的 Kafka Topic 。 </li>
     </ul>
 
     注意：一个正常的处理器节点在处理记录的同时是可以访问其他远程系统。因此，它的处理结果既可以写入到其他远程系统，也可以回流到 Kafka 系统中。
@@ -99,12 +99,12 @@
     </p>
 
     <ul>
-        <li><b>事件时间（Event time）</b> ： 事件或者数据记录产生的时间点，即事件在“源头”发生时的原始时间点。 <b>举个例子：</b> 如果是汽车GPS传感器产生的地理位置变化的事件，则事件时间就是GPS传感器捕获到位置发生变更的时间。</li>
-        <li><b>处理事件（Processing time）</b> ： The point in time when the event or data record happens to be processed by the stream processing application, i.e. when the record is being consumed. The processing time may be milliseconds, hours, or days etc. later than the original event time. <b>Example:</b> Imagine an analytics application that reads and processes the geo-location data reported from car sensors to present it to a fleet management dashboard. Here, processing-time in the analytics application might be milliseconds or seconds (e.g. for real-time pipelines based on Apache Kafka and Kafka Streams) or hours (e.g. for batch pipelines based on Apache Hadoop or Apache Spark) after event-time.</li>
-        <li><b>提取时间（Ingestion time）</b> ： The point in time when an event or data record is stored in a topic partition by a Kafka broker. The difference to event time is that this ingestion timestamp is generated when the record is appended to the target topic by the Kafka broker, not when the record is created "at the source". The difference to processing time is that processing time is when the stream processing application processes the record. <b>For example,</b> if a record is never processed, there is no notion of processing time for it, but it still has an ingestion time.</li>
+        <li><b> Event time </b> ： 事件或者数据记录产生的时间点，即事件在“源头”发生时的原始时间点。 <b>举个例子：</b> 如果是汽车GPS传感器产生的地理位置变化的事件，则 Event time 就是GPS传感器捕获到位置发生变更的时间。</li>
+        <li><b> Processing time </b> ： 数据被流处理程序加工的时间，也就是数据被消费的时间。处理事件可能比原始的事件时间晚几毫秒、几个小时甚至是几天。<b>举个例子：</b> 假设一个分析应用程序从汽车传感器读取和处理地理位置数据，并将结果呈现给车队管理仪表板。在这种情况下，分析应用程序的 processing-time 可能比 event time 晚几毫秒或几秒(例如，基于 Apache Kafka 和 Kafka Stream 的实时管道)或者晚几个小时(例如，基于 Apache Hadoop 或 Apache Spark 的批处理管道)。</li>
+        <li><b> Ingestion time </b> ： 事件或者数据记录被 Kafka Broker 保存到 topic partition 的时间点。与事件时间（Event time）的不同之处在于 Ingestion time 的时间戳是在记录被 Kafka Broker 添加到目标 Topic 的时候产生的，而不是在记录的源头产生的。与 Processing time 的区别在于处理时间是流处理应用程序开始处理记录的时间。 <b>举个例子：</b> 如果记录没有被处理，就没有 Processing time 的概念，但是 ingestion time 是存在的。</li>
     </ul>
     <p>
-        The choice between event-time and ingestion-time is actually done through the configuration of Kafka (not Kafka Streams): From Kafka 0.10.x onwards, timestamps are automatically embedded into Kafka messages. Depending on Kafka's configuration these timestamps represent event-time or ingestion-time. The respective Kafka configuration setting can be specified on the broker level or per topic. The default timestamp extractor in Kafka Streams will retrieve these embedded timestamps as-is. Hence, the effective time semantics of your application depend on the effective Kafka configuration for these embedded timestamps.
+        选用 event-time 还是 ingestion-time 是通过 Kafka （不是 Kafka Streams）来配置的。从 Kafka 0.10.x 开始，时间戳是自动嵌入到 Kafka 的消息中。至于这些时间戳是 event-time 还是 ingestion-time 取决于 Kafka 的配置。这些配置在 Broker 层面 和 Topic 层面都可以进行设置。 Kafka Streams 中默认的时间戳抽取器会原样获取这些嵌入的时间戳。因此，应用程序中时间的语义取决于生效的嵌入时间戳相关的 Kafka 配置。
     </p>
     <p>
         Kafka Streams assigns a <b>timestamp</b> to every data record via the <code>TimestampExtractor</code> interface.
