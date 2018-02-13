@@ -107,24 +107,23 @@
         选用 event-time 还是 ingestion-time 是通过 Kafka （不是 Kafka Streams）来配置的。从 Kafka 0.10.x 开始，时间戳是自动嵌入到 Kafka 的消息中。至于这些时间戳是 event-time 还是 ingestion-time 取决于 Kafka 的配置。这些配置在 Broker 层面 和 Topic 层面都可以进行设置。 Kafka Streams 中默认的时间戳抽取器会原样获取这些嵌入的时间戳。因此，应用程序中时间的语义取决于生效的嵌入时间戳相关的 Kafka 配置。
     </p>
     <p>
-        Kafka Streams assigns a <b>timestamp</b> to every data record via the <code>TimestampExtractor</code> interface.
-        These per-record timestamps describe the progress of a stream with regards to time and are leveraged by	time-dependent operations such as window operations.
-        As a result, this time will only advance when a new record arrives at the processor.
-        We call this data-driven time the <b>stream time</b> of the application to differentiate with the <b>wall-clock time</b> when this application is actually executing.
-        Concrete implementations of the <code>TimestampExtractor</code> interface will then provide different semantics to the stream time definition.
-        For example retrieving or computing timestamps based on the actual contents of data records such as an embedded timestamp field to provide event time semantics,
-        and returning the current wall-clock time thereby yield processing time semantics to stream time.
-        Developers can thus enforce different notions of time depending on their business needs.
+        Kafka Streams 通过 <code>TimestampExtractor</code> 接口来给每条记录分配时间戳。
+        每条记录的时间戳描述了关于流处理与 time 相关的信息，并且被诸如 window 之类的 time-dependent 的操作所使用。
+        因此，这些 time 仅在新纪录到达 processor 的时候才有用。
+        我们将应用程序中的以数据驱动的 time 称为 <b>stream time</b> 以区别于程序运行时的 <b>wall-clock time</b> 。
+        不同的 <code>TimestampExtractor</code> 的具体实现将为 stream time  定义提供不同的语义。
+        例如,基于数据的实际内容来检索或计算时间戳，如嵌入时间戳字段以提供 event time 语义，以及返回当前的 wall-clock time 以便为 stream time 提供 processing time 语义。
+        因此开发者可以基于自己的业务需要来实施不同的 time 概念。
     </p>
 
     <p>
-        Finally, whenever a Kafka Streams application writes records to Kafka, then it will also assign timestamps to these new records. The way the timestamps are assigned depends on the context:
+        最后，当 Kafka Streams 应用程序向 Kafka 写记录时，程序也会给这些新记录分配时间戳。时间戳的分配方式取决于上下文:
     </p>
 
     <ul>
-        <li> When new output records are generated via processing some input record, for example, <code>context.forward()</code> triggered in the <code>process()</code> function call, output record timestamps are inherited from input record timestamps directly.</li>
-        <li> When new output records are generated via periodic functions such as <code>Punctuator#punctuate()</code>, the output record timestamp is defined as the current internal time (obtained through <code>context.timestamp()</code>) of the stream task.</li>
-        <li> For aggregations, the timestamp of a resulting aggregate update record will be that of the latest arrived input record that triggered the update.</li>
+        <li> 当通过处理一些输入记录来生成新的输出记录时，例如，在 <code>process()</code> 函数调用中触发的 <code>context.forward()</code> ，输出记录的时间戳是直接从输入记录的时间戳中继承而来的。</li>
+        <li> 当新的输出记录是通过 <code>Punctuator#punctuate()</code> 之类的周期性函数产生的，输出记录时间戳被定义为当前流任务的内部时间(通过<code>context.timestamp()</code> 函数生成）。</li>
+        <li> 对于聚合操作，聚合结果的时间戳将是触发聚合更新的最新到达的输入记录的时间戳。</li>
     </ul>
 
     <h3><a id="streams_state" href="#streams_state">States</a></h3>
