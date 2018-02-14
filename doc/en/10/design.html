@@ -142,23 +142,25 @@
 
     <h4><a id="design_loadbalancing" href="#design_loadbalancing">Load balancing</a></h4>
     <p>
-    The producer sends data directly to the broker that is the leader for the partition without any intervening routing tier. To help the producer do this all Kafka nodes can answer a request for metadata about which
-    servers are alive and where the leaders for the partitions of a topic are at any given time to allow the producer to appropriately direct its requests.
+        生产者之间发送数据到主分区的服务器上，不需要经过任何中间路由。
+        为了让生产者实现这个功能，所有的 kafka 服务器节点都能响应这样的元数据请求：
+        哪些服务器是活着的，主题的哪些分区是主分区，分配在哪个服务器上，这样生产者就能适当地直接发送它的请求到服务器上。
     <p>
-    The client controls which partition it publishes messages to. This can be done at random, implementing a kind of random load balancing, or it can be done by some semantic partitioning function. We expose the interface
-    for semantic partitioning by allowing the user to specify a key to partition by and using this to hash to a partition (there is also an option to override the partition function if need be). For example if the key
-    chosen was a user id then all data for a given user would be sent to the same partition. This in turn will allow consumers to make locality assumptions about their consumption. This style of partitioning is explicitly
-    designed to allow locality-sensitive processing in consumers.
-
+        客户端控制消息发送数据到哪个分区，这个可以实现随机的负载均衡方式,或者使用一些特定语义的分区函数。
+        我们有提供特定分区的接口让用于根据指定的键值进行hash分区(当然也有选项可以重写分区函数)，例如，如果使用用户ID作为key，则用户相关的所有数据都会被分发到同一个分区上。
+        这允许消费者在消费数据时做一些特定的本地化处理。这样的分区风格经常被设计用于一些本地处理比较敏感的消费者。
     <h4><a id="design_asyncsend" href="#design_asyncsend">Asynchronous send</a></h4>
     <p>
     Batching is one of the big drivers of efficiency, and to enable batching the Kafka producer will attempt to accumulate data in memory and to send out larger batches in a single request. The batching can be configured
     to accumulate no more than a fixed number of messages and to wait no longer than some fixed latency bound (say 64k or 10 ms). This allows the accumulation of more bytes to send, and few larger I/O operations on the
     servers. This buffering is configurable and gives a mechanism to trade off a small amount of additional latency for better throughput.
+        批处理是提升性能的一个主要驱动，为了允许批量处理，kafka 生产者会尝试在内存中汇总数据，并用一次请求批次提交信息。
+        批处理，不仅仅可以配置指定的消息数量，也可以指定等待特定的延迟时间(如64k 或10ms)，这允许汇总更多的数据后再发送，在服务器端也会减少更多的IO操作。
+        该缓冲是可配置的，并给出了一个机制，通过权衡少量额外的延迟时间获取更好的吞吐量。
     <p>
     Details on <a href="#producerconfigs">configuration</a> and the <a href="http://kafka.apache.org/082/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">api</a> for the producer can be found
     elsewhere in the documentation.
-
+    更多的细节可以在生产的 <a href="#producerconfigs">configuration</a> 和 <a href="http://kafka.apache.org/082/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">api</a>文档中进行详细的了解。
     <h3><a id="theconsumer" href="#theconsumer">4.5 The Consumer</a></h3>
 
     The Kafka consumer works by issuing "fetch" requests to the brokers leading the partitions it wants to consume. The consumer specifies its offset in the log with each request and receives back a chunk of log
@@ -421,120 +423,121 @@
     affected partitions in a failed broker. The result is that we are able to batch together many of the required leadership change notifications which makes the election process far cheaper and faster for a large number
     of partitions. If the controller fails, one of the surviving brokers will become the new controller.
 
+
     <h3><a id="compaction" href="#compaction">4.8 Log Compaction</a></h3>
 
     Log compaction ensures that Kafka will always retain at least the last known value for each message key within the log of data for a single topic partition.  It addresses use cases and scenarios such as restoring
     state after application crashes or system failure, or reloading caches after application restarts during operational maintenance. Let's dive into these use cases in more detail and then describe how compaction works.
     <p>
-    So far we have described only the simpler approach to data retention where old log data is discarded after a fixed period of time or when the log reaches some predetermined size. This works well for temporal event
-    data such as logging where each record stands alone. However an important class of data streams are the log of changes to keyed, mutable data (for example, the changes to a database table).
+        So far we have described only the simpler approach to data retention where old log data is discarded after a fixed period of time or when the log reaches some predetermined size. This works well for temporal event
+        data such as logging where each record stands alone. However an important class of data streams are the log of changes to keyed, mutable data (for example, the changes to a database table).
     <p>
-    Let's discuss a concrete example of such a stream. Say we have a topic containing user email addresses; every time a user updates their email address we send a message to this topic using their user id as the
-    primary key. Now say we send the following messages over some time period for a user with id 123, each message corresponding to a change in email address (messages for other ids are omitted):
+        Let's discuss a concrete example of such a stream. Say we have a topic containing user email addresses; every time a user updates their email address we send a message to this topic using their user id as the
+        primary key. Now say we send the following messages over some time period for a user with id 123, each message corresponding to a change in email address (messages for other ids are omitted):
     <pre class="brush: text;">
-        123 => bill@microsoft.com
-                .
-                .
-                .
-        123 => bill@gatesfoundation.org
-                .
-                .
-                .
-        123 => bill@gmail.com
-    </pre>
+    123 => bill@microsoft.com
+            .
+            .
+            .
+    123 => bill@gatesfoundation.org
+            .
+            .
+            .
+    123 => bill@gmail.com
+</pre>
     Log compaction gives us a more granular retention mechanism so that we are guaranteed to retain at least the last update for each primary key (e.g. <code>bill@gmail.com</code>). By doing this we guarantee that the
     log contains a full snapshot of the final value for every key not just keys that changed recently. This means downstream consumers can restore their own state off this topic without us having to retain a complete
     log of all changes.
     <p>
-    Let's start by looking at a few use cases where this is useful, then we'll see how it can be used.
+        Let's start by looking at a few use cases where this is useful, then we'll see how it can be used.
     <ol>
-    <li><i>Database change subscription</i>. It is often necessary to have a data set in multiple data systems, and often one of these systems is a database of some kind (either a RDBMS or perhaps a new-fangled key-value
-    store). For example you might have a database, a cache, a search cluster, and a Hadoop cluster. Each change to the database will need to be reflected in the cache, the search cluster, and eventually in Hadoop.
-    In the case that one is only handling the real-time updates you only need recent log. But if you want to be able to reload the cache or restore a failed search node you may need a complete data set.
-    <li><i>Event sourcing</i>. This is a style of application design which co-locates query processing with application design and uses a log of changes as the primary store for the application.
-    <li><i>Journaling for high-availability</i>. A process that does local computation can be made fault-tolerant by logging out changes that it makes to its local state so another process can reload these changes and
-    carry on if it should fail. A concrete example of this is handling counts, aggregations, and other "group by"-like processing in a stream query system. Samza, a real-time stream-processing framework,
-    <a href="http://samza.apache.org/learn/documentation/0.7.0/container/state-management.html">uses this feature</a> for exactly this purpose.
+        <li><i>Database change subscription</i>. It is often necessary to have a data set in multiple data systems, and often one of these systems is a database of some kind (either a RDBMS or perhaps a new-fangled key-value
+            store). For example you might have a database, a cache, a search cluster, and a Hadoop cluster. Each change to the database will need to be reflected in the cache, the search cluster, and eventually in Hadoop.
+            In the case that one is only handling the real-time updates you only need recent log. But if you want to be able to reload the cache or restore a failed search node you may need a complete data set.
+        <li><i>Event sourcing</i>. This is a style of application design which co-locates query processing with application design and uses a log of changes as the primary store for the application.
+        <li><i>Journaling for high-availability</i>. A process that does local computation can be made fault-tolerant by logging out changes that it makes to its local state so another process can reload these changes and
+            carry on if it should fail. A concrete example of this is handling counts, aggregations, and other "group by"-like processing in a stream query system. Samza, a real-time stream-processing framework,
+            <a href="http://samza.apache.org/learn/documentation/0.7.0/container/state-management.html">uses this feature</a> for exactly this purpose.
     </ol>
     In each of these cases one needs primarily to handle the real-time feed of changes, but occasionally, when a machine crashes or data needs to be re-loaded or re-processed, one needs to do a full load.
     Log compaction allows feeding both of these use cases off the same backing topic.
 
     This style of usage of a log is described in more detail in <a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">this blog post</a>.
     <p>
-    The general idea is quite simple. If we had infinite log retention, and we logged each change in the above cases, then we would have captured the state of the system at each time from when it first began.
-    Using this complete log, we could restore to any point in time by replaying the first N records in the log. This hypothetical complete log is not very practical for systems that update a single record many times
-    as the log will grow without bound even for a stable dataset. The simple log retention mechanism which throws away old updates will bound space but the log is no longer a way to restore the current state&mdash;now
-    restoring from the beginning of the log no longer recreates the current state as old updates may not be captured at all.
+        The general idea is quite simple. If we had infinite log retention, and we logged each change in the above cases, then we would have captured the state of the system at each time from when it first began.
+        Using this complete log, we could restore to any point in time by replaying the first N records in the log. This hypothetical complete log is not very practical for systems that update a single record many times
+        as the log will grow without bound even for a stable dataset. The simple log retention mechanism which throws away old updates will bound space but the log is no longer a way to restore the current state&mdash;now
+        restoring from the beginning of the log no longer recreates the current state as old updates may not be captured at all.
     <p>
-    Log compaction is a mechanism to give finer-grained per-record retention, rather than the coarser-grained time-based retention. The idea is to selectively remove records where we have a more recent update with the
-    same primary key. This way the log is guaranteed to have at least the last state for each key.
+        Log compaction is a mechanism to give finer-grained per-record retention, rather than the coarser-grained time-based retention. The idea is to selectively remove records where we have a more recent update with the
+        same primary key. This way the log is guaranteed to have at least the last state for each key.
     <p>
-    This retention policy can be set per-topic, so a single cluster can have some topics where retention is enforced by size or time and other topics where retention is enforced by compaction.
+        This retention policy can be set per-topic, so a single cluster can have some topics where retention is enforced by size or time and other topics where retention is enforced by compaction.
     <p>
-    This functionality is inspired by one of LinkedIn's oldest and most successful pieces of infrastructure&mdash;a database changelog caching service called <a href="https://github.com/linkedin/databus">Databus</a>.
-    Unlike most log-structured storage systems Kafka is built for subscription and organizes data for fast linear reads and writes. Unlike Databus, Kafka acts as a source-of-truth store so it is useful even in
-    situations where the upstream data source would not otherwise be replayable.
+        This functionality is inspired by one of LinkedIn's oldest and most successful pieces of infrastructure&mdash;a database changelog caching service called <a href="https://github.com/linkedin/databus">Databus</a>.
+        Unlike most log-structured storage systems Kafka is built for subscription and organizes data for fast linear reads and writes. Unlike Databus, Kafka acts as a source-of-truth store so it is useful even in
+        situations where the upstream data source would not otherwise be replayable.
 
     <h4><a id="design_compactionbasics" href="#design_compactionbasics">Log Compaction Basics</a></h4>
 
     Here is a high-level picture that shows the logical structure of a Kafka log with the offset for each message.
     <p>
-    <img class="centered" src="/{{version}}/images/log_cleaner_anatomy.png">
+        <img class="centered" src="/{{version}}/images/log_cleaner_anatomy.png">
     <p>
-    The head of the log is identical to a traditional Kafka log. It has dense, sequential offsets and retains all messages. Log compaction adds an option for handling the tail of the log. The picture above shows a log
-    with a compacted tail. Note that the messages in the tail of the log retain the original offset assigned when they were first written&mdash;that never changes. Note also that all offsets remain valid positions in
-    the log, even if the message with that offset has been compacted away; in this case this position is indistinguishable from the next highest offset that does appear in the log. For example, in the picture above the
-    offsets 36, 37, and 38 are all equivalent positions and a read beginning at any of these offsets would return a message set beginning with 38.
+        The head of the log is identical to a traditional Kafka log. It has dense, sequential offsets and retains all messages. Log compaction adds an option for handling the tail of the log. The picture above shows a log
+        with a compacted tail. Note that the messages in the tail of the log retain the original offset assigned when they were first written&mdash;that never changes. Note also that all offsets remain valid positions in
+        the log, even if the message with that offset has been compacted away; in this case this position is indistinguishable from the next highest offset that does appear in the log. For example, in the picture above the
+        offsets 36, 37, and 38 are all equivalent positions and a read beginning at any of these offsets would return a message set beginning with 38.
     <p>
-    Compaction also allows for deletes. A message with a key and a null payload will be treated as a delete from the log. This delete marker will cause any prior message with that key to be removed (as would any new
-    message with that key), but delete markers are special in that they will themselves be cleaned out of the log after a period of time to free up space. The point in time at which deletes are no longer retained is
-    marked as the "delete retention point" in the above diagram.
+        Compaction also allows for deletes. A message with a key and a null payload will be treated as a delete from the log. This delete marker will cause any prior message with that key to be removed (as would any new
+        message with that key), but delete markers are special in that they will themselves be cleaned out of the log after a period of time to free up space. The point in time at which deletes are no longer retained is
+        marked as the "delete retention point" in the above diagram.
     <p>
-    The compaction is done in the background by periodically recopying log segments. Cleaning does not block reads and can be throttled to use no more than a configurable amount of I/O throughput to avoid impacting
-    producers and consumers. The actual process of compacting a log segment looks something like this:
+        The compaction is done in the background by periodically recopying log segments. Cleaning does not block reads and can be throttled to use no more than a configurable amount of I/O throughput to avoid impacting
+        producers and consumers. The actual process of compacting a log segment looks something like this:
     <p>
-    <img class="centered" src="/{{version}}/images/log_compaction.png">
+        <img class="centered" src="/{{version}}/images/log_compaction.png">
     <p>
     <h4><a id="design_compactionguarantees" href="#design_compactionguarantees">What guarantees does log compaction provide?</a></h4>
 
     Log compaction guarantees the following:
     <ol>
-    <li>Any consumer that stays caught-up to within the head of the log will see every message that is written; these messages will have sequential offsets. The topic's <code>min.compaction.lag.ms</code> can be used to
-    guarantee the minimum length of time must pass after a message is written before it could be compacted. I.e. it provides a lower bound on how long each message will remain in the (uncompacted) head.
-    <li>Ordering of messages is always maintained.  Compaction will never re-order messages, just remove some.
-    <li>The offset for a message never changes.  It is the permanent identifier for a position in the log.
-    <li>Any consumer progressing from the start of the log will see at least the final state of all records in the order they were written.  Additionally, all delete markers for deleted records will be seen, provided 
-    the consumer reaches the head of the log in a time period less than the topic's <code>delete.retention.ms</code> setting (the default is 24 hours).  In other words: since the removal of delete markers happens 
-    concurrently with reads, it is possible for a consumer to miss delete markers if it lags by more than <code>delete.retention.ms</code>.
+        <li>Any consumer that stays caught-up to within the head of the log will see every message that is written; these messages will have sequential offsets. The topic's <code>min.compaction.lag.ms</code> can be used to
+            guarantee the minimum length of time must pass after a message is written before it could be compacted. I.e. it provides a lower bound on how long each message will remain in the (uncompacted) head.
+        <li>Ordering of messages is always maintained.  Compaction will never re-order messages, just remove some.
+        <li>The offset for a message never changes.  It is the permanent identifier for a position in the log.
+        <li>Any consumer progressing from the start of the log will see at least the final state of all records in the order they were written.  Additionally, all delete markers for deleted records will be seen, provided
+            the consumer reaches the head of the log in a time period less than the topic's <code>delete.retention.ms</code> setting (the default is 24 hours).  In other words: since the removal of delete markers happens
+            concurrently with reads, it is possible for a consumer to miss delete markers if it lags by more than <code>delete.retention.ms</code>.
     </ol>
 
     <h4><a id="design_compactiondetails" href="#design_compactiondetails">Log Compaction Details</a></h4>
 
     Log compaction is handled by the log cleaner, a pool of background threads that recopy log segment files, removing records whose key appears in the head of the log. Each compactor thread works as follows:
     <ol>
-    <li>It chooses the log that has the highest ratio of log head to log tail
-    <li>It creates a succinct summary of the last offset for each key in the head of the log
-    <li>It recopies the log from beginning to end removing keys which have a later occurrence in the log. New, clean segments are swapped into the log immediately so the additional disk space required is just one
-    additional log segment (not a fully copy of the log).
-    <li>The summary of the log head is essentially just a space-compact hash table. It uses exactly 24 bytes per entry. As a result with 8GB of cleaner buffer one cleaner iteration can clean around 366GB of log head
-    (assuming 1k messages).
+        <li>It chooses the log that has the highest ratio of log head to log tail
+        <li>It creates a succinct summary of the last offset for each key in the head of the log
+        <li>It recopies the log from beginning to end removing keys which have a later occurrence in the log. New, clean segments are swapped into the log immediately so the additional disk space required is just one
+            additional log segment (not a fully copy of the log).
+        <li>The summary of the log head is essentially just a space-compact hash table. It uses exactly 24 bytes per entry. As a result with 8GB of cleaner buffer one cleaner iteration can clean around 366GB of log head
+            (assuming 1k messages).
     </ol>
     <p>
     <h4><a id="design_compactionconfig" href="#design_compactionconfig">Configuring The Log Cleaner</a></h4>
 
-    The log cleaner is enabled by default. This will start the pool of cleaner threads. 
+    The log cleaner is enabled by default. This will start the pool of cleaner threads.
     To enable log cleaning on a particular topic you can add the log-specific property
     <pre class="brush: text;">  log.cleanup.policy=compact</pre>
     This can be done either at topic creation time or using the alter topic command.
     <p>
-    The log cleaner can be configured to retain a minimum amount of the uncompacted "head" of the log. This is enabled by setting the compaction time lag.
+        The log cleaner can be configured to retain a minimum amount of the uncompacted "head" of the log. This is enabled by setting the compaction time lag.
     <pre class="brush: text;">  log.cleaner.min.compaction.lag.ms</pre>
 
     This can be used to prevent messages newer than a minimum message age from being subject to compaction. If not set, all log segments are eligible for compaction except for the last segment, i.e. the one currently
     being written to. The active segment will not be compacted even if all of its messages are older than the minimum compaction time lag.
     </p>
     <p>
-    Further cleaner configurations are described <a href="/documentation.html#brokerconfigs">here</a>.
+        Further cleaner configurations are described <a href="/documentation.html#brokerconfigs">here</a>.
 
     <h3><a id="design_quotas" href="#design_quotas">4.9 Quotas</a></h3>
     <p>
