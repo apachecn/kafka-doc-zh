@@ -10,7 +10,8 @@ Translating kafka 1.0 version documents into Chinese.
 ## 1.0.0 document Contributors
 name         | github           | 
 --------------------|------------------|
-chengwei | [mikechengwei](https://github.com/mikechengwei)  | 
+chengwei | [mikechengwei](https://github.com/mikechengwei)  |
+changqun | [changqun](https://github.com/aspoman)  |  
 
 ### 联系方式
 有任何建议反馈, 或想参与文档翻译, 麻烦联系
