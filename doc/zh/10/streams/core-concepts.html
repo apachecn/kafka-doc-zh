@@ -33,7 +33,7 @@
         </div>
     </div>
     <p>
-        Kafka Streams 是一个处理和分析保存在 Kafka 的数据的客户端库。
+        Kafka Streams 是一个处理和分析保存在 Kafka 系统的数据的客户端库。
         它建立在重要的流处理概念之上，例如能够恰当地区分事件时间和处理时间、提供窗口功能以及简单有效、支持实时查询的应用程序状态管理。
     </p>
     <p>
@@ -129,42 +129,36 @@
     <h3><a id="streams_state" href="#streams_state">States</a></h3>
 
     <p>
-        Some stream processing applications don't require state, which means the processing of a message is independent from
-        the processing of all other messages.
-        However, being able to maintain state opens up many possibilities for sophisticated stream processing applications: you
-        can join input streams, or group and aggregate data records. Many such stateful operators are provided by the <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a>.
+        有些流处理程序不需要 state ，这意味着这些程序处理的消息与其他消息互相独立。
+        但是，能够维护状态使很多复杂的流处理应用的实现成为可能：我们可以连接输入流，分组和聚合数据。大量这种基于状态的操作由 <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl"><b>Kafka Streams DSL</b></a> 提供。
     </p>
     <p>
-        Kafka Streams provides so-called <b>state stores</b>, which can be used by stream processing applications to store and query data.
-        This is an important capability when implementing stateful operations.
-        Every task in Kafka Streams embeds one or more state stores that can be accessed via APIs to store and query data required for processing.
-        These state stores can either be a persistent key-value store, an in-memory hashmap, or another convenient data structure.
-        Kafka Streams offers fault-tolerance and automatic recovery for local state stores.
+        Kafka Streams 提供一种能够被流处理应用程序用来保存和查询数据状态的功能，称为 <b>state stores</b> 。
+        这对实现有状态的操作提供了很大的帮助。
+        Kafka Streams 中的每个任务都嵌入了一个或多个 state store ，可以通过api进行访问，以及存储和查询处理所需的数据。
+        这些 state store 可以是以键值对的方式持久化存储，也可以是保存在内存中的 hashmap ，或者是其他方便的数据结构。
+        Kafka Streams 为本地的 state store 提供容错和自动恢复。
     </p>
     <p>
-        Kafka Streams allows direct read-only queries of the state stores by methods, threads, processes or applications external to the stream processing application that created the state stores. This is provided through a feature called <b>Interactive Queries</b>. All stores are named and Interactive Queries exposes only the read operations of the underlying implementation.
+        Kafka Streams 允许创建 state store 的流处理应用程序外部的方法、线程、进程或应用程序对 state store 进行直接只读查询。 这是通过称为<b>交互式查询</b>的功能提供的。 所有 store 都是命名的，交互式查询只公开底层实现的读取操作。
     </p>
     <br>
 
     <h2><a id="streams_processing_guarantee" href="#streams_processing_guarantee">Processing Guarantees</a></h2>
 
     <p>
-        In stream processing, one of the most frequently asked question is "does my stream processing system guarantee that each record is processed once and only once, even if some failures are encountered in the middle of processing?"
-        Failing to guarantee exactly-once stream processing is a deal-breaker for many applications that cannot tolerate any data-loss or data duplicates, and in that case a batch-oriented framework is usually used in addition
-        to the stream processing pipeline, known as the <a href="http://lambda-architecture.net/">Lambda Architecture</a>.
-        Prior to 0.11.0.0, Kafka only provides at-least-once delivery guarantees and hence any stream processing systems that leverage it as the backend storage could not guarantee end-to-end exactly-once semantics.
-        In fact, even for those stream processing systems that claim to support exactly-once processing, as long as they are reading from / writing to Kafka as the source / sink, their applications cannot actually guarantee that
-        no duplicates will be generated throughout the pipeline.
+        在流处理领域，最常被问到的问题是:“即使在处理过程中遇到了一些故障，流处理系统是否保证每个记录只处理一次?”
+        不能保证精确的一次流处理对于许多不能容忍任何数据丢失或数据重复的应用程序来说是一种破坏，在这种情况下，除了流处理管道之外，通常还会使用面向批处理的框架，也就是所谓的 <a href="http://lambda-architecture.net/">Lambda 架构</a>。
+        在0.11.0.0之前， Kafka 仅提供至少一次的传递保证，因此任何利用它作为后端存储的流处理系统都不能保证端到端完全一次的语义。
+        实际上，即使对于那些声称 "exactly-once" 语义的流处理系统，只要他们正在读/写 Kafka 作为源/目标，他们的应用程序实际上并不能保证在整个流水线中不会产生重复。
 
-        Since the 0.11.0.0 release, Kafka has added support to allow its producers to send messages to different topic partitions in a <a href="https://kafka.apache.org/documentation/#semantics">transactional and idempotent manner</a>,
-        and Kafka Streams has hence added the end-to-end exactly-once processing semantics by leveraging these features.
-        More specifically, it guarantees that for any record read from the source Kafka topics, its processing results will be reflected exactly once in the output Kafka topic as well as in the state stores for stateful operations.
-        Note the key difference between Kafka Streams end-to-end exactly-once guarantee with other stream processing frameworks' claimed guarantees is that Kafka Streams tightly integrates with the underlying Kafka storage system and ensure that
-        commits on the input topic offsets, updates on the state stores, and writes to the output topics will be completed atomically instead of treating Kafka as an external system that may have side-effects.
-        To read more details on how this is done inside Kafka Streams, readers are recommended to read <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics">KIP-129</a>.
+        自从0.11.0.0版本发布以来，Kafka 允许 Producer 以一种<a href="https://kafka.apache.org/documentation/#semantics">事务性的和幂等的方式</a>向不同的 topic partition 发送消息以加强支持，，而 Kafka Streams 则通过利用这些特性来增加了端到端的 "exactly-once" 处理语义。
+        更具体地说，它保证对于从 Kafka topics 读取的任何记录的处理结果将在 Kafka topic 输出结果中反映一次，在 state stores 中也仅进行一次状态操作。
+        需要注意的是，Kafka Streams 的端到端一次性语义与其他流处理框架的主要区别在于，Kafka Streams 与底层的 Kafka 存储系统紧密集成，并确保输入 topics offset 的提交，state stores 的更新和写入输出 topics 的原子性，而不是将 Kafka 视为可能有副作用的外部系统。
+        要详细了解如何在 Kafka Streams 内完成此操作，建议读者阅读 <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics">KIP-129</a> 。
 
-        In order to achieve exactly-once semantics when running Kafka Streams applications, users can simply set the <code>processing.guarantee</code> config value to <b>exactly_once</b> (default value is <b>at_least_once</b>).
-        More details can be found in the <a href="/{{version}}/documentation#streamsconfigs"><b>Kafka Streams Configs</b></a> section.
+        在运行 Kafka 流应用程序时，为了实现 exactly-once  语义，用户需要设置 <code>processing.guarantee</code> 参数的值为 <b>exactly_once</b> （默认值为 <b>at_least_once</b> ）。
+        更多细节请参考 <a href="/{{version}}/documentation#streamsconfigs"><b>Kafka Streams Configs</b></a> 部分.
     </p>
 
     <div class="pagination">
