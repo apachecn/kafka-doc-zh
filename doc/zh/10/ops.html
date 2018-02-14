@@ -15,132 +15,130 @@
  limitations under the License.
 -->
 <script id="ops-template" type="text/x-handlebars-template">
-  
-  Here is some information on actually running Kafka as a production system based on usage and experience at LinkedIn. Please send us any additional tips you know of.
 
-  <h3><a id="basic_ops" href="#basic_ops">6.1 Basic Kafka Operations</a></h3>
+  以下是基于LinkedIn使用Kafka作为生产系统的一些使用经验。如果您有其他好的技巧请告诉我们。
 
-  This section will review the most common operations you will perform on your Kafka cluster. All of the tools reviewed in this section are available under the <code>bin/</code> directory of the Kafka distribution and each tool will print details on all possible commandline options if it is run with no arguments.
+  <h3><a id="basic_ops" href="#basic_ops">6.1 基础的 Kafka 操作</a></h3>
 
-  <h4><a id="basic_ops_add_topic" href="#basic_ops_add_topic">Adding and removing topics</a></h4>
+  本节将回顾在Kafka集群上执行的最常见操作。所有在本节中看到的工具都可以在Kafka发行版的<code> bin / </ code>目录下找到，如果没有参数运行，每个工具都会打印所有可能的命令行选项的细节。
 
-  You have the option of either adding topics manually or having them be created automatically when data is first published to a non-existent topic. If topics are auto-created then you may want to tune the default <a href="#topicconfigs">topic configurations</a> used for auto-created topics.
+  <h4><a id="basic_ops_add_topic" href="#basic_ops_add_topic">添加和删除 topics</a></h4>
+
+  您可以选择手动添加 topic ，或者在数据首次发布到不存在的 topic 时自动创建 topic 。如果 topic 是自动创建的，那么您可能需要调整用于自动创建 topic 的默认<a href="#topicconfigs"> topic 配置</a>。
   <p>
-  Topics are added and modified using the topic tool:
+  使用 topic 工具来添加和修改 topic ：
   <pre class="brush: bash;">
   &gt; bin/kafka-topics.sh --zookeeper zk_host:port/chroot --create --topic my_topic_name
         --partitions 20 --replication-factor 3 --config x=y
   </pre>
-  The replication factor controls how many servers will replicate each message that is written. If you have a replication factor of 3 then up to 2 servers can fail before you will lose access to your data. We recommend you use a replication factor of 2 or 3 so that you can transparently bounce machines without interrupting data consumption.
+  replication-factor 控制有多少服务器将复制每个写入的消息。如果您设置了3个复制因子，那么只能最多2个相关的服务器能出问题，否则您将无法访问数据。我们建议您使用2或3个复制因子，以便在不中断数据消费的情况下透明的调整集群。
   <p>
-  The partition count controls how many logs the topic will be sharded into. There are several impacts of the partition count. First each partition must fit entirely on a single server. So if you have 20 partitions the full data set (and read and write load) will be handled by no more than 20 servers (not counting replicas). Finally the partition count impacts the maximum parallelism of your consumers. This is discussed in greater detail in the <a href="#intro_consumers">concepts section</a>.
+  partitions 参数控制 topic 将被分片到多少个日志里。partitions 会产生几个影响。首先，每个分区只属于一个台服务器，所以如果有20个分区，那么全部数据(包含读写负载)将由不超过20个服务器（不包含副本）处理。最后 partitions 还会影响 consumer 的最大并行度。这在<a href="#intro_consumers">概念部分</a>中有更详细的讨论。
   <p>
-  Each sharded partition log is placed into its own folder under the Kafka log directory. The name of such folders consists of the topic name, appended by a dash (-) and the partition id. Since a typical folder name can not be over 255 characters long, there will be a limitation on the length of topic names. We assume the number of partitions will not ever be above 100,000. Therefore, topic names cannot be longer than 249 characters. This leaves just enough room in the folder name for a dash and a potentially 5 digit long partition id.
+  每个分区日志都放在自己的Kafka日志目录下的文件夹中。这些文件夹的名称由主题名称，破折号（ -  ）和分区ID组成。由于典型的文件夹名称长度不能超过255个字符，所以主题名称的长度会受到限制。我们假设分区的数量不会超过10万。因此，主题名称不能超过249个字符。这在文件夹名称中留下了足够的空间以显示短划线和可能的5位长的分区ID。
   <p>
-  The configurations added on the command line override the default settings the server has for things like the length of time data should be retained. The complete set of per-topic configurations is documented <a href="#topicconfigs">here</a>.
+    在命令行上添加的配置会覆盖服务器的默认设置，例如数据应该保留的时间长度。<a href="#topicconfigs">此处</a>记录了完整的每个 topic 配置。
 
-  <h4><a id="basic_ops_modify_topic" href="#basic_ops_modify_topic">Modifying topics</a></h4>
+  <h4><a id="basic_ops_modify_topic" href="#basic_ops_modify_topic">修改 topics</a></h4>
 
-  You can change the configuration or partitioning of a topic using the same topic tool.
+  使用相同的 topic 工具，您可以修改 topic 的配置或分区。
   <p>
-  To add partitions you can do
+  要添加分区，你可以做如下操作
   <pre class="brush: bash;">
   &gt; bin/kafka-topics.sh --zookeeper zk_host:port/chroot --alter --topic my_topic_name
         --partitions 40
   </pre>
-  Be aware that one use case for partitions is to semantically partition data, and adding partitions doesn't change the partitioning of existing data so this may disturb consumers if they rely on that partition. That is if data is partitioned by <code>hash(key) % number_of_partitions</code> then this partitioning will potentially be shuffled by adding partitions but Kafka will not attempt to automatically redistribute data in any way.
+  请注意，分区的一个用处是对数据进行语义分区，并且添加分区不会更改现有数据的分区，因此如果依赖该分区，则可能会影响消费者。也就是说，如果数据是通过<code> hash（key）％number_of_partitions </ code>进行分区的，那么这个分区可能会通过添加分区进行混洗，但Kafka不会尝试以任何方式自动重新分配数据。
   <p>
-  To add configs:
+  增加一个配置项:
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper zk_host:port/chroot --entity-type topics --entity-name my_topic_name --alter --add-config x=y
   </pre>
-  To remove a config:
+  删除一个配置项:
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper zk_host:port/chroot --entity-type topics --entity-name my_topic_name --alter --delete-config x
   </pre>
-  And finally deleting a topic:
+  删除一个 topic :
   <pre class="brush: bash;">
   &gt; bin/kafka-topics.sh --zookeeper zk_host:port/chroot --delete --topic my_topic_name
   </pre>
   <p>
-  Kafka does not currently support reducing the number of partitions for a topic.
+  当前，Kafka 不支持减少一个 topic 的分区数。
   <p>
-  Instructions for changing the replication factor of a topic can be found <a href="#basic_ops_increase_replication_factor">here</a>.
+  有关更改 一个 topic 复制因子的说明，请参见<a href="#basic_ops_increase_replication_factor">此处</a>.
 
-  <h4><a id="basic_ops_restarting" href="#basic_ops_restarting">Graceful shutdown</a></h4>
+  <h4><a id="basic_ops_restarting" href="#basic_ops_restarting">优雅的关机</a></h4>
 
-  The Kafka cluster will automatically detect any broker shutdown or failure and elect new leaders for the partitions on that machine. This will occur whether a server fails or it is brought down intentionally for maintenance or configuration changes. For the latter cases Kafka supports a more graceful mechanism for stopping a server than just killing it.
+  Kafka集群将自动检测到任何 broker 关机或故障，并为该机器上的分区选择新的 leader。无论服务器出现故障还是因为维护或配置更改而故意停机，都会发生这种情况。 对于后一种情况，Kafka支持更优雅的停止服务器的机制，而不仅仅是杀死它。
 
-  When a server is stopped gracefully it has two optimizations it will take advantage of:
+  当一个服务器正常停止时，它将采取两种优化措施:
   <ol>
-      <li>It will sync all its logs to disk to avoid needing to do any log recovery when it restarts (i.e. validating the checksum for all messages in the tail of the log). Log recovery takes time so this speeds up intentional restarts.
-      <li>It will migrate any partitions the server is the leader for to other replicas prior to shutting down. This will make the leadership transfer faster and minimize the time each partition is unavailable to a few milliseconds.
+      <li>它将所有日志同步到磁盘，以避免在重新启动时需要进行任何日志恢复活动（即验证日志尾部的所有消息的校验和）。由于日志恢复需要时间，所以从侧面加速了重新启动操作。
+      <li>它将在关闭之前将以该服务器为 leader 的任何分区迁移到其他副本。这将使 leader 角色传递更快，并将每个分区不可用的时间缩短到几毫秒。
   </ol>
 
-  Syncing the logs will happen automatically whenever the server is stopped other than by a hard kill, but the controlled leadership migration requires using a special setting:
+  只要服务器的停止不是通过直接杀死，同步日志就会自动发生，但控制 leader 迁移需要使用特殊的设置：
   <pre class="brush: text;">
       controlled.shutdown.enable=true
   </pre>
-  Note that controlled shutdown will only succeed if <i>all</i> the partitions hosted on the broker have replicas (i.e. the replication factor is greater than 1 <i>and</i> at least one of these replicas is alive). This is generally what you want since shutting down the last replica would make that topic partition unavailable.
+  请注意，只有当 broker 托管的分区具有副本（即，复制因子大于1 <i>且</ i>至少其中一个副本处于活动状态）时，对关闭的控制才会成功。 这通常是你想要的，因为关闭最后一个副本会使 topic 分区不可用。
 
   <h4><a id="basic_ops_leader_balancing" href="#basic_ops_leader_balancing">Balancing leadership</a></h4>
 
-  Whenever a broker stops or crashes leadership for that broker's partitions transfers to other replicas. This means that by default when the broker is restarted it will only be a follower for all its partitions, meaning it will not be used for client reads and writes.
+  每当一个 borker 停止或崩溃时，该 borker 上的分区的leader 会转移到其他副本。这意味着，在 broker 重新启动时，默认情况下，它将只是所有分区的跟随者，这意味着它不会用于客户端的读取和写入。
   <p>
-  To avoid this imbalance, Kafka has a notion of preferred replicas. If the list of replicas for a partition is 1,5,9 then node 1 is preferred as the leader to either node 5 or 9 because it is earlier in the replica list. You can have the Kafka cluster try to restore leadership to the restored replicas by running the command:
+  为了避免这种不平衡，Kafka有一个首选副本的概念。如果分区的副本列表为1,5,9，则节点1首选为节点5或9的 leader ，因为它在副本列表中较早。您可以通过运行以下命令让Kafka集群尝试恢复已恢复副本的领导地位：
   <pre class="brush: bash;">
   &gt; bin/kafka-preferred-replica-election.sh --zookeeper zk_host:port/chroot
   </pre>
 
-  Since running this command can be tedious you can also configure Kafka to do this automatically by setting the following configuration:
+  由于运行此命令可能很乏味，您也可以通过以下配置来自动配置Kafka：
   <pre class="brush: text;">
       auto.leader.rebalance.enable=true
   </pre>
 
-  <h4><a id="basic_ops_racks" href="#basic_ops_racks">Balancing Replicas Across Racks</a></h4>
-  The rack awareness feature spreads replicas of the same partition across different racks. This extends the guarantees Kafka provides for broker-failure to cover rack-failure, limiting the risk of data loss should all the brokers on a rack fail at once. The feature can also be applied to other broker groupings such as availability zones in EC2.
+  <h4><a id="basic_ops_racks" href="#basic_ops_racks">垮机架均衡副本</a></h4>
+  机架感知功能可以跨不同机架传播相同分区的副本。这扩展了 Kafka 为 broker 故障提供的容错担保，弥补了机架故障，如果机架上的所有 broker 都失败，则可以限制数据丢失的风险。该功能也可以应用于其他 broker 分组，例如EC2中的可用区域。
   <p></p>
-  You can specify that a broker belongs to a particular rack by adding a property to the broker config:
+  您可以通过向 broker 配置添加属性来指定 broker 属于的特定机架：
   <pre class="brush: text;">   broker.rack=my-rack-id</pre>
-  When a topic is <a href="#basic_ops_add_topic">created</a>, <a href="#basic_ops_modify_topic">modified</a> or replicas are <a href="#basic_ops_cluster_expansion">redistributed</a>, the rack constraint will be honoured, ensuring replicas span as many racks as they can (a partition will span min(#racks, replication-factor) different racks).
+  当 topic <a href="#basic_ops_add_topic">创建</a>，<a href="#basic_ops_modify_topic">修改</a>或副本<a href="#basic_ops_cluster_expansion">重新分配</a>时， 机架约束将得到保证，确保副本跨越尽可能多的机架（一个分区将跨越 min(#racks，replication-factor) 个不同的机架）。
   <p></p>
-  The algorithm used to assign replicas to brokers ensures that the number of leaders per broker will be constant, regardless of how brokers are distributed across racks. This ensures balanced throughput.
+  用于向 broker 分配副本的算法可确保每个 broker 的 leader 数量将保持不变，而不管 broker 在机架之间如何分布。这确保了均衡的吞吐量。
   <p></p>
-  However if racks are assigned different numbers of brokers, the assignment of replicas will not be even. Racks with fewer brokers will get more replicas, meaning they will use more storage and put more resources into replication. Hence it is sensible to configure an equal number of brokers per rack.
+  但是，如果 broker 在机架间分布不均 ，副本的分配将不均匀。具有较少 broker 的机架将获得更多复制副本，这意味着他们将使用更多存储并将更多资源投入复制。因此，每个机架配置相同数量的 broker 是明智的。
 
-  <h4><a id="basic_ops_mirror_maker" href="#basic_ops_mirror_maker">Mirroring data between clusters</a></h4>
+  <h4><a id="basic_ops_mirror_maker" href="#basic_ops_mirror_maker">集群之间镜像数据</a></h4>
 
-  We refer to the process of replicating data <i>between</i> Kafka clusters "mirroring" to avoid confusion with the replication that happens amongst the nodes in a single cluster. Kafka comes with a tool for mirroring data between Kafka clusters. The tool consumes from a source cluster and produces to a destination cluster.
+  我们指的是通过“镜像”复制Kafka集群之间的数据<i>的过程，以避免与在单个集群中的节点之间发生的复制混淆。Kafka附带了一个在Kafka集群之间镜像数据的工具 mirror-maker。该工具从源集群中消费数据并产生数据到目标集群。
 
-  A common use case for this kind of mirroring is to provide a replica in another datacenter. This scenario will be discussed in more detail in the next section.
+  这种镜像的常见用例是在另一个数据中心提供副本。这个场景将在下一节中详细的讨论。
   <p>
-  You can run many such mirroring processes to increase throughput and for fault-tolerance (if one process dies, the others will take overs the additional load).
+  您可以运行许多这样的镜像进程来提高吞吐量和容错能力（如果一个进程死亡，其他进程将承担额外的负载）。
+    <p>
+  从源群集中的 topic 中读取数据，并将其写入目标群集中具有相同名称的 topic。事实上，镜像只不过是把一个 Kafka 的 consumer 和 producer 联合在一起了。
   <p>
-  Data will be read from topics in the source cluster and written to a topic with the same name in the destination cluster. In fact the mirror maker is little more than a Kafka consumer and producer hooked together.
+  源和目标集群是完全独立的实体：它们可以有不同数量的分区，偏移量也不会相同。由于这个原因，镜像集群并不是真正意义上的容错机制（因为 consumer 的偏移量将会不同）。为此，我们建议使用正常的群集内复制。然而，镜像制作进程将保留并使用消息 key 进行分区，所以在每个 key 的基础上保存顺序。
   <p>
-  The source and destination clusters are completely independent entities: they can have different numbers of partitions and the offsets will not be the same. For this reason the mirror cluster is not really intended as a fault-tolerance mechanism (as the consumer position will be different); for that we recommend using normal in-cluster replication. The mirror maker process will, however, retain and use the message key for partitioning so order is preserved on a per-key basis.
-  <p>
-  Here is an example showing how to mirror a single topic (named <i>my-topic</i>) from an input cluster:
+  以下示例显示如何从输入群集中镜像单个 topic（名为<i> my-topic </i>）：
   <pre class="brush: bash;">
   &gt; bin/kafka-mirror-maker.sh
         --consumer.config consumer.properties
         --producer.config producer.properties --whitelist my-topic
   </pre>
-  Note that we specify the list of topics with the <code>--whitelist</code> option. This option allows any regular expression using <a href="http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html">Java-style regular expressions</a>. So you could mirror two topics named <i>A</i> and <i>B</i> using <code>--whitelist 'A|B'</code>. Or you could mirror <i>all</i> topics using <code>--whitelist '*'</code>. Make sure to quote any regular expression to ensure the shell doesn't try to expand it as a file path. For convenience we allow the use of ',' instead of '|' to specify a list of topics.
+  请注意，我们使用<code> --whitelist </code>选项指定 topic 列表。此选项允许使用任何<a href="http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html"> Java风格的正则表达式</a> 因此，您可以使用<code>--whitelist 'A|B'</code>来镜像名为<i>A</i> 和 <i>B</i> 的两个 topic 。 或者您可以使用<code>--whitelist '*'</ code>来镜像<i>全部</i> topic。确保引用的任何正则表达式不会被 shell 尝试将其展开为文件路径。为了方便起见，我们允许使用','而不是'|' 指定 topic 列表。
   <p>
-  Sometimes it is easier to say what it is that you <i>don't</i> want. Instead of using <code>--whitelist</code> to say what you want
-  to mirror you can use <code>--blacklist</code> to say what to exclude. This also takes a regular expression argument.
-  However, <code>--blacklist</code> is not supported when the new consumer has been enabled (i.e. when <code>bootstrap.servers</code>
-  has been defined in the consumer configuration).
+  有时，说出你不想要的东西比较容易。与使用<code>--whitelist</code> 来表示你想要的相反，通过镜像您可以使用 <code>--blacklist</code> 来表示要排除的内容。
+  这也需要一个正则表达式的参数。但是，当启用新的 consumer 时，不支持 <code>--blacklist</code>（即<code> bootstrap.servers </code>）已在 consumer 配置中定义）。
   <p>
-  Combining mirroring with the configuration <code>auto.create.topics.enable=true</code> makes it possible to have a replica cluster that will automatically create and replicate all data in a source cluster even as new topics are added.
+  将镜像与配置项<code> auto.create.topics.enable = true </code>结合使用，可以创建一个副本群集，即使添加了新的 topic，也可以自动创建和复制源群集中的所有数据。
 
-  <h4><a id="basic_ops_consumer_lag" href="#basic_ops_consumer_lag">Checking consumer position</a></h4>
-  Sometimes it's useful to see the position of your consumers. We have a tool that will show the position of all consumers in a consumer group as well as how far behind the end of the log they are. To run this tool on a consumer group named <i>my-group</i> consuming a topic named <i>my-topic</i> would look like this:
+  <h4><a id="basic_ops_consumer_lag" href="#basic_ops_consumer_lag">检查 consumer 位置</a></h4>
+  有时观察到消费者的位置是有用的。我们有一个工具，可以显示 consumer 群体中所有 consumer 的位置，以及他们所在日志的结尾。要在名为<i>my-group</i>的 consumer 组上运行此工具，消费一个名为<i>my-topic</i>的 topic 将如下所示：
   <pre class="brush: bash;">
   &gt; bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group my-group
 
-  Note: This will only show information about consumers that use the Java consumer API (non-ZooKeeper-based consumers).
+  注意：这将仅显示使用Java consumer API（基于非ZooKeeper的 consumer）的 consumer 的信息。
   
   TOPIC                          PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG        CONSUMER-ID                                       HOST                           CLIENT-ID
   my-topic                       0          2               4               2          consumer-1-029af89c-873c-4751-a720-cefd41a669d6   /127.0.0.1                     consumer-1
@@ -148,11 +146,11 @@
   my-topic                       2          2               3               1          consumer-2-42c1abd4-e3b2-425d-a8bb-e1ea49b29bb2   /127.0.0.1                     consumer-2
   </pre>
 
-  This tool also works with ZooKeeper-based consumers:
+  这个工具也适用于基于ZooKeeper的 consumer：
   <pre class="brush: bash;">
   &gt; bin/kafka-consumer-groups.sh --zookeeper localhost:2181 --describe --group my-group
 
-  Note: This will only show information about consumers that use ZooKeeper (not those using the Java consumer API).
+  注意：这只会显示关于使用ZooKeeper的 consumer 的信息（不是那些使用Java consumer API的消费者）。
 
   TOPIC                          PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG        CONSUMER-ID
   my-topic                       0          2               4               2          my-group_consumer-1
@@ -160,13 +158,12 @@
   my-topic                       2          2               3               1          my-group_consumer-2
   </pre>
 
-  <h4><a id="basic_ops_consumer_group" href="#basic_ops_consumer_group">Managing Consumer Groups</a></h4>
+  <h4><a id="basic_ops_consumer_group" href="#basic_ops_consumer_group">管理 Consumer 组</a></h4>
 
-  With the ConsumerGroupCommand tool, we can list, describe, or delete consumer groups. Note that deletion is only available when the group metadata is stored in
-  ZooKeeper. When using the <a href="http://kafka.apache.org/documentation.html#newconsumerapi">new consumer API</a> (where
-  the broker handles coordination of partition handling and rebalance), the group is deleted when the last committed offset for that group expires.
+    通过 ConsumerGroupCommand 工具，我们可以列出，描述或删除 consumer 组。请注意，删除仅在组元数据存储在ZooKeeper中时可用。当使用<a href="http://kafka.apache.org/documentation.html#newconsumerapi">新的 consumer API </a>（ broker 协调分区处理和重新平衡）时，
+    当该组的最后一个提交偏移量过期时，该组将被删除。
 
-  For example, to list all consumer groups across all topics:
+  例如，要列出所有 topic 中的所有 consumer 组：
 
   <pre class="brush: bash;">
   &gt; bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
@@ -174,7 +171,7 @@
   test-consumer-group
   </pre>
 
-  To view offsets, as mentioned earlier, we "describe" the consumer group like this:
+  如前所述,为了查看偏移量，我们这样“describe”consumer 组：
 
   <pre class="brush: bash;">
   &gt; bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group test-consumer-group
@@ -183,33 +180,32 @@
   test-foo                       0          1               3               2          consumer-1-a5d61779-4d04-4c50-a6d6-fb35d942642d   /127.0.0.1                     consumer-1
   </pre>
 
-  If you are using the old high-level consumer and storing the group metadata in ZooKeeper (i.e. <code>offsets.storage=zookeeper</code>), pass
-  <code>--zookeeper</code> instead of <code>bootstrap-server</code>:
+  如果您正在使用老的高级 consumer 并在ZooKeeper中存储组元数据（即<code> offsets.storage = zookeeper </code>），则传递 <code>--zookeeper</code> 而不是<code>bootstrap-server</code>：
 
   <pre class="brush: bash;">
   &gt; bin/kafka-consumer-groups.sh --zookeeper localhost:2181 --list
   </pre>
 
-  <h4><a id="basic_ops_cluster_expansion" href="#basic_ops_cluster_expansion">Expanding your cluster</a></h4>
+  <h4><a id="basic_ops_cluster_expansion" href="#basic_ops_cluster_expansion">扩展您的群集</a></h4>
 
-  Adding servers to a Kafka cluster is easy, just assign them a unique broker id and start up Kafka on your new servers. However these new servers will not automatically be assigned any data partitions, so unless partitions are moved to them they won't be doing any work until new topics are created. So usually when you add machines to your cluster you will want to migrate some existing data to these machines.
+  将服务器添加到Kafka集群非常简单，只需为其分配唯一的 broker ID并在您的新服务器上启动Kafka即可。但是，这些新的服务器不会自动分配到任何数据分区，除非将分区移动到这些分区，否则直到创建新 topic 时才会提供服务。所以通常当您将机器添加到群集中时，您会希望将一些现有数据迁移到这些机器上。
   <p>
-  The process of migrating data is manually initiated but fully automated. Under the covers what happens is that Kafka will add the new server as a follower of the partition it is migrating and allow it to fully replicate the existing data in that partition. When the new server has fully replicated the contents of this partition and joined the in-sync replica one of the existing replicas will delete their partition's data.
+  迁移数据的过程是手动启动的，但是完全自动化。在迁移数据时，Kafka会将新服务器添加为正在迁移的分区的 follower，并允许它完全复制该分区中的现有数据。当新服务器完全复制了此分区的内容并加入了同步副本时，其中一个现有副本将删除其分区的数据。
   <p>
-  The partition reassignment tool can be used to move partitions across brokers. An ideal partition distribution would ensure even data load and partition sizes across all brokers. The partition reassignment tool does not have the capability to automatically study the data distribution in a Kafka cluster and move partitions around to attain an even load distribution. As such, the admin has to figure out which topics or partitions should be moved around.
+  分区重新分配工具可用于跨 broker 移动分区。理想的分区分布将确保所有 broker 的数据负载和分区大小比较均衡。分区重新分配工具不具备自动分析Kafka集群中的数据分布并移动分区以获得均匀负载的功能。因此，管理员必须找出哪些 topic 或分区应该移动。
   <p>
-  The partition reassignment tool can run in 3 mutually exclusive modes:
+  分区重新分配工具可以以3种互斥方式运行：
   <ul>
-  <li>--generate: In this mode, given a list of topics and a list of brokers, the tool generates a candidate reassignment to move all partitions of the specified topics to the new brokers. This option merely provides a convenient way to generate a partition reassignment plan given a list of topics and target brokers.</li>
-  <li>--execute: In this mode, the tool kicks off the reassignment of partitions based on the user provided reassignment plan. (using the --reassignment-json-file option). This can either be a custom reassignment plan hand crafted by the admin or provided by using the --generate option</li>
-  <li>--verify: In this mode, the tool verifies the status of the reassignment for all partitions listed during the last --execute. The status can be either of successfully completed, failed or in progress</li>
+  <li>--generate: 在此模式下，给定一个 topic 列表和一个 broker 列表，该工具会生成一个候选重新分配，以将指定的 topic 的所有分区移动到新的broker。此选项仅提供了一种便捷的方式，可以根据 tpoc 和目标 broker 列表生成分区重新分配计划。</li>
+  <li>--execute: 在此模式下，该工具基于用户提供的重新分配计划启动分区重新分配。（使用--reassignment-json-file选项）。这可以是由管理员制作的自定义重新分配计划，也可以是使用--generate选项提供的自定义重新分配计划。</li>
+  <li>--verify: 在此模式下，该工具将验证最近用 --execute 模式执行间的所有分区的重新分配状态。状态可以是成功完成，失败或正在进行</li>
   </ul>
-  <h5><a id="basic_ops_automigrate" href="#basic_ops_automigrate">Automatically migrating data to new machines</a></h5>
-  The partition reassignment tool can be used to move some topics off of the current set of brokers to the newly added brokers. This is typically useful while expanding an existing cluster since it is easier to move entire topics to the new set of brokers, than moving one partition at a time. When used to do this, the user should provide a list of topics that should be moved to the new set of brokers and a target list of new brokers. The tool then evenly distributes all partitions for the given list of topics across the new set of brokers. During this move, the replication factor of the topic is kept constant. Effectively the replicas for all partitions for the input list of topics are moved from the old set of brokers to the newly added brokers.
+  <h5><a id="basic_ops_automigrate" href="#basic_ops_automigrate">自动将数据迁移到新机器</a></h5>
+  分区重新分配工具可用于将当前一组 broker 的一些 topic 移至新增的topic。这在扩展现有群集时通常很有用，因为将整个 topic 移动到新 broker 集比移动一个分区更容易。当这样做的时候，用户应该提供需要移动到新的 broker 集合的 topic 列表和新的目标broker列表。该工具然后会均匀分配新 broker 集中 topic 的所有分区。在此过程中，topic 的复制因子保持不变。实际上，所有输入 topic 的所有分区副本都将从旧的broker 组转移到新 broker中。
   <p>
-  For instance, the following example will move all partitions for topics foo1,foo2 to the new set of brokers 5,6. At the end of this move, all partitions for topics foo1 and foo2 will <i>only</i> exist on brokers 5,6.
+  例如，以下示例将把名叫foo1，foo2的 topic 的所有分区移动到新的 broker 集5,6。最后，foo1和foo2的所有分区将只在<5,6> broker 上存在。
   <p>
-  Since the tool accepts the input list of topics as a json file, you first need to identify the topics you want to move and create the json file as follows:
+  由于该工具接受由 topic 组成的输入列表作为json文件，因此首先需要确定要移动的 topic 并创建 json 文件，如下所示：
   <pre class="brush: bash;">
   > cat topics-to-move.json
   {"topics": [{"topic": "foo1"},
@@ -217,10 +213,10 @@
   "version":1
   }
   </pre>
-  Once the json file is ready, use the partition reassignment tool to generate a candidate assignment:
+  一旦json文件准备就绪，就可以使用分区重新分配工具来生成候选分配：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --topics-to-move-json-file topics-to-move.json --broker-list "5,6" --generate
-  Current partition replica assignment
+  当前分区副本分配
 
   {"version":1,
   "partitions":[{"topic":"foo1","partition":2,"replicas":[1,2]},
@@ -231,7 +227,7 @@
                 {"topic":"foo2","partition":1,"replicas":[2,3]}]
   }
 
-  Proposed partition reassignment configuration
+  建议的分区重新分配配置
 
   {"version":1,
   "partitions":[{"topic":"foo1","partition":2,"replicas":[5,6]},
@@ -243,10 +239,10 @@
   }
   </pre>
   <p>
-  The tool generates a candidate assignment that will move all partitions from topics foo1,foo2 to brokers 5,6. Note, however, that at this point, the partition movement has not started, it merely tells you the current assignment and the proposed new assignment. The current assignment should be saved in case you want to rollback to it. The new assignment should be saved in a json file (e.g. expand-cluster-reassignment.json) to be input to the tool with the --execute option as follows:
+  该工具会生成一个候选分配，将所有分区从topic foo1，foo2移动到brokers 5,6。但是，请注意，这个时候，分区操作还没有开始，它只是告诉你当前的任务和建议的新任务。应该保存当前的分配，以防您想要回滚到它。新的任务应该保存在一个json文件（例如expand-cluster-reassignment.json）中，并用--execute选项输入到工具中，如下所示：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file expand-cluster-reassignment.json --execute
-  Current partition replica assignment
+  当前分区副本分配
 
   {"version":1,
   "partitions":[{"topic":"foo1","partition":2,"replicas":[1,2]},
@@ -257,8 +253,8 @@
                 {"topic":"foo2","partition":1,"replicas":[2,3]}]
   }
 
-  Save this to use as the --reassignment-json-file option during rollback
-  Successfully started reassignment of partitions
+  保存这个以在回滚期间用作--reassignment-json-file选项
+  成功开始重新分配分区
   {"version":1,
   "partitions":[{"topic":"foo1","partition":2,"replicas":[5,6]},
                 {"topic":"foo1","partition":0,"replicas":[5,6]},
@@ -269,7 +265,7 @@
   }
   </pre>
   <p>
-  Finally, the --verify option can be used with the tool to check the status of the partition reassignment. Note that the same expand-cluster-reassignment.json (used with the --execute option) should be used with the --verify option:
+  最后，可以使用--verify选项来检查分区重新分配的状态。请注意，相同的expand-cluster-reassignment.json（与--execute选项一起使用）应与--verify选项一起使用：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file expand-cluster-reassignment.json --verify
   Status of partition reassignment:
@@ -281,35 +277,35 @@
   Reassignment of partition [foo2,2] completed successfully
   </pre>
 
-  <h5><a id="basic_ops_partitionassignment" href="#basic_ops_partitionassignment">Custom partition assignment and migration</a></h5>
-  The partition reassignment tool can also be used to selectively move replicas of a partition to a specific set of brokers. When used in this manner, it is assumed that the user knows the reassignment plan and does not require the tool to generate a candidate reassignment, effectively skipping the --generate step and moving straight to the --execute step
+  <h5><a id="basic_ops_partitionassignment" href="#basic_ops_partitionassignment">自定义分区分配和迁移</a></h5>
+  分区重新分配工具也可用于选择性地将分区的副本移动到特定的一组 broker。当以这种方式使用时，假定用户知道重新分配计划并且不需要该工具产生候选的重新分配，有效地跳过 --generate 步骤并直接到 --execute步骤
   <p>
-  For instance, the following example moves partition 0 of topic foo1 to brokers 5,6 and partition 1 of topic foo2 to brokers 2,3:
+  例如，以下示例将 topic foo1的分区0 移到 broker 5,6中和将 topic foo2的分区1移到 broker 2,3中：
   <p>
-  The first step is to hand craft the custom reassignment plan in a json file:
+  第一步是在json文件中定义重新分配计划：
   <pre class="brush: bash;">
   > cat custom-reassignment.json
   {"version":1,"partitions":[{"topic":"foo1","partition":0,"replicas":[5,6]},{"topic":"foo2","partition":1,"replicas":[2,3]}]}
   </pre>
-  Then, use the json file with the --execute option to start the reassignment process:
+  然后，使用带有 --execute 选项的 json 文件来启动重新分配过程：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file custom-reassignment.json --execute
-  Current partition replica assignment
+ 当前分区副本分配情况
 
   {"version":1,
   "partitions":[{"topic":"foo1","partition":0,"replicas":[1,2]},
                 {"topic":"foo2","partition":1,"replicas":[3,4]}]
   }
 
-  Save this to use as the --reassignment-json-file option during rollback
-  Successfully started reassignment of partitions
+  保存这个以在回滚期间用作 --reassignment-json-file 选项
+  成功开始重新分配分区
   {"version":1,
   "partitions":[{"topic":"foo1","partition":0,"replicas":[5,6]},
                 {"topic":"foo2","partition":1,"replicas":[2,3]}]
   }
   </pre>
   <p>
-  The --verify option can be used with the tool to check the status of the partition reassignment. Note that the same expand-cluster-reassignment.json (used with the --execute option) should be used with the --verify option:
+  可以使用--verify选项来检查分区重新分配的状态。 请注意，相同的expand-cluster-reassignment.json（与--execute选项一起使用）应与--verify选项一起使用：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file custom-reassignment.json --verify
   Status of partition reassignment:
@@ -317,68 +313,67 @@
   Reassignment of partition [foo2,1] completed successfully
   </pre>
 
-  <h4><a id="basic_ops_decommissioning_brokers" href="#basic_ops_decommissioning_brokers">Decommissioning brokers</a></h4>
-  The partition reassignment tool does not have the ability to automatically generate a reassignment plan for decommissioning brokers yet. As such, the admin has to come up with a reassignment plan to move the replica for all partitions hosted on the broker to be decommissioned, to the rest of the brokers. This can be relatively tedious as the reassignment needs to ensure that all the replicas are not moved from the decommissioned broker to only one other broker. To make this process effortless, we plan to add tooling support for decommissioning brokers in the future.
+  <h4><a id="basic_ops_decommissioning_brokers" href="#basic_ops_decommissioning_brokers">下线 brokers</a></h4>
 
-  <h4><a id="basic_ops_increase_replication_factor" href="#basic_ops_increase_replication_factor">Increasing replication factor</a></h4>
-  Increasing the replication factor of an existing partition is easy. Just specify the extra replicas in the custom reassignment json file and use it with the --execute option to increase the replication factor of the specified partitions.
+  分区重新分配工具不具备为下线 broker 自动生成重新分配计划的功能。因此，管理员必须自己整理重新分配计划，将托管在即将下线的 broker 上的所有分区的副本移动到其他 broker。这可能比较单调，因为重新分配需要确保所有副本不会从将下线的 broker 只转移到唯一的 broker。 为了使这一过程毫不费力，我们计划在未来为下线 broker 添加工具支持。
+  <h4><a id="basic_ops_increase_replication_factor" href="#basic_ops_increase_replication_factor">增加复制因子</a></h4>
+  增加现有分区的复制因子很容易。只需在自定义重新分配json文件中指定额外的副本，并将其与--execute选项一起使用，以增加指定分区的复制因子。
   <p>
-  For instance, the following example increases the replication factor of partition 0 of topic foo from 1 to 3. Before increasing the replication factor, the partition's only replica existed on broker 5. As part of increasing the replication factor, we will add more replicas on brokers 6 and 7.
+  例如，以下示例将foo的分区0的复制因子从1增加到3。在增加复制因子之前，该分区的唯一副本存在于 broker 5上。作为增加复制因子的一部分，我们将添加更多副本到 broker 6和7。
   <p>
-  The first step is to hand craft the custom reassignment plan in a json file:
+  第一步是在json文件中自定义重新分配计划：
   <pre class="brush: bash;">
   > cat increase-replication-factor.json
   {"version":1,
   "partitions":[{"topic":"foo","partition":0,"replicas":[5,6,7]}]}
   </pre>
-  Then, use the json file with the --execute option to start the reassignment process:
+  然后，使用带有--execute选项的json文件来启动重新分配过程：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file increase-replication-factor.json --execute
-  Current partition replica assignment
+  当前分区副本分配
 
   {"version":1,
   "partitions":[{"topic":"foo","partition":0,"replicas":[5]}]}
 
-  Save this to use as the --reassignment-json-file option during rollback
-  Successfully started reassignment of partitions
+  保存这个以在回滚期间用作--reassignment-json-file选项
+  成功开始重新分配分区
   {"version":1,
   "partitions":[{"topic":"foo","partition":0,"replicas":[5,6,7]}]}
   </pre>
   <p>
-  The --verify option can be used with the tool to check the status of the partition reassignment. Note that the same increase-replication-factor.json (used with the --execute option) should be used with the --verify option:
+  可以使用--verify选项来检查分区重新分配的状态。请注意，与--verify选项使用的increase-replication-factor.json要与--execute选项一起使用的相同：
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file increase-replication-factor.json --verify
   Status of partition reassignment:
   Reassignment of partition [foo,0] completed successfully
   </pre>
-  You can also verify the increase in replication factor with the kafka-topics tool:
+  您还可以使用kafka-topics工具验证复制因子的增加情况：
   <pre class="brush: bash;">
   > bin/kafka-topics.sh --zookeeper localhost:2181 --topic foo --describe
   Topic:foo	PartitionCount:1	ReplicationFactor:3	Configs:
     Topic: foo	Partition: 0	Leader: 5	Replicas: 5,6,7	Isr: 5,6,7
   </pre>
 
-  <h4><a id="rep-throttle" href="#rep-throttle">Limiting Bandwidth Usage during Data Migration</a></h4>
-  Kafka lets you apply a throttle to replication traffic, setting an upper bound on the bandwidth used to move replicas from machine to machine. This is useful when rebalancing a cluster, bootstrapping a new broker or adding or removing brokers, as it limits the impact these data-intensive operations will have on users.
+  <h4><a id="rep-throttle" href="#rep-throttle">限制数据迁移过程中的带宽使用</a></h4>
+  Kafka允许您设置复制流量的阈值，设置用于将副本从机器移动到另一台机器上的带宽上限。在重新平衡群集，引导新 broker 或添加或删除 broker 时，这非常有用，因为它限制了这些数据密集型操作对用户的影响。
   <p></p>
-  There are two interfaces that can be used to engage a throttle. The simplest, and safest, is to apply a throttle when invoking the kafka-reassign-partitions.sh, but kafka-configs.sh can also be used to view and alter the throttle values directly.
+  有两个接口可以用来调节阈值。最简单也是最安全的是在调用kafka-reassign-partitions.sh时调节，但也可以使用kafka-configs.sh直接查看和更改流量阀值。
   <p></p>
-  So for example, if you were to execute a rebalance, with the below command, it would move partitions at no more than 50MB/s.
+  例如，如果要使用下面的命令执行重新平衡，它将以不超过 50MB/s 的速度移动分区。
   <pre class="brush: bash;">$ bin/kafka-reassign-partitions.sh --zookeeper myhost:2181--execute --reassignment-json-file bigger-cluster.json —throttle 50000000</pre>
-  When you execute this script you will see the throttle engage:
+  当你执行这个脚本时，你会看到：
   <pre class="brush: bash;">
   The throttle limit was set to 50000000 B/s
   Successfully started reassignment of partitions.</pre>
-  <p>Should you wish to alter the throttle, during a rebalance, say to increase the throughput so it completes quicker, you can do this by re-running the execute command passing the same reassignment-json-file:</p>
+  <p>如果你想改变阈值，在重新平衡期间，比如增加吞吐量以便更快地完成，你可以通过重新运行execute命令来传递同样的reassignment-json-file：</p>
   <pre class="brush: bash;">$ bin/kafka-reassign-partitions.sh --zookeeper localhost:2181  --execute --reassignment-json-file bigger-cluster.json --throttle 700000000
   There is an existing assignment running.
   The throttle limit was set to 700000000 B/s</pre>
 
-  <p>Once the rebalance completes the administrator can check the status of the rebalance using the --verify option.
-      If the rebalance has completed, the throttle will be removed via the --verify command. It is important that
-      administrators remove the throttle in a timely manner once rebalancing completes by running the command with
-      the --verify option. Failure to do so could cause regular replication traffic to be throttled. </p>
-  <p>When the --verify option is executed, and the reassignment has completed, the script will confirm that the throttle was removed:</p>
+  <p>当重新平衡完成后，管理员可以使用--verify选项检查重新平衡的状态。如果重新平衡完成，流量阈值将通过--verify命令删除。
+    一旦重新平衡完成后，管理员必须及时通过 --verify 选项删除节流阀，如果不这样做可能会导致正常的复制流量受到限制。
+      </p>
+  <p>当执行--verify选项并且重新分配完成时，脚本将确认节流阀已被移除：</p>
 
   <pre class="brush: bash;">
   > bin/kafka-reassign-partitions.sh --zookeeper localhost:2181  --verify --reassignment-json-file bigger-cluster.json
@@ -387,152 +382,139 @@
   Reassignment of partition [mytopic,0] completed successfully
   Throttle was removed.</pre>
 
-  <p>The administrator can also validate the assigned configs using the kafka-configs.sh. There are two pairs of throttle
-      configuration used to manage the throttling process. The throttle value itself. This is configured, at a broker
-      level, using the dynamic properties: </p>
+  <p>管理员还可以使用kafka-configs.sh验证分配的配置。有两对节流阀配置用于管理节流过程。节流阈值本身在 broker 级别使用动态属性进行配置的： </p>
 
   <pre class="brush: text;">leader.replication.throttled.rate
   follower.replication.throttled.rate</pre>
 
-  <p>There is also an enumerated set of throttled replicas: </p>
+  <p>还有一组枚举类型的复制节流配置： </p>
 
   <pre class="brush: text;">leader.replication.throttled.replicas
   follower.replication.throttled.replicas</pre>
 
-  <p>Which are configured per topic. All four config values are automatically assigned by kafka-reassign-partitions.sh
-      (discussed below). </p>
-  <p>To view the throttle limit configuration:</p>
+  <p>每个 topic 配置了哪些。所有四个配置值都由kafka-reassign-partitions.sh自动分配(下面讨论). </p>
+  <p>查看流量限制配置：</p>
 
   <pre class="brush: bash;">
   > bin/kafka-configs.sh --describe --zookeeper localhost:2181 --entity-type brokers
   Configs for brokers '2' are leader.replication.throttled.rate=700000000,follower.replication.throttled.rate=700000000
   Configs for brokers '1' are leader.replication.throttled.rate=700000000,follower.replication.throttled.rate=700000000</pre>
 
-  <p>This shows the throttle applied to both leader and follower side of the replication protocol. By default both sides
-      are assigned the same throttled throughput value. </p>
+  <p>这显示应用于复制协议的 leader 和 follower 的节流阀。默认情况下，双方都被分配相同的限制吞吐量值。 </p>
 
-  <p>To view the list of throttled replicas:</p>
+  <p>要查看节流副本的列表，请执行以下操作：</p>
 
   <pre class="brush: bash;">
   > bin/kafka-configs.sh --describe --zookeeper localhost:2181 --entity-type topics
   Configs for topic 'my-topic' are leader.replication.throttled.replicas=1:102,0:101,
       follower.replication.throttled.replicas=1:101,0:102</pre>
 
-  <p>Here we see the leader throttle is applied to partition 1 on broker 102 and partition 0 on broker 101. Likewise the
-      follower throttle is applied to partition 1 on
-      broker 101 and partition 0 on broker 102. </p>
+  <p>这里我们看到 leader 节流阀被应用于 broker 102上的分区1和 broker 101上的分区0。follower节流阀同样被应用于 broker 101上的分区1和 broker 102上的分区0。</p>
 
-  <p>By default kafka-reassign-partitions.sh will apply the leader throttle to all replicas that exist before the
-      rebalance, any one of which might be leader.
-      It will apply the follower throttle to all move destinations. So if there is a partition with replicas on brokers
-      101,102, being reassigned to 102,103, a leader throttle,
-      for that partition, would be applied to 101,102 and a follower throttle would be applied to 103 only. </p>
+  <p>默认情况下，kafka-reassign-partitions.sh将把 leader 的节流阀应用于重新平衡之前存在的所有副本，其中任何一个都可能是 leader。它会将 follower 应用到所有的目的地。
+      因此，如果 broker 101,102上有副本的分区，被重新分配到102,103，那么该分区的 leader 节流阀将被应用于101,102，并且 follower 节流阀将仅被应用于103。</p>
 
 
-  <p>If required, you can also use the --alter switch on kafka-configs.sh to alter the throttle configurations manually.
+  <p>如果需要，还可以使用kafka-configs.sh上的--alter开关手动更改节流阀配置。
   </p>
 
-  <h5>Safe usage of throttled replication</h5>
+  <h5>安全使用节流复制</h5>
 
-  <p>Some care should be taken when using throttled replication. In particular:</p>
+  <p>在使用节流复制时应该小心。 尤其是：</p>
 
-  <p><i>(1) Throttle Removal:</i></p>
-  The throttle should be removed in a timely manner once reassignment completes (by running kafka-reassign-partitions
-  —verify).
+  <p><i>(1) 移除节流阀</i></p>
+  一旦重新分配完成，应及时移除节流阀（通过运行kafka-reassign-partitions -verify）。
 
-  <p><i>(2) Ensuring Progress:</i></p>
-  <p>If the throttle is set too low, in comparison to the incoming write rate, it is possible for replication to not
-      make progress. This occurs when:</p>
+  <p><i>(2) 确保进展：</i></p>
+  <p>如果与传入写入速率相比阈值设置得太低，复制可能无法取得进展。这发生在：</p>
   <pre>max(BytesInPerSec) > throttle</pre>
   <p>
-      Where BytesInPerSec is the metric that monitors the write throughput of producers into each broker. </p>
-  <p>The administrator can monitor whether replication is making progress, during the rebalance, using the metric:</p>
+      BytesInPerSec是监控 producer 写入每个 broker 的写入吞吐量的指标。</p>
+  <p>管理员可以在重新平衡期间使用以下指标监控复制是否正在取得进展：</p>
 
   <pre>kafka.server:type=FetcherLagMetrics,name=ConsumerLag,clientId=([-.\w]+),topic=([-.\w]+),partition=([0-9]+)</pre>
 
-  <p>The lag should constantly decrease during replication.  If the metric does not decrease the administrator should
-      increase the
-      throttle throughput as described above. </p>
-
-
-  <h4><a id="quotas" href="#quotas">Setting quotas</a></h4>
-  Quotas overrides and defaults may be configured at (user, client-id), user or client-id levels as described <a href="#design_quotas">here</a>.
-  By default, clients receive an unlimited quota.
-
-  It is possible to set custom quotas for each (user, client-id), user or client-id group.
   <p>
-  Configure custom quota for (user=user1, client-id=clientA):
+  复制期间滞后数据应该不断减少。如果指标不降低，管理员应按上述方法增大节流阈值。
+       </p>
+
+
+  <h4><a id="quotas" href="#quotas">设置配额</a></h4>
+  配额覆盖值和默认值可以在（user=user1, client-id=clientA），用户或客户端级别配置，如<a href="#design_quotas">此处</a>所述。
+  默认情况下，客户端是无限制的配额。可以为每个（user, client-id），用户或客户端组设置自定义配额。
+  <p>
+  为（user = user1，client-id = clientA）配置自定义配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1 --entity-type clients --entity-name clientA
   Updated config for entity: user-principal 'user1', client-id 'clientA'.
   </pre>
 
-  Configure custom quota for user=user1:
+   为user = user1配置自定义配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1
   Updated config for entity: user-principal 'user1'.
   </pre>
 
-  Configure custom quota for client-id=clientA:
+  为client-id=clientA配置自定义配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type clients --entity-name clientA
   Updated config for entity: client-id 'clientA'.
   </pre>
 
-  It is possible to set default quotas for each (user, client-id), user or client-id group by specifying <i>--entity-default</i> option instead of <i>--entity-name</i>.
+  可以通过指定 <i>--entity-default</i> 选项而不是<i>--entity-name</i>来为每个（user, client-id），用户或客户端ID组设置默认配额。
   <p>
-  Configure default client-id quota for user=userA:
+  为user = userA配置默认客户端配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-name user1 --entity-type clients --entity-default
   Updated config for entity: user-principal 'user1', default client-id.
   </pre>
 
-  Configure default quota for user:
+  为用户配置默认配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type users --entity-default
   Updated config for entity: default user-principal.
   </pre>
 
-  Configure default quota for client-id:
+  配置client-id的默认配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --alter --add-config 'producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200' --entity-type clients --entity-default
   Updated config for entity: default client-id.
   </pre>
 
-  Here's how to describe the quota for a given (user, client-id):
+   以下是如何描述给定（user, client-id）的配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --describe --entity-type users --entity-name user1 --entity-type clients --entity-name clientA
   Configs for user-principal 'user1', client-id 'clientA' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   </pre>
-  Describe quota for a given user:
+  描述给定用户的配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --describe --entity-type users --entity-name user1
   Configs for user-principal 'user1' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   </pre>
-  Describe quota for a given client-id:
+  描述给定 client-id的配额：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --describe --entity-type clients --entity-name clientA
   Configs for client-id 'clientA' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   </pre>
-  If entity name is not specified, all entities of the specified type are described. For example, describe all users:
+  如果未指定实体名称，则描述指定类型的所有实体。 例如，描述所有用户：
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --describe --entity-type users
   Configs for user-principal 'user1' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   Configs for default user-principal are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   </pre>
-  Similarly for (user, client):
+  对于(user, client)也是同样的:
   <pre class="brush: bash;">
   > bin/kafka-configs.sh  --zookeeper localhost:2181 --describe --entity-type users --entity-type clients
   Configs for user-principal 'user1', default client-id are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   Configs for user-principal 'user1', client-id 'clientA' are producer_byte_rate=1024,consumer_byte_rate=2048,request_percentage=200
   </pre>
   <p>
-  It is possible to set default quotas that apply to all client-ids by setting these configs on the brokers. These properties are applied only if quota overrides or defaults are not configured in Zookeeper. By default, each client-id receives an unlimited quota. The following sets the default quota per producer and consumer client-id to 10MB/sec.
+  通过在 broker 上设置这些配置，可以适用于所有client-id的默认配额。只有在Zookeeper中未配置配额覆盖或默认配置时才应用这些属性。默认情况下，每个 client-id 都会收到一个无限制的配额。以下设置每个 producer 和 consumer 客户端的默认配额为10MB/sec。
   <pre class="brush: text;">
     quota.producer.default=10485760
     quota.consumer.default=10485760
   </pre>
-  Note that these properties are being deprecated and may be removed in a future release. Defaults configured using kafka-configs.sh take precedence over these properties.
+  请注意，这些属性已被弃用，并可能在未来版本中删除。使用kafka-configs.sh配置的默认值优先于这些属性。
 
   <h3><a id="datacenters" href="#datacenters">6.2 数据中心</a></h3>
 
