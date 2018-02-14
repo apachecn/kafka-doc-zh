@@ -20,34 +20,27 @@
 
 <script id="content-template" type="text/x-handlebars-template">
 
-<h1>Run Streams Demo Application</h1>
+<h1>运行 Streams 的 Demo 程序</h1>
 <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
-                <a class="active-menu-item"  href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
-                <a href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/">简介</a>
+                <a href="/{{version}}/documentation/streams/developer-guide">开发者指南</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">核心思想</a>
+                <a class="active-menu-item"  href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>
+                <a href="/{{version}}/documentation/streams/tutorial">编写自己的流处理程序</a>
             </div>
         </div>
 </div>  
 <p>
-  This tutorial assumes you are starting fresh and have no existing Kafka or ZooKeeper data. However, if you have already started Kafka and
-  ZooKeeper, feel free to skip the first two steps.
+  本教程假定您是新手并且没有现成的 Kafka 或 ZooKeeper 数据。 但是，如果您已经启动了Kafka和ZooKeeper，请随时跳过前两个步骤。
 </p>
 
   <p>
- Kafka Streams is a client library for building mission-critical real-time applications and microservices,
-  where the input and/or output data is stored in Kafka clusters. Kafka Streams combines the simplicity of
-  writing and deploying standard Java and Scala applications on the client side with the benefits of Kafka's
-  server-side cluster technology to make these applications highly scalable, elastic, fault-tolerant, distributed,
- and much more.
+  Kafka Streams 是用于构建关键任务的实时应用程序和微服务的客户端库，输入或输出数据存储在Kafka集群中。 Kafka Streams 结合了在客户端开发和部署标准Java和Scala应用程序的简易性，以及通过 Kafka 服务器端集群技术的优势，使这些应用程序具有高度可伸缩性，弹性，容错性，分布式等特性。
   </p>
-  <p>
-This quickstart example will demonstrate how to run a streaming application coded in this library. Here is the gist
-of the <code><a href="https://github.com/apache/kafka/blob/{{dotVersion}}/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java">WordCountDemo</a></code> example code (converted to use Java 8 lambda expressions for easy reading).
-</p>
+  <p>这个简易示例将演示如何在这个库中运行一个流应用程序。以下是 <code><a href="https://github.com/apache/kafka/blob/{{dotVersion}}/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java">WordCountDemo</a></code> 的示例代码（转换为使用Java 8 lambda表达式以便于阅读）。
+  </p>
 <pre class="brush: java;">
 // Serializers/deserializers (serde) for String and Long types
 final Serde&lt;String&gt; stringSerde = Serdes.String();
@@ -74,33 +67,29 @@ wordCounts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String
 </pre>
 
 <p>
-It implements the WordCount
-algorithm, which computes a word occurrence histogram from the input text. However, unlike other WordCount examples
-you might have seen before that operate on bounded data, the WordCount demo application behaves slightly differently because it is
-designed to operate on an <b>infinite, unbounded stream</b> of data. Similar to the bounded variant, it is a stateful algorithm that
-tracks and updates the counts of words. However, since it must assume potentially
-unbounded input data, it will periodically output its current state and results while continuing to process more data
-because it cannot know when it has processed "all" the input data.
+    以上代码实现了WordCount算法，它根据输入文本计算一个单词出现频次的直方图。
+    但是，这个程序与您之前可能看到过的对有界数据进行操作的其他WordCount程序不同，这个WordCount演示应用程序的行为稍有不同，因为它是
+    设计用于操作<b>无穷、无界的流数据</b>。 类似于有界变体，它是一个可以跟踪和更新单词的数量的有状态的算法。
+    但是，因为它必须假设输入数据是无界的，因此它将定期输出当前状态和结果，同时继续处理更多数据，因为它无法知道它何时能处理完“全部”输入数据。
 </p>
 <p>
-  As the first step, we will start Kafka (unless you already have it started) and then we will
-  prepare input data to a Kafka topic, which will subsequently be processed by a Kafka Streams application.
+  第一步，我们将启动 Kafka (除非你已经启动)，然后我们将为 Kafka topic 准备输入数据，随后将由 Kafka 流应用程序处理流数据。
 </p>
 
-<h4><a id="quickstart_streams_download" href="#quickstart_streams_download">Step 1: Download the code</a></h4>
+<h4><a id="quickstart_streams_download" href="#quickstart_streams_download">步骤1： 下载源代码</a></h4>
 
-<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz" title="Kafka downloads">Download</a> the {{fullDotVersion}} release and un-tar it.
-Note that there are multiple downloadable Scala versions and we choose to use the recommended version ({{scalaVersion}}) here:
+<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz" title="Kafka downloads">下载</a> {{fullDotVersion}} release版本并解压。
+注意有多个可下载的Scala版本程序，我们选择推荐的版本 ({{scalaVersion}}) :
 
 <pre class="brush: bash;">
 &gt; tar -xzf kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz
 &gt; cd kafka_{{scalaVersion}}-{{fullDotVersion}}
 </pre>
 
-<h4><a id="quickstart_streams_startserver" href="#quickstart_streams_startserver">Step 2: Start the Kafka server</a></h4>
+<h4><a id="quickstart_streams_startserver" href="#quickstart_streams_startserver">步骤2： 启动 Kafka 服务</a></h4>
 
 <p>
-Kafka uses <a href="https://zookeeper.apache.org/">ZooKeeper</a> so you need to first start a ZooKeeper server if you don't already have one. You can use the convenience script packaged with kafka to get a quick-and-dirty single-node ZooKeeper instance.
+Kafka 使用到 <a href="https://zookeeper.apache.org/">ZooKeeper</a> ，如果还没安装 ZooKeeper 的话需要先安装并启动 ZooKeeper 服务。 可以使用 kafka 打包的便捷脚本获取一个简单粗糙的单节点 ZooKeeper 实例。
 </p>
 
 <pre class="brush: bash;">
@@ -109,7 +98,7 @@ Kafka uses <a href="https://zookeeper.apache.org/">ZooKeeper</a> so you need to 
 ...
 </pre>
 
-<p>Now start the Kafka server:</p>
+<p>现在可以启动 Kafka 服务：</p>
 <pre class="brush: bash;">
 &gt; bin/kafka-server-start.sh config/server.properties
 [2013-04-22 15:01:47,028] INFO Verifying properties (kafka.utils.VerifiableProperties)
@@ -118,7 +107,7 @@ Kafka uses <a href="https://zookeeper.apache.org/">ZooKeeper</a> so you need to 
 </pre>
 
 
-<h4><a id="quickstart_streams_prepare" href="#quickstart_streams_prepare">Step 3: Prepare input topic and start Kafka producer</a></h4>
+<h4><a id="quickstart_streams_prepare" href="#quickstart_streams_prepare">步骤3：准备 input topic 和启动 Kafka producer</a></h4>
 
 <!--
 
@@ -134,7 +123,7 @@ Or on Windows:
 
 -->
 
-Next, we create the input topic named <b>streams-plaintext-input</b> and the output topic named <b>streams-wordcount-output</b>:
+接下来，我们创建名字为 <b>streams-plaintext-input</b> 的 input topic 以及名字为 <b>streams-wordcount-output</b> 的 output topic：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create \
@@ -145,8 +134,9 @@ Next, we create the input topic named <b>streams-plaintext-input</b> and the out
 Created topic "streams-plaintext-input".
 </pre>
 
+注意：因为 output stream 是changlog stream，因此我们创建 output stream 的时候启动了压缩。
 Note: we create the output topic with compaction enabled because the output stream is a changelog stream
-(cf. <a href="#anchor-changelog-output">explanation of application output</a> below).
+(参考 <a href="#anchor-changelog-output">explanation of application output</a> ).
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create \
@@ -158,7 +148,7 @@ Note: we create the output topic with compaction enabled because the output stre
 Created topic "streams-wordcount-output".
 </pre>
 
-The created topic can be described with the same <b>kafka-topics</b> tool:
+已创建的 topic 可以使用同样的 <b>kafka-topics</b> 工具来查询描述信息：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --zookeeper localhost:2181 --describe
@@ -169,27 +159,27 @@ Topic:streams-wordcount-output	PartitionCount:1	ReplicationFactor:1	Configs:
 	Topic: streams-wordcount-output	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
 </pre>
 
-<h4><a id="quickstart_streams_start" href="#quickstart_streams_start">Step 4: Start the Wordcount Application</a></h4>
+<h4><a id="quickstart_streams_start" href="#quickstart_streams_start">步骤4： 启动 Wordcount 程序</a></h4>
 
-The following command starts the WordCount demo application:
+以下命令将启动 WordCount 示例程序：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
 </pre>
 
 <p>
-The demo application will read from the input topic <b>streams-plaintext-input</b>, perform the computations of the WordCount algorithm on each of the read messages,
-and continuously write its current results to the output topic <b>streams-wordcount-output</b>.
-Hence there won't be any STDOUT output except log entries as the results are written back into in Kafka.
+    示例程序会从 input topic <b>streams-plaintext-input</b> 读取数据，以 WordCount 算法计算每条读到的消息，
+    并持续将当前的计算结果写到 output topic <b>streams-wordcount-output</b>。
+    因此，除了日志之外不会哟其他输出结果打印到STDOUT标准输出流，因为计算结构都回写到 Kafka 中。
 </p>
 
-Now we can start the console producer in a separate terminal to write some input data to this topic:
+现在我们可以在另外一个终端启动 Producer 会话来为这个 topic 写入数据：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
 </pre>
 
-and inspect the output of the WordCount demo application by reading from its output topic with the console consumer in a separate terminal:
+然后可以在另外一个终端启动 consumer 会话从 output topic 中读取并检查 WordCount 示例程序的输出：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
@@ -203,11 +193,15 @@ and inspect the output of the WordCount demo application by reading from its out
 </pre>
 
 
-<h4><a id="quickstart_streams_process" href="#quickstart_streams_process">Step 5: Process some data</a></h4>
+<h4><a id="quickstart_streams_process" href="#quickstart_streams_process">步骤5：处理数据</a></h4>
 
 Now let's write some message with the console producer into the input topic <b>streams-plaintext-input</b> by entering a single line of text and then hit &lt;RETURN&gt;.
 This will send a new message to the input topic, where the message key is null and the message value is the string encoded text line that you just entered
 (in practice, input data for applications will typically be streaming continuously into Kafka, rather than being manually entered as we do in this quickstart):
+
+现在我们可以在 producer 会话窗口通过输入单行文本并回车的方式输入消息到 input topic <b>streams-plaintext-input</b>。
+这样会输入一条新的消息到 input topic，这条消息的key值是null，value值是刚刚输入的文本（实践中，应用程序的输入数据通常会不断地流进 Kafka，而不是像我们在这样子手动输入）：
+
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
