@@ -209,7 +209,7 @@ all streams lead to kafka
 </pre>
 
 <p>
-This message will be processed by the Wordcount application and the following output data will be written to the <b>streams-wordcount-output</b> topic and printed by the console consumer:
+该消息将被 Wordcount 程序处理而且以下结果将写入到 <b>streams-wordcount-output</b> topic 并打印在consumer会话：
 </p>
 
 <pre class="brush: bash;">
@@ -230,12 +230,13 @@ kafka	1
 </pre>
 
 <p>
-Here, the first column is the Kafka message key in <code>java.lang.String</code> format and represents a word that is being counted, and the second column is the message value in <code>java.lang.Long</code>format, representing the word's latest count.
+这里的第一个字段是 Kafka 消息的key值，格式是 <code>java.lang.String</code>，代表一个被统计到的单词，第二个字段是消息的value值，格式是 <code>java.lang.Long</code>，代表单词的最新统计次数。
 </p>
 
-Now let's continue writing one more message with the console producer into the input topic <b>streams-plaintext-input</b>.
-Enter the text line "hello kafka streams" and hit &lt;RETURN&gt;.
-Your terminal should look as follows:
+接着我们继续在 producer 会话写入消息到input topic <b>streams-plaintext-input</b>。
+输入文本"hello kafka streams"并回车。
+终端应该如下：
+
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
@@ -243,7 +244,7 @@ all streams lead to kafka
 hello kafka streams
 </pre>
 
-In your other terminal in which the console consumer is running, you will observe that the WordCount application wrote new output data:
+在另外一个运行着consumer的终端上，将观察到 WordCount 程序的如下输出数据：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092
