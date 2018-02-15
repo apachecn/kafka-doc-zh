@@ -199,7 +199,7 @@ Now let's write some message with the console producer into the input topic <b>s
 This will send a new message to the input topic, where the message key is null and the message value is the string encoded text line that you just entered
 (in practice, input data for applications will typically be streaming continuously into Kafka, rather than being manually entered as we do in this quickstart):
 
-现在我们可以在 producer 会话窗口通过输入单行文本并回车的方式输入消息到 input topic <b>streams-plaintext-input</b>。
+现在我们可以在 producer 控制台通过输入单行文本并回车的方式输入消息到 input topic <b>streams-plaintext-input</b>。
 这样会输入一条新的消息到 input topic，这条消息的key值是null，value值是刚刚输入的文本（实践中，应用程序的输入数据通常会不断地流进 Kafka，而不是像我们在这样子手动输入）：
 
 
@@ -209,7 +209,7 @@ all streams lead to kafka
 </pre>
 
 <p>
-该消息将被 Wordcount 程序处理而且以下结果将写入到 <b>streams-wordcount-output</b> topic 并打印在consumer会话：
+该消息将被 Wordcount 程序处理而且以下结果将写入到 <b>streams-wordcount-output</b> topic 并打印在consumer控制台：
 </p>
 
 <pre class="brush: bash;">
@@ -266,10 +266,9 @@ kafka	2
 streams	2
 </pre>
 
-Here the last printed lines <b>kafka 2</b> and <b>streams 2</b> indicate updates to the keys <b>kafka</b> and <b>streams</b> whose counts have been incremented from <b>1</b> to <b>2</b>.
-Whenever you write further input messages to the input topic, you will observe new messages being added to the <b>streams-wordcount-output</b> topic,
-representing the most recent word counts as computed by the WordCount application.
-Let's enter one final input text line "join kafka summit" and hit &lt;RETURN&gt; in the console producer to the input topic <b>streams-wordcount-input</b> before we wrap up this quickstart:
+这里显示的最后两行 <b>kafka 2</b> 和 <b>streams 2</b> 表示  <b>kafka</b> 和 <b>streams</b> 这两个key的计数已经更新，从 <b>1</b> 增长到 <b>2</b> 。
+只要将更多输入消息写入 input topic ，都可以在 <b> streams-wordcount-output </b> topic 上观察到新消息，它们代表由WordCount应用程序计算出的最新字数。
+在圆满完成这个快速示例之前让我们在producer控制台向input topic <b>streams-wordcount-input</b> 输入最后一行文本 "join kafka summit" 并回车：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-wordcount-input
@@ -279,7 +278,7 @@ join kafka summit
 </pre>
 
 <a name="anchor-changelog-output"></a>
-The <b>streams-wordcount-output</b> topic will subsequently show the corresponding updated word counts (see last three lines):
+<b>streams-wordcount-output</b> topic 将随后显示单词的计数更新（查看最后三行）：
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092
@@ -304,13 +303,13 @@ kafka	3
 summit	1
 </pre>
 
-As one can see, outputs of the Wordcount application is actually a continuous stream of updates, where each output record (i.e. each line in the original output above) is
-an updated count of a single word, aka record key such as "kafka". For multiple records with the same key, each later record is an update of the previous one.
+可以看出，Wordcount应用程序的输出实际上是连续更新的流，其中每个输出记录（即上面原始输出中的每行）是一个单词的更新计数，诸如“kafka”之类的记录的key值。
+对于有相同key值的多条记录，每条新的记录都是前一条记录的更新。
 
 <p>
-The two diagrams below illustrate what is essentially happening behind the scenes.
-The first column shows the evolution of the current state of the <code>KTable&lt;String, Long&gt;</code> that is counting word occurrences for <code>count</code>.
-The second column shows the change records that result from state updates to the KTable and that are being sent to the output Kafka topic <b>streams-wordcount-output</b>.
+    下面的两张图说明了后台实际发生的内容。
+    第一列显示代表单词出现次数 <code> count </code> 的 <code>KTable&lt;String, Long&gt;</code> 的当前状态的演变。
+    第二列显示从KTable的状态更新以及发送到Kafka output topic <b>streams-wordcount-output</b> 的更改记录。
 </p>
 
 <img src="/{{version}}/images/streams-table-updates-02.png" style="float: right; width: 25%;">
@@ -318,6 +317,7 @@ The second column shows the change records that result from state updates to the
 
 <p>
 First the text line "all streams lead to kafka" is being processed.
+    第一行文本 "all streams lead to kafka" 开始被处理。
 The <code>KTable</code> is being built up as each new word results in a new table entry (highlighted with a green background), and a corresponding change record is sent to the downstream <code>KStream</code>.
 </p>
 <p>
