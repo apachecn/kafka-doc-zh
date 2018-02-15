@@ -316,24 +316,23 @@ summit	1
 <img src="/{{version}}/images/streams-table-updates-01.png" style="float: right; width: 25%;">
 
 <p>
-First the text line "all streams lead to kafka" is being processed.
-    第一行文本 "all streams lead to kafka" 开始被处理。
-The <code>KTable</code> is being built up as each new word results in a new table entry (highlighted with a green background), and a corresponding change record is sent to the downstream <code>KStream</code>.
+    首先，当第一行文本 "all streams lead to kafka" 开始被处理。
+    当每个新单词产生一个新表项（用绿色背景突出显示）时，<code> KTable </code> 也开始创建，并将相应的更改记录发送到下游<code> KStream </code>。
 </p>
 <p>
-When the second text line "hello kafka streams" is processed, we observe, for the first time, that existing entries in the <code>KTable</code> are being updated (here: for the words "kafka" and for "streams"). And again, change records are being sent to the output topic.
+    当处理第二行文本“hello kafka streams”时，我们首次观察到<code> KTable </code>中现有的条目更新（这里是："kafka"和"streams"两个key值）。同样地，更改记录也被发送到 output topic 。
 </p>
 <p>
-And so on (we skip the illustration of how the third line is being processed). This explains why the output topic has the contents we showed above, because it contains the full record of changes.
+    处理过程大致如此（我们跳过了第三行如何处理的说明）。 这解释了为什么 output topic 具有我们上面显示的内容，因为它包含完整的更改记录。
 </p>
 
 <p>
-Looking beyond the scope of this concrete example, what Kafka Streams is doing here is to leverage the duality between a table and a changelog stream (here: table = the KTable, changelog stream = the downstream KStream): you can publish every change of the table to a stream, and if you consume the entire changelog stream from beginning to end, you can reconstruct the contents of the table.
+    除了这个具体例子之外，Kafka Streams 还演示了如何利用 table 和 changelog stream 之间的对偶性（这里：table = KTable，changelog stream =下游KStream）：你可以将table的内容发布并转换为流，并且如果从头到尾使用整个 changelog stream ，则我们可以重新构建整个table的内容。
 </p>
 
 <h4><a id="quickstart_streams_stop" href="#quickstart_streams_stop">Step 6: Teardown the application</a></h4>
 
-<p>You can now stop the console consumer, the console producer, the Wordcount application, the Kafka broker and the ZooKeeper server in order via <b>Ctrl-C</b>.</p>
+<p>现在，你可以通过 <b>Ctrl + C</b> 按钮按顺序停止 consumer，producer，Wordcount程序， Kafka broker和ZooKeeper服务。</p>
 
  <div class="pagination">
         <a href="/{{version}}/documentation/streams" class="pagination__btn pagination__btn__prev">Previous</a>
