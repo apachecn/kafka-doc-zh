@@ -415,14 +415,14 @@
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_plain" href="#security_sasl_plain">Authentication using SASL/PLAIN</a></h4>
-        <p>SASL/PLAIN is a simple username/password authentication mechanism that is typically used with TLS for encryption to implement secure authentication.
-        Kafka supports a default implementation for SASL/PLAIN which can be extended for production use as described <a href="#security_sasl_plain_production">here</a>.</p>
-        The username is used as the authenticated <code>Principal</code> for configuration of ACLs etc.
+    <li><h4><a id="security_sasl_plain" href="#security_sasl_plain">使用 SASL/PLAIN 认证</a></h4>
+        <p>SASL/PLAIN 是一种简单的 username/password 认证机制, 通常与 TLS 加密一起使用, 用于实现安全认证.
+        Kafka 提供了一个 SASL/PLAIN 的默认实现, 可以为在生产环境使用做扩展, 使用方式如 <a href="#security_sasl_plain_production">这里</a> 描述.</p>
+        username 在 ACL 等的配置中作为已认证的 <code>Principal</code>.
         <ol>
-        <li><h5><a id="security_sasl_plain_brokerconfig" href="#security_sasl_plain_brokerconfig">Configuring Kafka Brokers</a></h5>
+        <li><h5><a id="security_sasl_plain_brokerconfig" href="#security_sasl_plain_brokerconfig">配置 Kafka Broker</a></h5>
             <ol>
-            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example:
+            <li>在每一个 Kafka broker 的 config 目录中, 添加一个类似于下面的适当修改过的 JAAS 文件. 在这个例子中, 让我们将它命名为 kafka_server_jaas.conf:
                 <pre class="brush: text;">
         KafkaServer {
             org.apache.kafka.common.security.plain.PlainLoginModule required
@@ -431,14 +431,13 @@
             user_admin="admin-secret"
             user_alice="alice-secret";
         };</pre>
-                This configuration defines two users (<i>admin</i> and <i>alice</i>). The properties <tt>username</tt> and <tt>password</tt>
-                in the <tt>KafkaServer</tt> section are used by the broker to initiate connections to other brokers. In this example,
-                <i>admin</i> is the user for inter-broker communication. The set of properties <tt>user_<i>userName</i></tt> defines
-                the passwords for all users that connect to the broker and the broker validates all client connections including
-                those from other brokers using these properties.</li>
-            <li>Pass the JAAS config file location as JVM parameter to each Kafka broker:
+                这个配置文件定义了两个用户 (<i>admin</i> and <i>alice</i>). 
+                在 <tt>KafkaServer</tt> 部分的 <tt>username</tt> 和 <tt>password</tt> 属性被这个 broker 用于初始化与其他 broker 的连接.
+                在这个例子中, <i>admin</i> 是 broker 间通信的用户. <tt>user_<i>userName</i></tt> 属性的值定义了所有连接 broker 用户的密码.
+                这个 broker 验证所有客户端的连接, 包括那些使用了这些配置的 broker 的连接.</li>
+            <li>将 JAAS 配置文件的路径作为 JVM 的参数, 并传递到每一个 Kafka broker:
                 <pre>    -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre></li>
-            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>. For example:
+            <li>参考 <a href="#security_sasl_brokerconfig">这里</a> 描述的, 在 server.properties 中配置 SASL 端口和 SASL 机制. 例如:
                 <pre>    listeners=SASL_SSL://host.name:port
         security.inter.broker.protocol=SASL_SSL
         sasl.mechanism.inter.broker.protocol=PLAIN
@@ -446,53 +445,46 @@
             </ol>
         </li>
 
-        <li><h5><a id="security_sasl_plain_clientconfig" href="#security_sasl_plain_clientconfig">Configuring Kafka Clients</a></h5>
-            To configure SASL authentication on the clients:
+        <li><h5><a id="security_sasl_plain_clientconfig" href="#security_sasl_plain_clientconfig">配置 Kafka Client</a></h5>
+            在客户端上配置 SASL 验证:
             <ol>
-            <li>Configure the JAAS configuration property for each client in producer.properties or consumer.properties.
-                The login module describes how the clients like producer and consumer can connect to the Kafka Broker.
-                The following is an example configuration for a client for the PLAIN mechanism:
+            <li>在每一个客户端的 producer.properties 或者 consumer.properties 中配置 JAAS 项.
+                登录模块描述了像生产者和消费者这样的客户端如何连接到 Kafka Broker.
+                下面是一个 PLAIN 机制的客户端的配置示例:
                 <pre class="brush: text;">
     sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
         username="alice" \
         password="alice-secret";</pre>
-                <p>The options <tt>username</tt> and <tt>password</tt> are used by clients to configure
-                the user for client connections. In this example, clients connect to the broker as user <i>alice</i>.
-                Different clients within a JVM may connect as different users by specifying different user names
-                and passwords in <code>sasl.jaas.config</code>.</p>
+                <p><tt>username</tt> 和 <tt>password</tt> 选项被客户端用于配置客户端连接的用户信息.
+                在这个例子中, 客户端作为 <i>alice</i> 用户连接到 broker.
+                通过在 <code>sasl.jaas.config</code> 中指定不同的用户名和密码, 在一个 JVM 内不同的客户端可以根据不同的用户连接.</p>
 
-                <p>JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
-                as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
-                <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</p></li>
-            <li>Configure the following properties in producer.properties or consumer.properties:
+                <p>客户端的 JAAS 配置也可以像 broker <a href="#security_client_staticjaas">这里</a> 描述的一样, 指定为一个 JVM 参数.
+                客户端使用命名为 <tt>KafkaClient</tt> 的登录部分.
+                此选项仅允许来自 JVM 的所有客户端连接中的一个用户.</p></li>
+            <li>在 producer.properties 或者 consumer.properties 中配置下面这些属性:
                 <pre>
     security.protocol=SASL_SSL
     sasl.mechanism=PLAIN</pre></li>
             </ol>
         </li>
-        <li><h5><a id="security_sasl_plain_production" href="#security_sasl_plain_production">Use of SASL/PLAIN in production</a></h5>
+        <li><h5><a id="security_sasl_plain_production" href="#security_sasl_plain_production">在生产环境中使用 SASL/PLAIN</a></h5>
             <ul>
-            <li>SASL/PLAIN should be used only with SSL as transport layer to ensure that clear passwords are not transmitted on the wire without encryption.</li>
-            <li>The default implementation of SASL/PLAIN in Kafka specifies usernames and passwords in the JAAS configuration file as shown
-                <a href="#security_sasl_plain_brokerconfig">here</a>. To avoid storing passwords on disk, you can plug in your own implementation of
-                <code>javax.security.auth.spi.LoginModule</code> that provides usernames and passwords from an external source. The login module implementation should
-                provide username as the public credential and password as the private credential of the <code>Subject</code>. The default implementation
-                <code>org.apache.kafka.common.security.plain.PlainLoginModule</code> can be used as an example.</li>
-            <li>In production systems, external authentication servers may implement password authentication. Kafka brokers can be integrated with these servers by adding
-                your own implementation of <code>javax.security.sasl.SaslServer</code>. The default implementation included in Kafka in the package
-                <code>org.apache.kafka.common.security.plain</code> can be used as an example to get started.
+            <li>SASL/PLAIN 应该只用 SSL 作为传输层, 以保证在没有加密的情况下不会在线上传输明文密码.</li>
+            <li>Kafka 中 SASL/PLAIN 的默认实现, 在 JAAS 配置文件声明用户名和密码, 如 <a href="#security_sasl_plain_brokerconfig">这里</a> 展示的. 
+                为了避免在磁盘上保存密码, 你可以插入你自己的 <code>javax.security.auth.spi.LoginModule</code> 实现, 从一个外部源提供用户名和密码.
+                登录模块的实现应该提供 <code>Subject</code> 的用户名作为公共证书和密码作为私有的凭证.
+                <code>org.apache.kafka.common.security.plain.PlainLoginModule</code> 的默认实现可以作为参考例子.</li>
+            <li>在生产系统, 外部的认证服务可以实现密码认证. 通过添加你自己的 <code>javax.security.sasl.SaslServer</code> 实现, Kafka brokers 可以和这些服务集成.
+                Kafka 中的默认实现在 <code>org.apache.kafka.common.security.plain</code> 包中, 可以作为开始学习的例子.
                 <ul>
-                <li>New providers must be installed and registered in the JVM. Providers can be installed by adding provider classes to
-                the normal <tt>CLASSPATH</tt> or bundled as a jar file and added to <tt><i>JAVA_HOME</i>/lib/ext</tt>.</li>
-                <li>Providers can be registered statically by adding a provider to the security properties file
-                <tt><i>JAVA_HOME</i>/lib/security/java.security</tt>.
+                <li>新的提供者一定要在 JVM 中安装和注册. 可以通过添加提供类到平常的 <tt>CLASSPATH</tt>, 或者把提供类打包成 jar 文件并添加到<tt><i>JAVA_HOME</i>/lib/ext</tt>中来安装提供者.</li>
+                <li>将提供者添加到安全属性文件 (security properties file) <tt><i>JAVA_HOME</i>/lib/security/java.security</tt> 静态注册提供者.
                 <pre>    security.provider.n=providerClassName</pre>
-                where <i>providerClassName</i> is the fully qualified name of the new provider and <i>n</i> is the preference order with
-                lower numbers indicating higher preference.</li>
-                <li>Alternatively, you can register providers dynamically at runtime by invoking <code>Security.addProvider</code> at the beginning of the client
-                application or in a static initializer in the login module. For example:
+                其中 <i>providerClassName</i> 是新提供者的全称. <i>n</i> 是优先顺序, 比较小的数字表明更高的优先级.</li>
+                <li>此外, 你可以在运行时通过在客户端程序开始时或者在登录模块的一个静态初始化程序中唤起 <code>Security.addProvider</code>来动态的注册提供者. 例如:
                 <pre>    Security.addProvider(new PlainSaslServerProvider());</pre></li>
-                <li>For more details, see <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html">JCA Reference</a>.</li>
+                <li>更多细节, 请查看 <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html">JCA Reference</a>.</li>
                 </ul>
             </li>
             </ul>
@@ -500,58 +492,54 @@
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_scram" href="#security_sasl_scram">Authentication using SASL/SCRAM</a></h4>
-        <p>Salted Challenge Response Authentication Mechanism (SCRAM) is a family of SASL mechanisms that
-        addresses the security concerns with traditional mechanisms that perform username/password authentication
-        like PLAIN and DIGEST-MD5. The mechanism is defined in <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a>.
-        Kafka supports <a href="https://tools.ietf.org/html/rfc7677">SCRAM-SHA-256</a> and SCRAM-SHA-512 which
-        can be used with TLS to perform secure authentication. The username is used as the authenticated
-        <code>Principal</code> for configuration of ACLs etc. The default SCRAM implementation in Kafka
-        stores SCRAM credentials in Zookeeper and is suitable for use in Kafka installations where Zookeeper
-        is on a private network. Refer to <a href="#security_sasl_scram_security">Security Considerations</a>
-        for more details.</p>
+    <li><h4><a id="security_sasl_scram" href="#security_sasl_scram">使用 SASL/SCRAM 认证</a></h4>
+        <p>Salted Challenge Response Authentication Mechanism (SCRAM) 是 SASL 机制家族中的一员, 
+        是用传统的机制解决安全问题, 执行像 PLAIN 和 DIGEST-MD5 一样的 username/password 认证.
+        这个机制在 <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a> 定义.
+        Kafka 支持 <a href="https://tools.ietf.org/html/rfc7677">SCRAM-SHA-256</a> 和 SCRAM-SHA-512, 可以和 TLS 一起用户执行安全认证.
+        username 在 ACL 等的配置中作为已认证的 <code>Principal</code>.
+        The default SCRAM implementation in Kafka
+        Kafka 中默认的 SCRAM 实现是在 Zookeeper 中保存 SCRAM 证书, 适用于 Zookeeper 在私有网络的 Kafka 安装.
+        更多信息请查看 <a href="#security_sasl_scram_security">安全注意事项</a>.</p>
         <ol>
-        <li><h5><a id="security_sasl_scram_credentials" href="#security_sasl_scram_credentials">Creating SCRAM Credentials</a></h5>
-        <p>The SCRAM implementation in Kafka uses Zookeeper as credential store. Credentials can be created in
-        Zookeeper using <tt>kafka-configs.sh</tt>. For each SCRAM mechanism enabled, credentials must be created
-        by adding a config with the mechanism name. Credentials for inter-broker communication must be created
-        before Kafka brokers are started. Client credentials may be created and updated dynamically and updated
-        credentials will be used to authenticate new connections.</p>
-        <p>Create SCRAM credentials for user <i>alice</i> with password <i>alice-secret</i>:
+        <li><h5><a id="security_sasl_scram_credentials" href="#security_sasl_scram_credentials">创建 SCRAM 证书</a></h5>
+        <p>Kafka 中的 SCRAM 实现使用 Zookeeper 作为证书存储. 可以使用 <tt>kafka-configs.sh</tt> 在 Zookeeper 中创建证书.
+        对每一个启用了 SCRAM 机制的, 必须通过添加机制名配置来创建证书. 用于 broker 间通信的证书必须在 Kafka broker 启动前创建.
+        客户端的证书可以动态创建和更新, 新的连接使用更新后的证书认证.</p>
+        <p>为用户 <i>alice</i> 创建密码为 <i>alice-secret</i> 的 SCRAM 凭证:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=alice-secret],SCRAM-SHA-512=[password=alice-secret]' --entity-type users --entity-name alice
         </pre>
-        <p>The default iteration count of 4096 is used if iterations are not specified. A random salt is created
-        and the SCRAM identity consisting of salt, iterations, StoredKey and ServerKey are stored in Zookeeper.
-        See <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a> for details on SCRAM identity and the individual fields.
-        <p>The following examples also require a user <i>admin</i> for inter-broker communication which can be created using:
+        <p>如果未指定迭代次数, 将使用默认的迭代次数, 4096. 创建一个随机 salt, SCRAM 标识由 salt, 迭代和 StoredKey 组成.
+        ServerKey 保存在 Zookeeper 中.
+        有关 SCRAM 的标识和各个字段的详细信息，请参考 <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a>.
+        <p>以下示例中, 关于 broker 间的通信, 需要一个 <i>admin</i> 用户. 使用如下命令创建:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config 'SCRAM-SHA-256=[password=admin-secret],SCRAM-SHA-512=[password=admin-secret]' --entity-type users --entity-name admin
         </pre>
-        <p>Existing credentials may be listed using the <i>--describe</i> option:
+        <p>使用 <i>--describe</i> 选项可以 列出所有存在的证书:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --describe --entity-type users --entity-name alice
         </pre>
-        <p>Credentials may be deleted for one or more SCRAM mechanisms using the <i>--delete</i> option:
+        <p>使用 <i>--delete</i> 选项删除一个或多个 SCRAM 机制的证书:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --delete-config 'SCRAM-SHA-512' --entity-type users --entity-name alice
         </pre>
         </li>
-        <li><h5><a id="security_sasl_scram_brokerconfig" href="#security_sasl_scram_brokerconfig">Configuring Kafka Brokers</a></h5>
+        <li><h5><a id="security_sasl_scram_brokerconfig" href="#security_sasl_scram_brokerconfig">配置 Kafka Broker</a></h5>
             <ol>
-            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example:
+            <li>在每个 Kafka broker 的 config 目录, 添加一个类似下面的适当修改的 JAAS 文件. 在这个例子中, 我们将其命名为 kafka_server_jaas.conf:
                 <pre>
     KafkaServer {
         org.apache.kafka.common.security.scram.ScramLoginModule required
         username="admin"
         password="admin-secret";
     };</pre>
-                The properties <tt>username</tt> and <tt>password</tt> in the <tt>KafkaServer</tt> section are used by
-                the broker to initiate connections to other brokers. In this example, <i>admin</i> is the user for
-                inter-broker communication.</li>
-            <li>Pass the JAAS config file location as JVM parameter to each Kafka broker:
+                broker 使用 <tt>KafkaServer</tt> 部分中 <tt>username</tt> 和 <tt>password</tt> 属性来初始化与其他 broker 的连接.
+                在这个例子中, <i>admin</i> 是 broker 间通信的用户.</li>
+            <li>JAAS 配置文件的路径作为 JVM 参数传递给每个 Kafka broker:
                 <pre>    -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre></li>
-            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>.</pre> For example:
+            <li>参考 <a href="#security_sasl_brokerconfig">这里</a> 的描述, 在 server.properties 配置 SASL 端口和 SASL 机制. 例如:
                 <pre>
     listeners=SASL_SSL://host.name:port
     security.inter.broker.protocol=SASL_SSL
@@ -560,44 +548,38 @@
             </ol>
         </li>
 
-        <li><h5><a id="security_sasl_scram_clientconfig" href="#security_sasl_scram_clientconfig">Configuring Kafka Clients</a></h5>
+        <li><h5><a id="security_sasl_scram_clientconfig" href="#security_sasl_scram_clientconfig">配置 Kafka Client</a></h5>
             To configure SASL authentication on the clients:
+            在客户端配置 SASL 认证:
             <ol>
-	    <li>Configure the JAAS configuration property for each client in producer.properties or consumer.properties.
-                The login module describes how the clients like producer and consumer can connect to the Kafka Broker.
-	        The following is an example configuration for a client for the SCRAM mechanisms:
+	    <li>在每个客户端的 producer.properties 或者 consumer.properties 文件中配置 JAAS 配置项.
+            登录模块描述了像生产者和消费者这样的客户端如何连接到 Kafka Broker.
+            下面是一个 SCRAM 机制的客户端的配置示例:
                 <pre class="brush: text;">
    sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
         username="alice" \
         password="alice-secret";</pre>
 
-                <p>The options <tt>username</tt> and <tt>password</tt> are used by clients to configure
-                the user for client connections. In this example, clients connect to the broker as user <i>alice</i>.
-                Different clients within a JVM may connect as different users by specifying different user names
-                and passwords in <code>sasl.jaas.config</code>.</p>
+                <p><tt>username</tt> 和 <tt>password</tt> 选项被客户端用于配置客户端连接的用户信息. 
+                    在这个例子中, 客户端作为 <i>alice</i> 用户连接到 broker.
+                    通过在 <code>sasl.jaas.config</code> 中指定不同的用户名和密码, 在一个 JVM 内不同的客户端可以根据不同的用户连接.</p>
 
-                <p>JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
-                as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
-                <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</p></li>
-            <li>Configure the following properties in producer.properties or consumer.properties:
+                <p>客户端的 JAAS 配置也可以像 broker <a href="#security_client_staticjaas">这里</a> 描述的一样, 指定为一个 JVM 参数.
+                客户端使用命名为 <tt>KafkaClient</tt> 的登录部分.
+                此选项仅允许来自 JVM 的所有客户端连接中的一个用户.</p></li>
+            <li>在 producer.properties 或者 consumer.properties 中配置下面这些属性:
                 <pre>
     security.protocol=SASL_SSL
     sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)</pre></li>
             </ol>
         </li>
-        <li><h5><a id="security_sasl_scram_security" href="#security_sasl_scram_security">Security Considerations for SASL/SCRAM</a></h5>
+        <li><h5><a id="security_sasl_scram_security" href="#security_sasl_scram_security">SASL/SCRAM 的安全注意事项</a></h5>
             <ul>
-            <li>The default implementation of SASL/SCRAM in Kafka stores SCRAM credentials in Zookeeper. This
-            is suitable for production use in installations where Zookeeper is secure and on a private network.</li>
-            <li>Kafka supports only the strong hash functions SHA-256 and SHA-512 with a minimum iteration count
-            of 4096. Strong hash functions combined with strong passwords and high iteration counts protect
-            against brute force attacks if Zookeeper security is compromised.</li>
-            <li>SCRAM should be used only with TLS-encryption to prevent interception of SCRAM exchanges. This
-            protects against dictionary or brute force attacks and against impersonation if Zookeeper is compromised.</li>
-            <li>The default SASL/SCRAM implementation may be overridden using custom login modules in installations
-            where Zookeeper is not secure. See <a href="#security_sasl_plain_production">here</a> for details.</li>
-            <li>For more details on security considerations, refer to
-            <a href="https://tools.ietf.org/html/rfc5802#section-9">RFC 5802</a>.
+            <li>Kafka 中 SASL/SCRAM 的默认实现在 Zookeeper 中保存 SCRAM 证书. 这个适合当 Zookeeper 是安全并且是在私有网络时, 在生产环境安装.</li>
+            <li>Kafka 只支持强散列函数 SHA-256 和 SHA-512, 和最小迭代数为4096. 如果 Zookeeper 安全性收到威胁, 强散列函数结合强密码, 高迭代次数可以防止暴力攻击.</li>
+            <li>SCRAM 应只使用 TLS 加密, 防止 SCRAM 交换时的中途拦截. 如果 Zookeeper 受到威胁, 这可以防止字典或者暴力攻击, 和防止伪装模拟.</li>
+            <li>当 Zookeeper 不安全是, SASL/SCRAM 的默认实现可以在安装时使用自定义的登录模块重写. 更多细节查看 <a href="#security_sasl_plain_production">这里</a>.</li>
+            <li>了解安全注意事项的更多细节, 参考 <a href="https://tools.ietf.org/html/rfc5802#section-9">RFC 5802</a>.
             </ul>
         </li>
         </ol>
