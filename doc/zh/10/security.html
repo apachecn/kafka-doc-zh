@@ -795,30 +795,30 @@
         </ul>
 
     <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 将安全功能应用在正在运行的集群中</a></h3>
-        通过之前提到过的的安全协议中选择一个或者多个保护正在运行的集群。 您可以通过一下步骤来完善安全功能：
+        通过前面讨论的安全协议，选择一个或者多个协议保护正在运行的集群。 您可以通过以下步骤来完善安全功能：
         <p></p>
         <ul>
             <li>
-               通过增加额外的安全端口来增加集群节点。 </li>
+                滚动重启集群节点开启额外的安全端口。 </li>
             <li>
-                如果您正在加强 client 和 broker 之间的连接的安全性， 您应该使用安全的端口重启客户端， 而不是使用 PLAINTEXT 端口重启客户端。</li>
+                使用安全端口重启客户端而不是 PLAINTEXT 端口（假设你正在设置 client-broker 的安全连接 ）。</li>
             <li>
-                如果 broker 之间的安全是必要的话， 通过再一次增加集群节点来确保 borker 之间的安全。</li>
+                滚动重启集群节点开启 broker和broker之间的安全模式（如果需要的话）。</li>
             <li>
-                最后再关闭之前增加节点的 PLAINTEXT 端口。</li>
+                最后滚动关闭 PLAINTEXT 端口</li>
         </ul>
         <p></p>
-        关于配置 SSL 和 SASL 的详细步骤已经在 <a href="#security_ssl">7.2</a> 和 <a href="#security_sasl">7.3</a> 提到。
-        遵循文档中的步骤通过配置您所选的安全协议来增加集群的安全性。
+        关于配置 SSL 和 SASL 的详细步骤已经在 <a href="#security_ssl">7.2</a> 和 <a href="#security_sasl">7.3</a> 描述了。
+        遵循文档中的步骤配置你想要的安全协议，开启安全模式。
         <p></p>
-        安全性的实现使得你可以为 broker 与 client 之间和 broker 之间的通信配置不同的协议。
-        但是不同的协议必须确保在不同的区间开启。
-        然而 PLAINTEXT 端口必须保持开放，以便 broker 和 clients 能够继续通信
+        你可以为 broker-client 之间和 broker-broker 之间的通信配置不同的安全协议。
+        这两种协议必须分别启用。
+        PLAINTEXT 端口要同时保持开放，以便 broker 和 clients 能够继续通信
         <p></p>
 
-        当后来增加的集群节点被 brokers 通过 SIGTERM(终止进程) 停止时， 在移动到下一个集群节点之前， 等待重新启动的副本回到 ISR 列表也是一种很好的方法。
+        通过SIGTERM(终止进程) 滚动停止 brokers. 在停止下一个节点之前， 等待重新启动的节点的副本回到 ISR 列表是一种好的行为。
         <p></p>
-        例如， 假设我们希望使用 SSL 加密 broker 与 client 和 broker 之间的通信。 在第一次增加集群节点的过程中， 为增加的集群的节点开启 SSL 端口：
+        举个例子， 假设我们希望使用 SSL 加密 broker 与 client之间 和 broker和broker 之间的通信。 在第一次滚动重启的时候，每个节点上开启 SSL 端口：
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             </pre>
@@ -832,26 +832,25 @@
             ...etc
             </pre>
 
-        在第二次增加服务器的集群节点时， 我们指示 Kafka 使用 SSL 作为 broker 之间的 安全协议（所有的增加的集群节点将使用相同的 SSL 端口）。
+        在第二次滚动重启集群节点时， 我们指定 Kafka 使用 SSL 作为 broker 之间的 安全协议（所有集群节点将使用相同的 SSL 端口）
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-        在所有增加的集群节点， 我们通过关闭他们的 PLAINTEXT 端口， 来确保集群的安全。
+        最后一次滚动重启节点的过程中， 我们通过关闭 PLAINTEXT 端口， 来确保集群的安全。
 
             <pre>
             listeners=SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-        另外， 我们将使用多个端口，以便在 broker 与 client 和 broker 之间使用不同的协议来通信。 假设我们已经在 broker 与 client 和 broker 之间使用 SSL 加密， 而现在想在 broker 与 client 通信中添加 SASL 认证。在第一次增加集群节点时，我们将通过开启两个额外的端口来实现它。
-            <pre>
+            另外， 我们可能使用多个端口，以便在 broker 与 client之间 和 broker与broker 之间使用不同的协议来通信。 假设我们已经在 broker 与 client 和 broker 之间使用 SSL 加密， 而现在想在 broker 与 client 通信中添加 SASL 认证。在第一次滚动重启节点的时候，我们将开启两个额外的端口来实现两种不同的安全协议。    <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             </pre>
 
-        然后我们重启客户端， 将其配置更改为指向新打开的安全端口（SASL 和 SSAL 端口）：
+            然后我们重启客户端， 将其配置更改为新打开的安全端口（SASL 和 SSAL 端口）：
 
             <pre>
             bootstrap.servers = [broker1:9093,...]
@@ -859,14 +858,14 @@
             ...etc
             </pre>
 
-        第二次增加服务器的集群节点时， 通过使用我们之前打开的 SSL 端口（9092），将集群切换到加密的通信。
+            第二次滚动重启集群节点的时候， 通过使用我们之前打开的 SSL 端口（9092），将集群切换到 broker-broker 加密的通信。
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             security.inter.broker.protocol=SSL
             </pre>
 
-        在所有增加的集群节点， 我们通过关闭他们的 PLAINTEXT 端口， 来确保集群的安全。
+            最后滚动重启集群节点， 我们通过关闭他们的 PLAINTEXT 端口， 来确保集群的安全。
 
             <pre>
         listeners=SSL://broker1:9092,SASL_SSL://broker1:9093
