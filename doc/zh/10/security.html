@@ -871,39 +871,71 @@
         ZooKeeper can be secured independently of the Kafka cluster. The steps for doing this are covered in section <a href="#zk_authz_migration">7.6.2</a>.
 
 
-    <h3><a id="zk_authz" href="#zk_authz">7.6 ZooKeeper Authentication</a></h3>
-    <h4><a id="zk_authz_new" href="#zk_authz_new">7.6.1 New clusters</a></h4>
-    To enable ZooKeeper authentication on brokers, there are two necessary steps:
+    <h3><a id="zk_authz" href="#zk_authz">7.6 ZooKeeper 认证</a></h3>
+    <h4><a id="zk_authz_new" href="#zk_authz_new">7.6.1 新集群</a></h4>
+    在对broker进行Zookeeper认证前，有两个必要步骤：
     <ol>
-        <li> Create a JAAS login file and set the appropriate system property to point to it as described above</li>
-        <li> Set the configuration property <tt>zookeeper.set.acl</tt> in each broker to true</li>
+        <li>
+            创建一个JAAS登录文件并在文件中设置适当的系统属性，如上文所述。
+        </li>
+        <li>
+            在每个broker上设置配置项 <tt>zookeeper.set.acl</tt>为true。
+        </li>
     </ol>
 
-    The metadata stored in ZooKeeper for the Kafka cluster is world-readable, but can only be modified by the brokers. The rationale behind this decision is that the data stored in ZooKeeper is not sensitive, but inappropriate manipulation of that data can cause cluster disruption. We also recommend limiting the access to ZooKeeper via network segmentation (only brokers and some admin tools need access to ZooKeeper if the new Java consumer and producer clients are used).
+    The metadata stored in ZooKeeper for the Kafka cluster is world-readable,but can only be modified by the brokers.
+    The rationale behind this decision is that the data stored in ZooKeeper is not sensitive,but inappropriate manipulation of that data can cause cluster disruption.
+    We also recommend limiting the access to ZooKeeper via network segmentation (only brokers and some admin tools need access to ZooKeeper if the new Java consumer and producer clients are used).
 
-    <h4><a id="zk_authz_migration" href="#zk_authz_migration">7.6.2 Migrating clusters</a></h4>
-    If you are running a version of Kafka that does not support security or simply with security disabled, and you want to make the cluster secure, then you need to execute the following steps to enable ZooKeeper authentication with minimal disruption to your operations:
+    Kafka 存储在Zookeeper的元数据是全局可读的，但是只有 brokers 能够进行修改。
+    这一决定背后的理由是，存储在 zookeeper 上的数据虽然不重要，但是如果数据被肆意串改，会导致broker程序出错，程序中断。
+    我们还是建议通过ip 网段来限制访问 zookeeper 的权限（仅允许broker和一些管理工具访问zookeeper）。
+
+    <h4><a id="zk_authz_migration" href="#zk_authz_migration">7.6.2 集群迁移</a></h4>
+
+    如果你使用kafka的版本不支持安全的或简单的禁用安全，你还是想设置集群安全，则需要执行以下步骤启用ZooKeeper认证（最小的中断操作）：
     <ol>
-        <li>Perform a rolling restart setting the JAAS login file, which enables brokers to authenticate. At the end of the rolling restart, brokers are able to manipulate znodes with strict ACLs, but they will not create znodes with those ACLs</li>
-        <li>Perform a second rolling restart of brokers, this time setting the configuration parameter <tt>zookeeper.set.acl</tt> to true, which enables the use of secure ACLs when creating znodes</li>
-        <li>Execute the ZkSecurityMigrator tool. To execute the tool, there is this script: <tt>./bin/zookeeper-security-migration.sh</tt> with <tt>zookeeper.acl</tt> set to secure. This tool traverses the corresponding sub-trees changing the ACLs of the znodes</li>
+        <li>
+
+            滚动重新启动设置的JAAS登录文件，这样可以使broker进行身份认证。在滚动重启结束后，broker就能够用ACL操作这些znode（节点）了（但不能创建）。
+        </li>
+        <li>
+            进行第二次滚动重启，这次设置配置参数<tt>zookeeper.set.acl</tt>为true，这样就能使用安全的ACL创建znode。
+        </li>
+        <li>
+            执行ZkSecurityMigrator工具。执行脚本：./bin/zookeeper-security-migration.sh，将zookeeper.acl 设置secure，这个工具通过相应的sub-trees修改的znodes ACL。
+        </li>
     </ol>
-    <p>It is also possible to turn off authentication in a secure cluster. To do it, follow these steps:</p>
+    <p>
+        除了以上操作，还需要在安全集群中关闭认证，具体操作如下：
+    </p>
     <ol>
-        <li>Perform a rolling restart of brokers setting the JAAS login file, which enables brokers to authenticate, but setting <tt>zookeeper.set.acl</tt> to false. At the end of the rolling restart, brokers stop creating znodes with secure ACLs, but are still able to authenticate and manipulate all znodes</li>
-        <li>Execute the ZkSecurityMigrator tool. To execute the tool, run this script <tt>./bin/zookeeper-security-migration.sh</tt> with <tt>zookeeper.acl</tt> set to unsecure. This tool traverses the corresponding sub-trees changing the ACLs of the znodes</li>
-        <li>Perform a second rolling restart of brokers, this time omitting the system property that sets the JAAS login file</li>
+        <li>
+
+            滚动重新启动设置的JAAS登录文件，进行broker认证，这里需要将<tt>zookeeper.set.acl</tt>设置为false。
+            重启结束之后，broker停止用ACL创建znodes，但是仍然能认证和操作znodes。
+        </li>
+        <li>
+            执行ZkSecurityMigrator工具.
+            运行脚本：<tt>./bin/zookeeper-security-migration.sh</tt>，将<tt>zookeeper.acl</tt>设置为unsecure，这个工具通过相应的sub-trees修改的znodes ACL。
+        </li>
+        <li>
+            执行第二次滚动重启broker，这次忽略了JAAS登录文件设置系统属性。
+        </li>
     </ol>
-    Here is an example of how to run the migration tool:
+
+    这里提供了一个如何运行迁移工具的例子，：
     <pre class="brush: bash;">
     ./bin/zookeeper-security-migration.sh --zookeeper.acl=secure --zookeeper.connect=localhost:2181
     </pre>
-    <p>Run this to see the full list of parameters:</p>
+    <p>
+        运行以下命令查看完整列表：
+    </p>
     <pre class="brush: bash;">
     ./bin/zookeeper-security-migration.sh --help
     </pre>
-    <h4><a id="zk_authz_ensemble" href="#zk_authz_ensemble">7.6.3 Migrating the ZooKeeper ensemble</a></h4>
-    It is also necessary to enable authentication on the ZooKeeper ensemble. To do it, we need to perform a rolling restart of the server and set a few properties. Please refer to the ZooKeeper documentation for more detail:
+    <h4><a id="zk_authz_ensemble" href="#zk_authz_ensemble">7.6.3 ZooKeeper 整体迁移</a></h4>
+    在进行迁移时候有必要对全部zookeeper启用身份验证。要做到这一点，我们需要设置一些属性参数。请参阅更详细的zookeeper文档︰:
     <ol>
         <li><a href="http://zookeeper.apache.org/doc/r3.4.9/zookeeperProgrammers.html#sc_ZooKeeperAccessControl">Apache ZooKeeper documentation</a></li>
         <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Zookeeper+and+SASL">Apache ZooKeeper wiki</a></li>
