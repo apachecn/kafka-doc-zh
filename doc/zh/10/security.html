@@ -794,31 +794,37 @@
                 为了从 producer 和 consumer 的角色中移除一个用户我们仅需要传 --remove 选项</li>
         </ul>
 
-    <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 Incorporating Security Features in a Running Cluster</a></h3>
-        You can secure a running cluster via one or more of the supported protocols discussed previously. This is done in phases:
+    <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 将安全功能应用在正在运行的集群中</a></h3>
+        通过前面讨论的安全协议，选择一个或者多个协议保护正在运行的集群。 您可以通过以下步骤来完善安全功能：
         <p></p>
         <ul>
-            <li>Incrementally bounce the cluster nodes to open additional secured port(s).</li>
-            <li>Restart clients using the secured rather than PLAINTEXT port (assuming you are securing the client-broker connection).</li>
-            <li>Incrementally bounce the cluster again to enable broker-to-broker security (if this is required)</li>
-            <li>A final incremental bounce to close the PLAINTEXT port.</li>
+            <li>
+                滚动重启集群节点开启额外的安全端口。 </li>
+            <li>
+                使用安全端口重启客户端而不是 PLAINTEXT 端口（假设你正在设置 client-broker 的安全连接 ）。</li>
+            <li>
+                滚动重启集群节点开启 broker和broker之间的安全模式（如果需要的话）。</li>
+            <li>
+                最后滚动关闭 PLAINTEXT 端口</li>
         </ul>
         <p></p>
-        The specific steps for configuring SSL and SASL are described in sections <a href="#security_ssl">7.2</a> and <a href="#security_sasl">7.3</a>.
-        Follow these steps to enable security for your desired protocol(s).
+        关于配置 SSL 和 SASL 的详细步骤已经在 <a href="#security_ssl">7.2</a> 和 <a href="#security_sasl">7.3</a> 描述了。
+        遵循文档中的步骤配置你想要的安全协议，开启安全模式。
         <p></p>
-        The security implementation lets you configure different protocols for both broker-client and broker-broker communication.
-        These must be enabled in separate bounces. A PLAINTEXT port must be left open throughout so brokers and/or clients can continue to communicate.
+        你可以为 broker-client 之间和 broker-broker 之间的通信配置不同的安全协议。
+        这两种协议必须分别启用。
+        PLAINTEXT 端口要同时保持开放，以便 broker 和 clients 能够继续通信
         <p></p>
 
-        When performing an incremental bounce stop the brokers cleanly via a SIGTERM. It's also good practice to wait for restarted replicas to return to the ISR list before moving onto the next node.
+        通过SIGTERM(终止进程) 滚动停止 brokers. 在停止下一个节点之前， 等待重新启动的节点的副本回到 ISR 列表是一种好的行为。
         <p></p>
-        As an example, say we wish to encrypt both broker-client and broker-broker communication with SSL. In the first incremental bounce, a SSL port is opened on each node:
+        举个例子， 假设我们希望使用 SSL 加密 broker 与 client之间 和 broker和broker 之间的通信。 在第一次滚动重启的时候，每个节点上开启 SSL 端口：
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             </pre>
 
-        We then restart the clients, changing their config to point at the newly opened, secured port:
+
+        然后我们重启客户端， 将其配置更改为指向新打开的安全端口：
 
             <pre>
             bootstrap.servers = [broker1:9092,...]
@@ -826,27 +832,25 @@
             ...etc
             </pre>
 
-        In the second incremental server bounce we instruct Kafka to use SSL as the broker-broker protocol (which will use the same SSL port):
+        在第二次滚动重启集群节点时， 我们指定 Kafka 使用 SSL 作为 broker 之间的 安全协议（所有集群节点将使用相同的 SSL 端口）
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-        In the final bounce we secure the cluster by closing the PLAINTEXT port:
+        最后一次滚动重启节点的过程中， 我们通过关闭 PLAINTEXT 端口， 来确保集群的安全。
 
             <pre>
             listeners=SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-        Alternatively we might choose to open multiple ports so that different protocols can be used for broker-broker and broker-client communication. Say we wished to use SSL encryption throughout (i.e. for broker-broker and broker-client communication) but we'd like to add SASL authentication to the broker-client connection also. We would achieve this by opening two additional ports during the first bounce:
-
-            <pre>
+            另外， 我们可能使用多个端口，以便在 broker 与 client之间 和 broker与broker 之间使用不同的协议来通信。 假设我们已经在 broker 与 client 和 broker 之间使用 SSL 加密， 而现在想在 broker 与 client 通信中添加 SASL 认证。在第一次滚动重启节点的时候，我们将开启两个额外的端口来实现两种不同的安全协议。    <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             </pre>
 
-        We would then restart the clients, changing their config to point at the newly opened, SASL & SSL secured port:
+            然后我们重启客户端， 将其配置更改为新打开的安全端口（SASL 和 SSAL 端口）：
 
             <pre>
             bootstrap.servers = [broker1:9093,...]
@@ -854,22 +858,20 @@
             ...etc
             </pre>
 
-        The second server bounce would switch the cluster to use encrypted broker-broker communication via the SSL port we previously opened on port 9092:
+            第二次滚动重启集群节点的时候， 通过使用我们之前打开的 SSL 端口（9092），将集群切换到 broker-broker 加密的通信。
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             security.inter.broker.protocol=SSL
             </pre>
 
-        The final bounce secures the cluster by closing the PLAINTEXT port.
+            最后滚动重启集群节点， 我们通过关闭他们的 PLAINTEXT 端口， 来确保集群的安全。
 
             <pre>
         listeners=SSL://broker1:9092,SASL_SSL://broker1:9093
         security.inter.broker.protocol=SSL
             </pre>
-
-        ZooKeeper can be secured independently of the Kafka cluster. The steps for doing this are covered in section <a href="#zk_authz_migration">7.6.2</a>.
-
+     ZooKeeper 可以独立于 Kafka 集群进行安全防护。 <a href="#zk_authz_migration">7.6.2</a> 章节将介绍 ZooKeeper 的安全防护。
 
     <h3><a id="zk_authz" href="#zk_authz">7.6 ZooKeeper 认证</a></h3>
     <h4><a id="zk_authz_new" href="#zk_authz_new">7.6.1 新集群</a></h4>
