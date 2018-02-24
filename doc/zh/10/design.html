@@ -339,157 +339,169 @@ ISR 副本同步完成，就会返回消息已经写入。例如，一个 topic 
 检测 brokers 级别故障,并负责当一个 broker 挂了,改变该 broker 故障影响 partition 的 leadership。这种方式可以批量的通知主从关系的变化，使得对于拥有大量partition 的broker ,选举过程的代价更便宜并且速度更快。如果 controller 节点挂了，其他
 存活的 broker 都可能成为新的 controller 节点。
 
-<h3><a id="compaction" href="#compaction">4.8 Log Compaction</a></h3>
+<h3><a id="compaction" href="#compaction">4.8 日志压缩</a></h3>
+日志压缩确保了kafka会为topic分区数据中的每个message key至少保留最后好更新的值。
+这样的设计解决了应用程序崩溃、系统故障后恢复或者应用在运行维护过程中重启后重新加载缓存的场景。
+接下来让我们深入讨论这些在使用过程中的更多细节，阐述在这个过程中它是如何进行日志压缩的。
 
-Log compaction ensures that Kafka will always retain at least the last known value for each message key within the log of data for a single topic partition.  It addresses use cases and scenarios such as restoring
-state after application crashes or system failure, or reloading caches after application restarts during operational maintenance. Let's dive into these use cases in more detail and then describe how compaction works.
 <p>
-So far we have described only the simpler approach to data retention where old log data is discarded after a fixed period of time or when the log reaches some predetermined size. This works well for temporal event
-data such as logging where each record stands alone. However an important class of data streams are the log of changes to keyed, mutable data (for example, the changes to a database table).
+    迄今为止，我门只介绍了简单的日志保留方法（当旧的数据保留时间超过指定时间、日志大达到规定大小后就丢弃）。
+    这样的策略非常适用于处理那些暂存的数据，例如记录每条消息之间相互独立的日志。
+    然而在实际使用过程中还有一种非常重要的场景——根据key进行数据变更（例如更改数据库表内容），使用以上的方式显然不行。
 <p>
-Let's discuss a concrete example of such a stream. Say we have a topic containing user email addresses; every time a user updates their email address we send a message to this topic using their user id as the
-primary key. Now say we send the following messages over some time period for a user with id 123, each message corresponding to a change in email address (messages for other ids are omitted):
+    让我们来讨论一个关于处理这样的流式数据的具体的例子。
+    假设我们有一个topic，里面的内容包含用户的email地址；每次用户更新他们的email地址时，我们发送一条消息到这个topic，这里使用用户Id作为消息的key值。
+    现在，我们在一段时间内为id为123的用户发送一些消息，每个消息对应email地址的改变（其他ID消息省略）:
 <pre class="brush: text;">
-    123 => bill@microsoft.com
-            .
-            .
-            .
-    123 => bill@gatesfoundation.org
-            .
-            .
-            .
-    123 => bill@gmail.com
-</pre>
-Log compaction gives us a more granular retention mechanism so that we are guaranteed to retain at least the last update for each primary key (e.g. <code>bill@gmail.com</code>). By doing this we guarantee that the
-log contains a full snapshot of the final value for every key not just keys that changed recently. This means downstream consumers can restore their own state off this topic without us having to retain a complete
-log of all changes.
+        123 => bill@microsoft.com
+                .
+                .
+                .
+        123 => bill@gatesfoundation.org
+                .
+                .
+                .
+        123 => bill@gmail.com
+    </pre>
+日志压缩为我提供了更精细的保留机制，所以我们至少保留每个key的最后一次更新 （例如：bill@gmail.com）。
+这样我们保证日志包含每一个key的最终值而不只是最近变更的完整快照。这意味着下游的消费者可以获得最终的状态而无需拿到所有的变化的消息信息。
 <p>
-Let's start by looking at a few use cases where this is useful, then we'll see how it can be used.
+    让我们先看几个有用的使用场景，然后再看看如何使用它。
 <ol>
-<li><i>Database change subscription</i>. It is often necessary to have a data set in multiple data systems, and often one of these systems is a database of some kind (either a RDBMS or perhaps a new-fangled key-value
-store). For example you might have a database, a cache, a search cluster, and a Hadoop cluster. Each change to the database will need to be reflected in the cache, the search cluster, and eventually in Hadoop.
-In the case that one is only handling the real-time updates you only need recent log. But if you want to be able to reload the cache or restore a failed search node you may need a complete data set.
-<li><i>Event sourcing</i>. This is a style of application design which co-locates query processing with application design and uses a log of changes as the primary store for the application.
-<li><i>Journaling for high-availability</i>. A process that does local computation can be made fault-tolerant by logging out changes that it makes to its local state so another process can reload these changes and
-carry on if it should fail. A concrete example of this is handling counts, aggregations, and other "group by"-like processing in a stream query system. Samza, a real-time stream-processing framework,
-<a href="http://samza.apache.org/learn/documentation/0.7.0/container/state-management.html">uses this feature</a> for exactly this purpose.
+    <li>
+        <i>数据库更改订阅</i>。
+        通常需要在多个数据系统设置拥有一个数据集，这些系统中通常有一个是某种类型的数据库（无论是RDBMS或者新流行的key-value数据库）。
+        例如，你可能有一个数据库，缓存，搜索引擎集群或者Hadoop集群。每次变更数据库，也同时需要变更缓存、搜索引擎以及hadoop集群。
+        在只需处理最新日志的实时更新的情况下，你只需要最近的日志。但是，如果你希望能够重新加载缓存或恢复搜索失败的节点，你可能需要一个完整的数据集。
+
+    <li><i>事件源</i>。
+        这是一种应用程序设计风格，它将查询处理与应用程序设计相结合，并使用变更的日志作为应用程序的主要存储。
+    <li><i>日志高可用</i>。
+        执行本地计算的进程可以通过注销对其本地状态所做的更改来实现容错，以便另一个进程可以重新加载这些更改并在出现故障时继续进行。
+        一个具体的例子就是在流查询系统中进行计数，聚合和其他类似“group by”的操作。实时流处理框架Samza，
+        <a href="http://samza.apache.org/learn/documentation/0.7.0/container/state-management.html">使用这个特性</a>正是出于这一原因。
 </ol>
-In each of these cases one needs primarily to handle the real-time feed of changes, but occasionally, when a machine crashes or data needs to be re-loaded or re-processed, one needs to do a full load.
-Log compaction allows feeding both of these use cases off the same backing topic.
 
-This style of usage of a log is described in more detail in <a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">this blog post</a>.
-<p>
-The general idea is quite simple. If we had infinite log retention, and we logged each change in the above cases, then we would have captured the state of the system at each time from when it first began.
-Using this complete log, we could restore to any point in time by replaying the first N records in the log. This hypothetical complete log is not very practical for systems that update a single record many times
-as the log will grow without bound even for a stable dataset. The simple log retention mechanism which throws away old updates will bound space but the log is no longer a way to restore the current state&mdash;now
-restoring from the beginning of the log no longer recreates the current state as old updates may not be captured at all.
-<p>
-Log compaction is a mechanism to give finer-grained per-record retention, rather than the coarser-grained time-based retention. The idea is to selectively remove records where we have a more recent update with the
-same primary key. This way the log is guaranteed to have at least the last state for each key.
-<p>
-This retention policy can be set per-topic, so a single cluster can have some topics where retention is enforced by size or time and other topics where retention is enforced by compaction.
-<p>
-This functionality is inspired by one of LinkedIn's oldest and most successful pieces of infrastructure&mdash;a database changelog caching service called <a href="https://github.com/linkedin/databus">Databus</a>.
-Unlike most log-structured storage systems Kafka is built for subscription and organizes data for fast linear reads and writes. Unlike Databus, Kafka acts as a source-of-truth store so it is useful even in
-situations where the upstream data source would not otherwise be replayable.
+在这些场景中，主要需要处理变化的实时feed，但是偶尔当机器崩溃或需要重新加载或重新处理数据时，需要处理所有数据。
+日志压缩允许在同一topic下同时使用这两个用例。这种日志使用方式更详细的描述请看这篇<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying">博客</a>。
 
-<h4><a id="design_compactionbasics" href="#design_compactionbasics">Log Compaction Basics</a></h4>
+<p>
+    想法很简单，我们有无限的日志，以上每种情况记录变更日志，我们从一开始就捕获每一次变更。
+    使用这个完整的日志，我们可以通过回放日志来恢复到任何一个时间点的状态。
+    然而这种假设的情况下，完整的日志是不实际的，对于那些每一行记录会变更多次的系统，即使数据集很小，日志也会无限的增长下去。
+    丢弃旧日志的简单操作可以限制空间的增长，但是无法重建状态——因为旧的日志被丢弃，可能一部分记录的状态会无法重建（这写记录所有的状态变更都在就日志中）。
+<p>
+    日志压缩机制是更细粒度的、每个记录都保留的机制，而不是基于时间的粗粒度。
+    这个理念是选择性的删除哪些有更新的变更的记录的日志。
+    这样最终日志至少包含每个key的记录的最后一个状态。
+<p>
+    这个策略可以为每个Topic设置，这样一个集群中，可以一部分Topic通过时间和大小保留日志，另外一些可以通过压缩压缩策略保留。
+<p>
+    这个功能的灵感来自于LinkedIn的最古老且最成功的基础设置——一个称为Databus的数据库变更日志缓存系统。
+    不像大多数的日志存储系统，Kafka是专门为订阅和快速线性的读和写的组织数据。
+    和Databus不同，Kafka作为真实的存储，压缩日志是非常有用的，这非常有利于上游数据源不能重放的情况。
 
-Here is a high-level picture that shows the logical structure of a Kafka log with the offset for each message.
+<h4><a id="design_compactionbasics" href="#design_compactionbasics">日志压缩基础</a></h4>
+这是一个高级别的日志逻辑图，展示了kafka日志的每条消息的offset逻辑结构。
 <p>
-<img class="centered" src="/{{version}}/images/log_cleaner_anatomy.png">
+    <img class="centered" src="/{{version}}/images/log_cleaner_anatomy.png">
 <p>
-The head of the log is identical to a traditional Kafka log. It has dense, sequential offsets and retains all messages. Log compaction adds an option for handling the tail of the log. The picture above shows a log
-with a compacted tail. Note that the messages in the tail of the log retain the original offset assigned when they were first written&mdash;that never changes. Note also that all offsets remain valid positions in
-the log, even if the message with that offset has been compacted away; in this case this position is indistinguishable from the next highest offset that does appear in the log. For example, in the picture above the
-offsets 36, 37, and 38 are all equivalent positions and a read beginning at any of these offsets would return a message set beginning with 38.
+    Log head中包含传统的Kafka日志，它包含了连续的offset和所有的消息。
+    日志压缩增加了处理tail Log的选项。
+    上图展示了日志压缩的的Log tail的情况。tail中的消息保存了初次写入时的offset。
+    即使该offset的消息被压缩，所有offset仍然在日志中是有效的。在这个场景中，无法区分和下一个出现的更高offset的位置。
+    如上面的例子中，36、37、38是属于相同位置的，从他们开始读取日志都将从38开始。
 <p>
-Compaction also allows for deletes. A message with a key and a null payload will be treated as a delete from the log. This delete marker will cause any prior message with that key to be removed (as would any new
-message with that key), but delete markers are special in that they will themselves be cleaned out of the log after a period of time to free up space. The point in time at which deletes are no longer retained is
-marked as the "delete retention point" in the above diagram.
+
+    压缩也允许删除。通过消息的key和空负载（null payload）来标识该消息可从日志中删除。
+    这个删除标记将会引起所有之前拥有相同key的消息被移除（包括拥有key相同的新消息）。
+    但是删除标记比较特殊，它将在一定周期后被从日志中删除来释放空间。这个时间点被称为“delete retention point”，如上图。
 <p>
-The compaction is done in the background by periodically recopying log segments. Cleaning does not block reads and can be throttled to use no more than a configurable amount of I/O throughput to avoid impacting
-producers and consumers. The actual process of compacting a log segment looks something like this:
+    压缩操作通过在后台周期性的拷贝日志段来完成。
+    清除操作不会阻塞读取，并且可以被配置不超过一定IO吞吐来避免影响Producer和Consumer。实际的日志段压缩过程有点像这样：
 <p>
-<img class="centered" src="/{{version}}/images/log_compaction.png">
+    <img class="centered" src="/{{version}}/images/log_compaction.png">
 <p>
 <h4><a id="design_compactionguarantees" href="#design_compactionguarantees">What guarantees does log compaction provide?</a></h4>
-
-Log compaction guarantees the following:
+日志压缩的保障措施如下：
 <ol>
-<li>Any consumer that stays caught-up to within the head of the log will see every message that is written; these messages will have sequential offsets. The topic's <code>min.compaction.lag.ms</code> can be used to
-guarantee the minimum length of time must pass after a message is written before it could be compacted. I.e. it provides a lower bound on how long each message will remain in the (uncompacted) head.
-<li>Ordering of messages is always maintained.  Compaction will never re-order messages, just remove some.
-<li>The offset for a message never changes.  It is the permanent identifier for a position in the log.
-<li>Any consumer progressing from the start of the log will see at least the final state of all records in the order they were written.  Additionally, all delete markers for deleted records will be seen, provided
-the consumer reaches the head of the log in a time period less than the topic's <code>delete.retention.ms</code> setting (the default is 24 hours).  In other words: since the removal of delete markers happens
-concurrently with reads, it is possible for a consumer to miss delete markers if it lags by more than <code>delete.retention.ms</code>.
+
+    <li>
+        任何滞留在日志head中的所有消费者能看到写入的所有消息；这些消息都是有序的offset。
+        topic的使用min.compaction.lag.ms用来保障消息写入之前必须经过的最小时间长度，才能被压缩。
+        这限制了一条消息在Log Head中的最短存在时间。
+    <li>
+        始终保持消息的有序性。压缩永远不会重新排序消息，只是删除了一些。
+    <li>
+        消息的Offset不会变更。这是消息在日志中的永久标志。
+    <li>
+        任何从头开始处理日志的Consumer至少会拿到每个key的最终状态。
+        另外，只要Consumer在小于Topic的delete.retention.ms设置（默认24小时）的时间段内到达Log head，将会看到所有删除记录的所有删除标记。
+        换句话说，因为移除删除标记和读取是同事发生的，Consumer可能会因为落后超过delete.retention.ms而导致错过删除标记。
+
 </ol>
 
-<h4><a id="design_compactiondetails" href="#design_compactiondetails">Log Compaction Details</a></h4>
-
-Log compaction is handled by the log cleaner, a pool of background threads that recopy log segment files, removing records whose key appears in the head of the log. Each compactor thread works as follows:
+<h4><a id="design_compactiondetails" href="#design_compactiondetails">日志压缩的细节</a></h4>
+日志压缩由Log Cleaner执行，后台线程池重新拷贝日志段，移除那些key存在于Log Head中的记录。每个压缩线程如下工作：
 <ol>
-<li>It chooses the log that has the highest ratio of log head to log tail
-<li>It creates a succinct summary of the last offset for each key in the head of the log
-<li>It recopies the log from beginning to end removing keys which have a later occurrence in the log. New, clean segments are swapped into the log immediately so the additional disk space required is just one
-additional log segment (not a fully copy of the log).
-<li>The summary of the log head is essentially just a space-compact hash table. It uses exactly 24 bytes per entry. As a result with 8GB of cleaner buffer one cleaner iteration can clean around 366GB of log head
-(assuming 1k messages).
+    <li>
+        选择log head与log tail比率最高的日志。
+    <li>
+        在head log中为每个key的最后offset创建一个的简单概要。
+    <li>
+        它从日志的开始到结束，删除那些在日志中最新出现的key的旧的值。新的、干净的日志将会立即被交到到日志中，所以只需要一个额外的日志段空间（不是日志的完整副本）
+    <li>
+        日志head的概要本质上是一个空间密集型的哈希表，每个条目使用24个字节。所以如果有8G的整理缓冲区, 则能迭代处理大约366G的日志头部(假设消息大小为1k)。
 </ol>
 <p>
-<h4><a id="design_compactionconfig" href="#design_compactionconfig">Configuring The Log Cleaner</a></h4>
-
-The log cleaner is enabled by default. This will start the pool of cleaner threads.
-To enable log cleaning on a particular topic you can add the log-specific property
+<h4><a id="design_compactionconfig" href="#design_compactionconfig">配置Log Cleaner</a></h4>
+Log Cleaner默认启用。这会启动清理的线程池。如果要开始特定Topic的清理功能，可以开启特定的属性：
 <pre class="brush: text;">  log.cleanup.policy=compact</pre>
-This can be done either at topic creation time or using the alter topic command.
+这个可以通过创建Topic时配置或者之后使用Topic命令实现。
 <p>
-The log cleaner can be configured to retain a minimum amount of the uncompacted "head" of the log. This is enabled by setting the compaction time lag.
-<pre class="brush: text;">  log.cleaner.min.compaction.lag.ms</pre>
-
-This can be used to prevent messages newer than a minimum message age from being subject to compaction. If not set, all log segments are eligible for compaction except for the last segment, i.e. the one currently
-being written to. The active segment will not be compacted even if all of its messages are older than the minimum compaction time lag.
+    Log Cleaner可以配置保留最小的不压缩的head log。可以通过配置压缩的延迟时间：<pre class="brush: text;">  log.cleaner.min.compaction.lag.ms</pre>
+这可以用于保证消息比在被压缩的消息大一段时间。
+如果没有设置，除了最后一个日志外，所有的日志都会被压缩。
+当前写入的自如端不会被压缩，即使所有的消息都落后于比配置的最小压缩时间。
 </p>
 <p>
-Further cleaner configurations are described <a href="/documentation.html#brokerconfigs">here</a>.
+    关于cleaner更详细的配置在 <a href="/documentation.html#brokerconfigs">这里</a>。
 
-<h3><a id="design_quotas" href="#design_quotas">4.9 Quotas</a></h3>
+<h3><a id="design_quotas" href="#design_quotas">4.9 Quotas 配额</a></h3>
 <p>
-Kafka cluster has the ability to enforce quotas on requests to control the broker resources used by clients. Two types
-of client quotas can be enforced by Kafka brokers for each group of clients sharing a quota:
+    Kafka 集群可以对客户端请求进行配额，控制集群资源的使用。Kafka broker 可以对客户端做两种类型资源的配额限制，同一个group的client 共享配额。
+
 <ol>
-  <li>Network bandwidth quotas define byte-rate thresholds (since 0.9)</li>
-  <li>Request rate quotas define CPU utilization thresholds as a percentage of network and I/O threads (since 0.11)</li>
+  <li>定义字节率的阈值来限定网络带宽的配额。 (从 0.9 版本开始)</li>
+  <li>request 请求率的配额，网络和 I/O线程 cpu利用率的百分比。  (从 0.11 版本开始)</li>
 </ol>
 </p>
 
-<h4><a id="design_quotasnecessary" href="#design_quotasnecessary">Why are quotas necessary?</a></h4>
+<h4><a id="design_quotasnecessary" href="#design_quotasnecessary">为什么要对资源进行配额?</a></h4>
 <p>
-It is possible for producers and consumers to produce/consume very high volumes of data or generate requests at a very high
-rate and thus monopolize broker resources, cause network saturation and generally DOS other clients and the brokers themselves.
-Having quotas protects against these issues and is all the more important in large multi-tenant clusters where a small set of badly behaved clients can degrade user experience for the well behaved ones.
-In fact, when running Kafka as a service this even makes it possible to enforce API limits according to an agreed upon contract.
+    producers 和 consumers 可能会生产或者消费大量的数据或者产生大量的请求，导致对 broker 资源的垄断，引起网络的饱和，对其他clients和brokers本身造成DOS攻击。
+    资源的配额保护可以有效防止这些问题，在大型多租户集群中，因为一小部分表现不佳的客户端降低了良好的用户体验，这种情况下非常需要资源的配额保护。
+    实际情况中，当把Kafka当做一种服务提供的时候，可以根据客户端和服务端的契约对 API 调用做限制。
 </p>
 <h4><a id="design_quotasgroups" href="#design_quotasgroups">Client groups</a></h4>
-    The identity of Kafka clients is the user principal which represents an authenticated user in a secure cluster. In a cluster that supports unauthenticated clients, user principal is a grouping of unauthenticated
-    users
-    chosen by the broker using a configurable <code>PrincipalBuilder</code>. Client-id is a logical grouping of clients with a meaningful name chosen by the client application. The tuple (user, client-id) defines
-    a secure logical group of clients that share both user principal and client-id.
+    Kafka client 是一个用户的概念， 是在一个安全的集群中经过身份验证的用户。在一个支持非授权客户端的集群中，用户是一组非授权的 users，broker使用一个可配置的  <code>PrincipalBuilder</code> 类来配置 group 规则。
+    Client-id 是客户端的逻辑分组，客户端应用使用一个有意义的名称进行标识。(user, client-id)元组定义了一个安全的客户端逻辑分组，使用相同的user 和 client-id 标识。
+
 <p>
-    Quotas can be applied to (user, client-id), user or client-id groups. For a given connection, the most specific quota matching the connection is applied. All connections of a quota group share the quota configured for the group.
-    For example, if (user="test-user", client-id="test-client") has a produce quota of 10MB/sec, this is shared across all producer instances of user "test-user" with the client-id "test-client".
+    资源配额可以针对 （user,client-id），users 或者client-id groups 三种规则进行配置。对于一个请求连接，连接会匹配最细化的配额规则的限制。同一个 group 的所有连接共享这个 group 的资源配额。
+    举个例子，如果 (user="test-user", client-id="test-client") 客户端producer 有10MB/sec 的生产资源配置，这10MB/sec 的资源在所有 "test-user" 用户，client-id是 "test-client" 的producer实例中是共享的。
+
 </p>
-<h4><a id="design_quotasconfig" href="#design_quotasconfig">Quota Configuration</a></h4>
+<h4><a id="design_quotasconfig" href="#design_quotasconfig">Quota Configuration（资源配额的配置）</a></h4>
 <p>
-    Quota configuration may be defined for (user, client-id), user and client-id groups. It is possible to override the default quota at any of the quota levels that needs a higher (or even lower) quota.
-    The mechanism is similar to the per-topic log config overrides.
-    User and (user, client-id) quota overrides are written to ZooKeeper under <i><b>/config/users</b></i> and client-id quota overrides are written under <i><b>/config/clients</b></i>.
-    These overrides are read by all brokers and are effective immediately. This lets us change quotas without having to do a rolling restart of the entire cluster. See <a href="#quotas">here</a> for details.
-    Default quotas for each group may also be updated dynamically using the same mechanism.
+    资源配额的配置可以根据 (user, client-id)，user 和 client-id 三种规则进行定义。在配额级别需要更高（或者更低）的配额的时候，是可以覆盖默认的配额配置。
+    这种机制和每个 topic 可以自定义日志配置属性类似。
+    覆盖 User 和 (user, client-id) 规则的配额配置会写到zookeeper的 <i><b>/config/users</b></i>路径下，client-id 配额的配置会写到  <i><b>/config/clients</b></i> 路径下。
+    这些配置的覆盖会被所有的 brokers 实时的监听到并生效。所以这使得我们修改配额配置不需要重启整个集群。更多细节参考 <a href="#quotas">here</a>。
+    每个 group 的默认配额可以使用相同的机制进行动态更新。
 </p>
 <p>
-    The order of precedence for quota configuration is:
+    配额配置的优先级顺序是:
     <ol>
         <li>/config/users/&lt;user&gt;/clients/&lt;client-id&gt;</li>
         <li>/config/users/&lt;user&gt;/clients/&lt;default&gt;</li>
@@ -501,41 +513,38 @@ In fact, when running Kafka as a service this even makes it possible to enforce 
         <li>/config/clients/&lt;default&gt;</li>
     </ol>
 
-    Broker properties (quota.producer.default, quota.consumer.default) can also be used to set defaults of network bandwidth quotas for client-id groups. These properties are being deprecated and will be removed in a later release.
-    Default quotas for client-id can be set in Zookeeper similar to the other quota overrides and defaults.
+    Broker 的配置属性 (quota.producer.default, quota.consumer.default) 也可以用来设置 client-id groups 默认的网络带宽配置。这些配置属性在未来的 release 版本会被 deprecated。
+    client-id 的默认配额也是用zookeeper配置，和其他配额配置的覆盖和默认方式是相似的。
 </p>
-<h4><a id="design_quotasbandwidth" href="#design_quotasbandwidth">Network Bandwidth Quotas</a></h4>
+<h4><a id="design_quotasbandwidth" href="#design_quotasbandwidth">Network Bandwidth Quotas（网络带宽配额配置）</a></h4>
 <p>
-    Network bandwidth quotas are defined as the byte rate threshold for each group of clients sharing a quota.
-    By default, each unique client group receives a fixed quota in bytes/sec as configured by the cluster.
-    This quota is defined on a per-broker basis. Each group of clients can publish/fetch a maximum of X bytes/sec
-    per broker before clients are throttled.
+    网络带宽配额使用字节速率阈值来定义每个 group 的客户端的共享配额。
+    默认情况下，每个不同的客户端 group 是集群配置的固定配额，单位是 bytes/sec。
+    这个配额会以broker 为基础进行定义。在 clients 被限制之前，每个 group 的clients可以发布和拉取单个broker 的最大速率，单位是 bytes/sec。
+
 </p>
-<h4><a id="design_quotascpu" href="#design_quotascpu">Request Rate Quotas</a></h4>
+<h4><a id="design_quotascpu" href="#design_quotascpu">Request Rate Quotas 请求速率配额</a></h4>
 <p>
-    Request rate quotas are defined as the percentage of time a client can utilize on request handler I/O
-    threads and network threads of each broker within a quota window. A quota of <tt>n%</tt> represents
-    <tt>n%</tt> of one thread, so the quota is out of a total capacity of <tt>((num.io.threads + num.network.threads) * 100)%</tt>.
-    Each group of clients may use a total percentage of upto <tt>n%</tt> across all I/O and network threads in a quota
-    window before being throttled. Since the number of threads allocated for I/O and network threads are typically based
-    on the number of cores available on the broker host, request rate quotas represent the total percentage of CPU
-    that may be used by each group of clients sharing the quota.
+    请求速率的配额定义了一个客户端可以使用 broker request handler I/O 线程和网络线程在一个配额窗口时间内使用的百分比。
+    <tt>n%</tt> 的配置代表一个线程的  <tt>n%</tt>的使用率，所以这种配额是建立在总容量 <tt>((num.io.threads + num.network.threads) * 100)%</tt>之上的.
+    每个 group 的client 的资源在被限制之前可以使用单位配额时间窗口内I/O线程和网络线程利用率的 <tt>n%</tt>。
+    由于分配给 I/O和网络线程的数量是基于 broker 的核数，所以请求量的配额代表每个group 的client 使用cpu的百分比。
+
 </p>
-<h4><a id="design_quotasenforcement" href="#design_quotasenforcement">Enforcement</a></h4>
+<h4><a id="design_quotasenforcement" href="#design_quotasenforcement">Enforcement（限制）</a></h4>
 <p>
-    By default, each unique client group receives a fixed quota as configured by the cluster.
-    This quota is defined on a per-broker basis. Each client can utilize this quota per broker before it gets throttled. We decided that defining these quotas per broker is much better than
-    having a fixed cluster wide bandwidth per client because that would require a mechanism to share client quota usage among all the brokers. This can be harder to get right than the quota implementation itself!
-</p>
-<p>
-    How does a broker react when it detects a quota violation? In our solution, the broker does not return an error rather it attempts to slow down a client exceeding its quota.
-    It computes the amount of delay needed to bring a guilty client under its quota and delays the response for that time. This approach keeps the quota violation transparent to clients
-    (outside of client-side metrics). This also keeps them from having to implement any special backoff and retry behavior which can get tricky. In fact, bad client behavior (retry without backoff)
-    can exacerbate the very problem quotas are trying to solve.
+    默认情况下，集群给每个不同的客户端group 配置固定的配额。
+    这个配额是以broker为基础定义的。每个 client 在受到限制之前可以利用每个broker配置的配额资源。
+    我们觉得给每个broker配置资源配额比为每个客户端配置一个固定的集群带宽资源要好，为每个客户端配置一个固定的集群带宽资源需要一个机制来共享client 在brokers上的配额使用情况。这可能比配额本身实现更难。
+
 </p>
 <p>
-Byte-rate and thread utilization are measured over multiple small windows (e.g. 30 windows of 1 second each) in order to detect and correct quota violations quickly. Typically, having large measurement windows
-(for e.g. 10 windows of 30 seconds each) leads to large bursts of traffic followed by long delays which is not great in terms of user experience.
+    broker在检测到有配额资源使用违反规则会怎么办？在我们计划中，broker不会返回error，而是会尝试减速 client 超出的配额设置。
+    broker 会计算出将客户端限制到配额之下的延迟时间，并且延迟response响应。这种方法对于客户端来说也是透明的（客户端指标除外）。这也使得client不需要执行任何特殊的 backoff 和 retry 行为。而且不友好的客户端行为（没有 backoff 的重试）会加剧正在解决的资源配额问题。
+
+</p>
+<p>
+    网络字节速率和线程利用率可以用多个小窗口来衡量（例如 1秒30个窗口），以便快速的检测和修正配额规则的违反行为。实际情况中 较大的测量窗口（例如，30秒10个窗口）会导致大量的突发流量，随后长时间的延迟，会使得用户体验不是很好。
 </p>
 </script>
 
