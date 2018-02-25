@@ -60,7 +60,7 @@
     </p>
 
     <p>
-        The following diagram shows two tasks each assigned with one partition of the input streams.
+        下图显示了两个任务，每个任务分配一个输入流分区。
     </p>
     <img class="centered" src="/{{version}}/images/streams-architecture-tasks.jpg" style="width:400px">
     <br>
@@ -68,15 +68,15 @@
     <h3><a id="streams_architecture_threads" href="#streams_architecture_threads">Threading Model</a></h3>
 
     <p>
-        Kafka Streams allows the user to configure the number of <b>threads</b> that the library can use to parallelize processing within an application instance.
-        Each thread can execute one or more tasks with their processor topologies independently. For example, the following diagram shows one stream thread running two stream tasks.
+        Kafka Streams 允许用户配置应用程序实例中可并行的<b>线程数量</b>。
+        每个线程都可以按照处理器拓扑结构独立执行一个或多个任务。 例如，下图显示了一个运行两个流任务的流线程。
     </p>
     <img class="centered" src="/{{version}}/images/streams-architecture-threads.jpg" style="width:400px">
 
     <p>
-        Starting more stream threads or more instances of the application merely amounts to replicating the topology and having it process a different subset of Kafka partitions, effectively parallelizing processing.
-        It is worth noting that there is no shared state amongst the threads, so no inter-thread coordination is necessary. This makes it very simple to run topologies in parallel across the application instances and threads.
-        The assignment of Kafka topic partitions amongst the various stream threads is transparently handled by Kafka Streams leveraging <a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Client-side+Assignment+Proposal">Kafka's coordination</a> functionality.
+        启动更多流线程或更多的应用程序实例仅仅意味着可以复制更多的拓扑结构来处理不同的Kafka分区子集，从而有效地并行处理。
+        值得注意的是，线程之间没有共享状态，所以不需要线程间协调。 这使得跨应用程序实例和线程并行运行拓扑结构变得非常简单。
+        Kafka Streams 通过利用 Kafka 系统的<a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Client-side+Assignment+Proposal">协作机制</a>在各个流线程之间分配 Kafka topic partition，这对于用户来说是透明的。
     </p>
 
     <p>
