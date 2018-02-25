@@ -80,18 +80,16 @@
     </p>
 
     <p>
-        As we described above, scaling your stream processing application with Kafka Streams is easy: you merely need to start additional instances of your application,
-        and Kafka Streams takes care of distributing partitions amongst tasks that run in the application instances. You can start as many threads of the application
-        as there are input Kafka topic partitions so that, across all running instances of an application, every thread (or rather, the tasks it runs) has at least one input partition to process.
+        如上所述，使用 Kafka Streams 扩展流处理应用程序非常简单：你只需要为程序启动额外的实例，然后 Kafka Streams 负责在应用程序实例中的任务之间分配分区。
+        您可以启动与 input Kafka topic partitions 一样多的应用程序线程，以便在应用程序的所有正在运行的实例中，每个线程（或者说它运行的任务）至少有一个要处理的 input partition 。
     </p>
     <br>
 
-    <h3><a id="streams_architecture_state" href="#streams_architecture_state">Local State Stores</a></h3>
+    <h3><a id="streams_architecture_state" href="#streams_architecture_state">本地状态存储Local State Stores</a></h3>
 
     <p>
-        Kafka Streams provides so-called <b>state stores</b>, which can be used by stream processing applications to store and query data,
-        which is an important capability when implementing stateful operations. The <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl">Kafka Streams DSL</a>, for example, automatically creates
-        and manages such state stores when you are calling stateful operators such as <code>join()</code> or <code>aggregate()</code>, or when you are windowing a stream.
+        Kafka Streams 提供了所谓的<b> state stores </b>，它可以被流处理应用程序用来存储和查询数据，这是实现有状态操作时的一项重要功能。
+        例如， <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl">Kafka Streams DSL</a> 会在您调用诸如<code> join（）</code>或<code> aggregate（）</code>等有状态运算符时，或者在窗口化一个流时自动创建和管理 state stores 。
     </p>
 
     <p>
