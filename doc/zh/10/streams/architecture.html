@@ -32,32 +32,31 @@
     <h3><a id="streams_architecture_tasks" href="#streams_architecture_tasks">Stream Partitions and Tasks</a></h3>
 
     <p>
-        The messaging layer of Kafka partitions data for storing and transporting it. Kafka Streams partitions data for processing it.
-        In both cases, this partitioning is what enables data locality, elasticity, scalability, high performance, and fault tolerance.
-        Kafka Streams uses the concepts of <b>partitions</b> and <b>tasks</b> as logical units of its parallelism model based on Kafka topic partitions.
-        There are close links between Kafka Streams and Kafka in the context of parallelism:
+        Kafka 的消息层对数据进行分区存储并传输，而 Kafka Streams 对数据分区并处理。
+        在这两种情形下，分区是为了实现数据本地化，弹性，可扩展性，高性能和容错性。
+        Kafka Streams 使用 <b>partitions</b> 和 <b>tasks</b> 的概念作为并行模型的逻辑单元，它的并行模型是基于 Kafka 的 topic partition 。
+        Kafka Streams 和 Kafka 之间有着紧密的联系：
+
     </p>
 
     <ul>
-        <li>Each <b>stream partition</b> is a totally ordered sequence of data records and maps to a Kafka <b>topic partition</b>.</li>
-        <li>A <b>data record</b> in the stream maps to a Kafka <b>message</b> from that topic.</li>
-        <li>The <b>keys</b> of data records determine the partitioning of data in both Kafka and Kafka Streams, i.e., how data is routed to specific partitions within topics.</li>
+        <li>每个 <b>stream partition</b> 都是完全有序的数据记录序列，并映射到 Kafka 的 <b> topic partition </b>。 </li>
+        <li>stream 中的一个<b>数据记录</b>可以映射到该主题的对应的Kafka <b>消息</b>。</li>
+        <li>数据记录的 <b>key值</b> 决定了该记录在 Kafka and Kafka Stream 中如何被分区，即数据如何路由到 topic 的特定分区。</li>
     </ul>
 
     <p>
-        An application's processor topology is scaled by breaking it into multiple tasks.
-        More specifically, Kafka Streams creates a fixed number of tasks based on the input stream partitions for the application,
-        with each task assigned a list of partitions from the input streams (i.e., Kafka topics). The assignment of partitions to tasks
-        never changes so that each task is a fixed unit of parallelism of the application. Tasks can then instantiate their own processor topology
-        based on the assigned partitions; they also maintain a buffer for each of its assigned partitions and process messages one-at-a-time from
-        these record buffers. As a result stream tasks can be processed independently and in parallel without manual intervention.
+        应用程序的处理器拓扑结构通过将其分解为多个任务来实现可拓展性。
+        更具体地说，Kafka Streams 根据应用程序的 input stream 分区创建固定数量的任务，每个任务都分配了来自 input stream （即Kafka topic ）的一部分分区。
+        任务与分区的对应关系是永远不会改变，因此每个任务都是应用程序的固定并行单元。
+        然后任务就可以基于所分配的分区实例化它们自己的处理器拓扑；它们还为每个分配的分区保留一个缓冲区，并从这些记录缓冲区中按照 one-at-a-time 的方式处理消息。
+        故流任务可以独立并行处理，无需人工干预。
     </p>
 
     <p>
-        It is important to understand that Kafka Streams is not a resource manager, but a library that "runs" anywhere its stream processing application runs.
-        Multiple instances of the application are executed either on the same machine, or spread across multiple machines and tasks can be distributed automatically
-        by the library to those running application instances. The assignment of partitions to tasks never changes; if an application instance fails, all its assigned
-        tasks will be automatically restarted on other instances and continue to consume from the same stream partitions.
+        有一点很重要的内容我们需要明确： Kafka Streams 不是一个资源管理器，而是一个库，这个库“运行”在其流处理应用程序所需要的任何位置。
+        应用程序的多个实例可以在同一台机器上执行，也可以分布在多台机器上，任务可以由库自动分配给正在运行的应用程序实例。
+        任务与分区的对应关系是不会改变的；如果应用程序实例失败，则其所有分配给它的任务将在其他实例上自动重新启动，并继续从相同的流分区中消费数据。
     </p>
 
     <p>
