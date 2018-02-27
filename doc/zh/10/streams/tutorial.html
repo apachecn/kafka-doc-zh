@@ -19,27 +19,26 @@
 <!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
-    <h1>Tutorial: Write a Streams Application</h1>
+    <h1>教程：编写一个Streams应用程序</h1>
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
-                <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
-                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/">介绍</a>
+                <a href="/{{version}}/documentation/streams/developer-guide">开发指导</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">概念</a>
+                <a href="/{{version}}/documentation/streams/quickstart">运行Demo</a>
+                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">教程: 写Demo</a>
             </div>
         </div>
     </div>
     <p>
-        In this guide we will start from scratch on setting up your own project to write a stream processing application using Kafka Streams.
-        It is highly recommended to read the <a href="/{{version}}/documentation/streams/quickstart">quickstart</a> first on how to run a Streams application written in Kafka Streams if you have not done so.
+        在本指南中，我们将从头开始建立属于自己的项目，使用Kafka Streams编写一个流处理应用程序。如果你还没阅读过 <a href="/{{version}}/documentation/streams/quickstart">quickstart</a> (在Kafka流中运行一个流应用程序)章节，我们强烈建议你先去阅读一下。
     </p>
 
-    <h4><a id="tutorial_maven_setup" href="#tutorial_maven_setup">Setting up a Maven Project</a></h4>
+    <h4><a id="tutorial_maven_setup" href="#tutorial_maven_setup">建立一个Maven项目</a></h4>
 
     <p>
-        We are going to use a Kafka Streams Maven Archetype for creating a Streams project structure with the following commands:
+        使用以下命令来创建具有Kafka Streams项目架构的Maven原型:
     </p>
 
     <pre class="brush: bash;">
@@ -54,8 +53,8 @@
     </pre>
 
     <p>
-        You can use a different value for <code>groupId</code>, <code>artifactId</code> and <code>package</code> parameters if you like.
-        Assuming the above parameter values are used, this command will create a project structure that looks like this:
+        对于 <code>groupId</code>, <code>artifactId</code> and <code>package</code> 这三个参数你可以设置不同的值.
+        假定使用上述的参数值，该命令将创建如下的项目结构:
     </p>
 
     <pre class="brush: bash;">
@@ -74,9 +73,7 @@
     </pre>
 
     <p>
-        The <code>pom.xml</code> file included in the project already has the Streams dependency defined,
-        and there are already several example programs written with Streams library under <code>src/main/java</code>.
-        Since we are going to start writing such programs from scratch, we can now delete these examples:
+        项目中包含的 <code>pom.xml</code> 已经定义了 Streams 依赖，并且在 <code>src/main/java</code> 下已经有几个用 Streams 库编写的示例程序。既然我们要从头开始编写这些程序，那我们现在可以删除这些示例:
     </p>
 
     <pre class="brush: bash;">
@@ -84,10 +81,9 @@
         &gt; rm src/main/java/myapps/*.java
     </pre>
 
-    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">Writing a first Streams application: Pipe</a></h4>
+    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">书写第一个 Streams 应用: Pipe</a></h4>
 
-    It's coding time now! Feel free to open your favorite IDE and import this Maven project, or simply open a text editor and create a java file under <code>src/main/java</code>.
-    Let's name it <code>Pipe.java</code>:
+    可以打开你喜欢的 IDE 并导入这个 Maven 项目，或者简单地打开一个文本编辑器，并在 <code>src/main/java</code> 下创建一个java文件。让我们命名为 <code>Pipe.java</code> :
 
     <pre class="brush: java;">
         package myapps;
@@ -101,14 +97,11 @@
     </pre>
 
     <p>
-        We are going to fill in the <code>main</code> function to write this pipe program. Note that we will not list the import statements as we go since IDEs can usually add them automatically.
-        However if you are using a text editor you need to manually add the imports, and at the end of this section we'll show the complete code snippet with import statement for you.
+        我们将在 <code>main</code> 函数中来编写这个 pipe 程序。注意，由于 ide 通常可以自动添加导入语句(import)，所以我们不会列出这些 import。但是，如果你使用的是文本编辑器，则需要手动添加导入，在本节的末尾，我们将向你展示带有 import 语句的完整代码片段。
     </p>
 
     <p>
-        The first step to write a Streams application is to create a <code>java.util.Properties</code> map to specify different Streams execution configuration values as defined in <code>StreamsConfig</code>.
-        A couple of important configuration values you need to set are: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>, which specifies a list of host/port pairs to use for establishing the initial connection to the Kafka cluster,
-        and <code>StreamsConfig.APPLICATION_ID_CONFIG</code>, which gives the unique identifier of your Streams application to distinguish itself with other applications talking to the same Kafka cluster:
+        写 Streams 应用程序的第一步是创建一个 <code>java.util.Properties</code> map 用来保存定义在 <code>StreamsConfig</code> 中不同的 Streams 执行配置参数。几个重要的配置值需要设置: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>,它指定用于和 Kafka 集群建立初始化连接的 host/port 对的列表, <code>StreamsConfig.APPLICATION_ID_CONFIG</code>,它提供了 Streams 应用程序的唯一标识符，以便于在同一个Kafka集群通信过程中区分自己和其他应用程序：
     </p>
 
     <pre class="brush: java;">
@@ -118,7 +111,7 @@
     </pre>
 
     <p>
-        In addition, you can customize other configurations in the same map, for example, default serialization and deserialization libraries for the record key-value pairs:
+        另外，你可以在同一个 map 中自定义其他配置，例如配置默认的序列化和反序列化库的键值对:
     </p>
 
     <pre class="brush: java;">
@@ -127,13 +120,11 @@
     </pre>
 
     <p>
-        For a full list of configurations of Kafka Streams please refer to this <a href="/{{version}}/documentation/#streamsconfigs">table</a>.
+        有关 Kafka Streams 配置的完整列表，请参阅此 <a href="/{{version}}/documentation/#streamsconfigs">table</a>。
     </p>
 
     <p>
-        Next we will define the computational logic of our Streams application.
-        In Kafka Streams this computational logic is defined as a <code>topology</code> of connected processor nodes.
-        We can use a topology builder to construct such a topology,
+        接下来我们将定义 Streams 应用程序的计算逻辑。在 Kafka Streams 中，这个计算逻辑被定义为用来连接 processor nodes 的 <code>topology</code>。 我们可以使用 topology builder 来构建这样的 topology，
     </p>
 
     <pre class="brush: java;">
@@ -141,7 +132,7 @@
     </pre>
 
     <p>
-        And then create a source stream from a Kafka topic named <code>streams-plaintext-input</code> using this topology builder:
+        然后使用这个 topology builder 从 <code>streams-plaintext-input</code> 这个 Kafka topic 中创建的 source stream：
     </p>
 
     <pre class="brush: java;">
@@ -149,9 +140,9 @@
     </pre>
 
     <p>
-        Now we get a <code>KStream</code> that is continuously generating records from its source Kafka topic <code>streams-plaintext-input</code>.
-        The records are organized as <code>String</code> typed key-value pairs.
-        The simplest thing we can do with this stream is to write it into another Kafka topic, say it's named <code>streams-pipe-output</code>:
+        现在我们得到一个 <code>KStream</code>，它不断地从 <code>streams-plaintext-input</code> 这个 Kafka topic 的数据流源头中生成记录。
+        记录被组织为 <code>String</code> 类型的 key-value 键值对。
+        对于这个 stream，最简单处理的方法就是将它写入另一个 Kafka topic，比如这个名为 <code>streams-pipe-output</code> 的 topic :
     </p>
 
     <pre class="brush: java;">
@@ -159,7 +150,7 @@
     </pre>
 
     <p>
-        Note that we can also concatenate the above two lines into a single line as:
+        注意，我们也可以将上面的两行代码连接成一行:
     </p>
 
     <pre class="brush: java;">
@@ -167,7 +158,7 @@
     </pre>
 
     <p>
-        We can inspect what kind of <code>topology</code> is created from this builder by doing the following:
+        我们可以通过执行以下操作来检查此 builder 创建的 <code>topology</code> 结构类型：
     </p>
 
     <pre class="brush: java;">
@@ -175,7 +166,7 @@
     </pre>
 
     <p>
-        And print its description to standard output as:
+        并将其描述打印为标准输出:
     </p>
 
     <pre class="brush: java;">
@@ -183,7 +174,7 @@
     </pre>
 
     <p>
-        If we just stop here, compile and run the program, it will output the following information:
+        如果我们只编码到这里，然后编译并运行此程序，它将输出以下信息:
     </p>
 
     <pre class="brush: bash;">
