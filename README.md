@@ -2,8 +2,8 @@
   
 Kafka 一款是基于磁盘顺序读写,支持批处理的消息队列。
 
-官方地址: <http://kafka.apachecn.org/>  
-中文社区: <http://kafka.apache.org/>
+官方地址:  <http://kafka.apache.org/>
+中文社区: <http://kafka.apachecn.org/> 
 
 
 ## 项目负责人
