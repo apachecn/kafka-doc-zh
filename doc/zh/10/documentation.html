@@ -86,10 +86,10 @@
 
     <h2><a id="streams" href="/10/documentation/streams">9. Kafka Streams</a></h2>
     <p>
-        Kafka Streams is a client library for processing and analyzing data stored in Kafka. It builds upon important stream processing concepts such as properly distinguishing between event time and processing time, windowing support, exactly-once processing semantics and simple yet efficient management of application state.
+        Kafka Streams 是一个用于处理和分析存储在 Kafka 系统中的数据的客户端库。 它建立在重要的流处理概念上，如恰当地区分事件时间（event time）和处理时间（processing time），支持窗口操作（window），exactly-once 处理语义以及简单高效的应用程序状态管理。
     </p>
     <p>
-        Kafka Streams has a <b>low barrier to entry</b>: You can quickly write and run a small-scale proof-of-concept on a single machine; and you only need to run additional instances of your application on multiple machines to scale up to high-volume production workloads. Kafka Streams transparently handles the load balancing of multiple instances of the same application by leveraging Kafka's parallelism model.
+        Kafka Streams 的<b>入门门槛很低</b>。我们可以在单节点环境上快速实现一个小规模的验证性的程序，只要程序能在多节点的集群环境成功运行即可部署到高负载的生产环境。 Kafka Streams 通过利用 Kafka 的并行模型实现对相同应用程序的多个实例的负载平衡，这对于用户来说是透明的。
     </p>
 
     <p>Learn More about Kafka Streams read <a href="/10/documentation/streams">this</a> Section.</p>
