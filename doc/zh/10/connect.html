@@ -16,47 +16,47 @@
   ~-->
 
 <script id="connect-template" type="text/x-handlebars-template">
-    <h3><a id="connect_overview" href="#connect_overview">8.1 Overview</a></h3>
+    <h3><a id="connect_overview" href="#connect_overview">8.1 概述</a></h3>
 
-    <p>Kafka Connect is a tool for scalably and reliably streaming data between Apache Kafka and other systems. It makes it simple to quickly define <i>connectors</i> that move large collections of data into and out of Kafka. Kafka Connect can ingest entire databases or collect metrics from all your application servers into Kafka topics, making the data available for stream processing with low latency. An export job can deliver data from Kafka topics into secondary storage and query systems or into batch systems for offline analysis.</p>
+    <p>Kafka Connect 是一款可扩展并且可靠地在 Apache Kafka 和其他系统之间进行数据传输的工具。 可以很简单的快速定义 <i>connectors</i> 将大量数据从 Kafka 移入和移出. Kafka Connect 可以摄取数据库数据或者收集应用程序的 metrics 存储到 Kafka topics，使得数据可以用于低延迟的流处理。 一个导出的 job 可以将来自 Kafka topic 的数据传输到二级存储，用于系统查询或者批量进行离线分析。</p>
 
-    <p>Kafka Connect features include:</p>
+    <p>Kafka Connect 功能包括:</p>
     <ul>
-        <li><b>A common framework for Kafka connectors</b> - Kafka Connect standardizes integration of other data systems with Kafka, simplifying connector development, deployment, and management</li>
-        <li><b>Distributed and standalone modes</b> - scale up to a large, centrally managed service supporting an entire organization or scale down to development, testing, and small production deployments</li>
-        <li><b>REST interface</b> - submit and manage connectors to your Kafka Connect cluster via an easy to use REST API</li>
-        <li><b>Automatic offset management</b> - with just a little information from connectors, Kafka Connect can manage the offset commit process automatically so connector developers do not need to worry about this error prone part of connector development</li>
-        <li><b>Distributed and scalable by default</b> - Kafka Connect builds on the existing group management protocol. More workers can be added to scale up a Kafka Connect cluster.</li>
-        <li><b>Streaming/batch integration</b> - leveraging Kafka's existing capabilities, Kafka Connect is an ideal solution for bridging streaming and batch data systems</li>
+        <li><b>Kafka connectors 通用框架：</b> - Kafka Connect 将其他数据系统和Kafka集成标准化,简化了 connector 的开发,部署和管理</li>
+        <li><b>分布式和单机模式</b> - 可以扩展成一个集中式的管理服务，也可以单机方便的开发,测试和生产环境小型的部署。</li>
+        <li><b>REST 接口</b> - submit and manage connectors to your Kafka Connect cluster via an easy to use REST API</li>
+        <li><b>offset 自动管理</b> - 只需要connectors 的一些信息，Kafka Connect 可以自动管理offset 提交的过程，因此开发人员无需担心开发中offset提交出错的这部分。</li>
+        <li><b>分布式的并且可扩展</b> - Kafka Connect 构建在现有的 group 管理协议上。Kafka Connect 集群可以扩展添加更多的workers。</li>
+        <li><b>整合流处理/批处理</b> - 利用 Kafka 已有的功能，Kafka Connect 是一个桥接stream 和批处理系统理想的方式。</li>
     </ul>
 
-    <h3><a id="connect_user" href="#connect_user">8.2 User Guide</a></h3>
+    <h3><a id="connect_user" href="#connect_user">8.2 用户指南</a></h3>
 
-    <p>The quickstart provides a brief example of how to run a standalone version of Kafka Connect. This section describes how to configure, run, and manage Kafka Connect in more detail.</p>
+    <p> quickstart 提供了一个简单的例子，演示如何运行一个单机版的Kafka Connect。 这一节描述如何配置，如何管理Kafka Connect 的更多细节。</p>
 
-    <h4><a id="connect_running" href="#connect_running">Running Kafka Connect</a></h4>
+    <h4><a id="connect_running" href="#connect_running">运行 Kafka Connect</a></h4>
 
-    <p>Kafka Connect currently supports two modes of execution: standalone (single process) and distributed.</p>
+    <p>Kafka Connect 当前支持两种执行方式: 单机 (单个进程) 和 分布式.</p>
 
-    <p>In standalone mode all work is performed in a single process. This configuration is simpler to setup and get started with and may be useful in situations where only one worker makes sense (e.g. collecting log files), but it does not benefit from some of the features of Kafka Connect such as fault tolerance. You can start a standalone process with the following command:</p>
+    <p>在单机模式下所有的工作都是在一个进程中运行的。connect的配置项很容易配置和开始使用，当只有一台机器(worker)的时候也是可用的(例如，收集日志文件到kafka)，但是不利于Kafka Connect 的容错。你可以通过下面的命令启动一个单机进程:</p>
 
     <pre class="brush: bash;">
     &gt; bin/connect-standalone.sh config/connect-standalone.properties connector1.properties [connector2.properties ...]
     </pre>
 
-    <p>The first parameter is the configuration for the worker. This includes settings such as the Kafka connection parameters, serialization format, and how frequently to commit offsets. The provided example should work well with a local cluster running with the default configuration provided by <code>config/server.properties</code>. It will require tweaking to use with a different configuration or production deployment. All workers (both standalone and distributed) require a few configs:</p>
+    <p>第一个参数是 worker 的配置文件. 其中包括 Kafka connection 参数，序列化格式，和如何频繁的提交offsets。 所提供的示例可以在本地良好的运行，使用默认提供的配置 <code>config/server.properties</code> 。它需要调整以配合不同的配置或生产环境部署。所有的workers（独立和分布式）都需要一些配置 :</p>
     <ul>
         <li><code>bootstrap.servers</code> - List of Kafka servers used to bootstrap connections to Kafka</li>
         <li><code>key.converter</code> - Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the keys in messages written to or read from Kafka, and since this is independent of connectors it allows any connector to work with any serialization format. Examples of common formats include JSON and Avro.</li>
         <li><code>value.converter</code> - Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the values in messages written to or read from Kafka, and since this is independent of connectors it allows any connector to work with any serialization format. Examples of common formats include JSON and Avro.</li>
     </ul>
 
-    <p>The important configuration options specific to standalone mode are:</p>
+    <p>单机模式下比较重要的配置如下:</p>
     <ul>
         <li><code>offset.storage.file.filename</code> - File to store offset data in</li>
     </ul>
 
-    <p>The parameters that are configured here are intended for producers and consumers used by Kafka Connect to access the configuration, offset and status topics. For configuration of Kafka source and Kafka sink tasks, the same parameters can be used but need to be prefixed with <code>consumer.</code> and <code>producer.</code> respectively. The only parameter that is inherited from the worker configuration is <code>bootstrap.servers</code>, which in most cases will be sufficient, since the same cluster is often used for all purposes. A notable exeption is a secured cluster, which requires extra parameters to allow connections. These parameters will need to be set up to three times in the worker configuration, once for management access, once for Kafka sinks and once for Kafka sources.</p>
+    <p>这些参数用于 Kafka Connect的 producers 和consumer获取配置,offset和status topic。对于 Kafka source和sink 任务的配置，相同参数要各自以<code>consumer.</code> 和 <code>producer.</code> 作为前缀。 The only parameter that is inherited from the worker configuration is <code>bootstrap.servers</code>, which in most cases will be sufficient, since the same cluster is often used for all purposes. A notable exeption is a secured cluster, which requires extra parameters to allow connections. These parameters will need to be set up to three times in the worker configuration, once for management access, once for Kafka sinks and once for Kafka sources.</p>
 
     <p>The remaining parameters are connector configuration files. You may include as many as you want, but all will execute within the same process (on different threads).</p>
 
@@ -279,8 +279,8 @@
     </pre>
 
     <p>Finally, the real core of the implementation is in <code>taskConfigs()</code>. In this case we are only
-    handling a single file, so even though we may be permitted to generate more tasks as per the
-    <code>maxTasks</code> argument, we return a list with only one entry:</p>
+        handling a single file, so even though we may be permitted to generate more tasks as per the
+        <code>maxTasks</code> argument, we return a list with only one entry:</p>
 
     <pre class="brush: java;">
     @Override
@@ -297,7 +297,7 @@
     </pre>
 
     <p>Although not used in the example, <code>SourceTask</code> also provides two APIs to commit offsets in the source system: <code>commit</code> and <code>commitRecord</code>. The APIs are provided for source systems which have an acknowledgement mechanism for messages. Overriding these methods allows the source connector to acknowledge messages in the source system, either in bulk or individually, once they have been written to Kafka.
-    The <code>commit</code> API stores the offsets in the source system, up to the offsets that have been returned by <code>poll</code>. The implementation of this API should block until the commit is complete. The <code>commitRecord</code> API saves the offset in the source system for each <code>SourceRecord</code> after it is written to Kafka. As Kafka Connect will record offsets automatically, <code>SourceTask</code>s are not required to implement them. In cases where a connector does need to acknowledge messages in the source system, only one of the APIs is typically required.</p>
+        The <code>commit</code> API stores the offsets in the source system, up to the offsets that have been returned by <code>poll</code>. The implementation of this API should block until the commit is complete. The <code>commitRecord</code> API saves the offset in the source system for each <code>SourceRecord</code> after it is written to Kafka. As Kafka Connect will record offsets automatically, <code>SourceTask</code>s are not required to implement them. In cases where a connector does need to acknowledge messages in the source system, only one of the APIs is typically required.</p>
 
     <p>Even with multiple tasks, this method implementation is usually pretty simple. It just has to determine the number of input tasks, which may require contacting the remote service it is pulling data from, and then divvy them up. Because some patterns for splitting work among tasks are so common, some utilities are provided in <code>ConnectorUtils</code> to simplify these cases.</p>
 
@@ -380,7 +380,7 @@
     <p>The <code>SinkTask</code> documentation contains full details, but this interface is nearly as simple as the <code>SourceTask</code>. The <code>put()</code> method should contain most of the implementation, accepting sets of <code>SinkRecords</code>, performing any required translation, and storing them in the destination system. This method does not need to ensure the data has been fully written to the destination system before returning. In fact, in many cases internal buffering will be useful so an entire batch of records can be sent at once, reducing the overhead of inserting events into the downstream data store. The <code>SinkRecords</code> contain essentially the same information as <code>SourceRecords</code>: Kafka topic, partition, offset and the event key and value.</p>
 
     <p>The <code>flush()</code> method is used during the offset commit process, which allows tasks to recover from failures and resume from a safe point such that no events will be missed. The method should push any outstanding data to the destination system and then block until the write has been acknowledged. The <code>offsets</code> parameter can often be ignored, but is useful in some cases where implementations want to store offset information in the destination store to provide exactly-once
-    delivery. For example, an HDFS connector could do this and use atomic move operations to make sure the <code>flush()</code> operation atomically commits the data and offsets to a final location in HDFS.</p>
+        delivery. For example, an HDFS connector could do this and use atomic move operations to make sure the <code>flush()</code> operation atomically commits the data and offsets to a final location in HDFS.</p>
 
 
     <h5><a id="connect_resuming" href="#connect_resuming">Resuming from Previous Offsets</a></h5>
@@ -467,11 +467,11 @@
     <h4><a id="connect_administration" href="#connect_administration">Kafka Connect Administration</a></h4>
 
     <p>
-    Kafka Connect's <a href="#connect_rest">REST layer</a> provides a set of APIs to enable administration of the cluster. This includes APIs to view the configuration of connectors and the status of their tasks, as well as to alter their current behavior (e.g. changing configuration and restarting tasks).
+        Kafka Connect's <a href="#connect_rest">REST layer</a> provides a set of APIs to enable administration of the cluster. This includes APIs to view the configuration of connectors and the status of their tasks, as well as to alter their current behavior (e.g. changing configuration and restarting tasks).
     </p>
 
     <p>
-    When a connector is first submitted to the cluster, the workers rebalance the full set of connectors in the cluster and their tasks so that each worker has approximately the same amount of work. This same rebalancing procedure is also used when connectors increase or decrease the number of tasks they require, or when a connector's configuration is changed. You can use the REST API to view the current status of a connector and its tasks, including the id of the worker to which each was assigned. For example, querying the status of a file source (using <code>GET /connectors/file-source/status</code>) might produce output like the following:
+        When a connector is first submitted to the cluster, the workers rebalance the full set of connectors in the cluster and their tasks so that each worker has approximately the same amount of work. This same rebalancing procedure is also used when connectors increase or decrease the number of tasks they require, or when a connector's configuration is changed. You can use the REST API to view the current status of a connector and its tasks, including the id of the worker to which each was assigned. For example, querying the status of a file source (using <code>GET /connectors/file-source/status</code>) might produce output like the following:
     </p>
 
     <pre class="brush: json;">
@@ -492,22 +492,22 @@
     </pre>
 
     <p>
-    Connectors and their tasks publish status updates to a shared topic (configured with <code>status.storage.topic</code>) which all workers in the cluster monitor. Because the workers consume this topic asynchronously, there is typically a (short) delay before a state change is visible through the status API. The following states are possible for a connector or one of its tasks:
+        Connectors and their tasks publish status updates to a shared topic (configured with <code>status.storage.topic</code>) which all workers in the cluster monitor. Because the workers consume this topic asynchronously, there is typically a (short) delay before a state change is visible through the status API. The following states are possible for a connector or one of its tasks:
     </p>
 
     <ul>
-    <li><b>UNASSIGNED:</b> The connector/task has not yet been assigned to a worker.</li>
-    <li><b>RUNNING:</b> The connector/task is running.</li>
-    <li><b>PAUSED:</b> The connector/task has been administratively paused.</li>
-    <li><b>FAILED:</b> The connector/task has failed (usually by raising an exception, which is reported in the status output).</li>
+        <li><b>UNASSIGNED:</b> The connector/task has not yet been assigned to a worker.</li>
+        <li><b>RUNNING:</b> The connector/task is running.</li>
+        <li><b>PAUSED:</b> The connector/task has been administratively paused.</li>
+        <li><b>FAILED:</b> The connector/task has failed (usually by raising an exception, which is reported in the status output).</li>
     </ul>
 
     <p>
-    In most cases, connector and task states will match, though they may be different for short periods of time when changes are occurring or if tasks have failed. For example, when a connector is first started, there may be a noticeable delay before the connector and its tasks have all transitioned to the RUNNING state. States will also diverge when tasks fail since Connect does not automatically restart failed tasks. To restart a connector/task manually, you can use the restart APIs listed above. Note that if you try to restart a task while a rebalance is taking place, Connect will return a 409 (Conflict) status code. You can retry after the rebalance completes, but it might not be necessary since rebalances effectively restart all the connectors and tasks in the cluster.
+        In most cases, connector and task states will match, though they may be different for short periods of time when changes are occurring or if tasks have failed. For example, when a connector is first started, there may be a noticeable delay before the connector and its tasks have all transitioned to the RUNNING state. States will also diverge when tasks fail since Connect does not automatically restart failed tasks. To restart a connector/task manually, you can use the restart APIs listed above. Note that if you try to restart a task while a rebalance is taking place, Connect will return a 409 (Conflict) status code. You can retry after the rebalance completes, but it might not be necessary since rebalances effectively restart all the connectors and tasks in the cluster.
     </p>
 
     <p>
-    It's sometimes useful to temporarily stop the message processing of a connector. For example, if the remote system is undergoing maintenance, it would be preferable for source connectors to stop polling it for new data instead of filling logs with exception spam. For this use case, Connect offers a pause/resume API. While a source connector is paused, Connect will stop polling it for additional records. While a sink connector is paused, Connect will stop pushing new messages to it. The pause state is persistent, so even if you restart the cluster, the connector will not begin message processing again until the task has been resumed. Note that there may be a delay before all of a connector's tasks have transitioned to the PAUSED state since it may take time for them to finish whatever processing they were in the middle of when being paused. Additionally, failed tasks will not transition to the PAUSED state until they have been restarted.
+        It's sometimes useful to temporarily stop the message processing of a connector. For example, if the remote system is undergoing maintenance, it would be preferable for source connectors to stop polling it for new data instead of filling logs with exception spam. For this use case, Connect offers a pause/resume API. While a source connector is paused, Connect will stop polling it for additional records. While a sink connector is paused, Connect will stop pushing new messages to it. The pause state is persistent, so even if you restart the cluster, the connector will not begin message processing again until the task has been resumed. Note that there may be a delay before all of a connector's tasks have transitioned to the PAUSED state since it may take time for them to finish whatever processing they were in the middle of when being paused. Additionally, failed tasks will not transition to the PAUSED state until they have been restarted.
     </p>
 </script>
 
