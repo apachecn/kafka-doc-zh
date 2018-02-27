@@ -28,6 +28,8 @@ Kafka 一款是基于磁盘顺序读写,支持批处理的消息队列。
 * [@hyper-xx](https://github.com/hyper-xx>)
 * [@aspoman](https://github.com/aspoman>)
 * [@chenliusuo](https://github.com/chenliusuo>)
+* [@mantianstar](https://github.com/mantianstar>) 
+
 
 
 
