@@ -15,20 +15,20 @@ Kafka 一款是基于磁盘顺序读写,支持批处理的消息队列。
 
 ### Kafka 1.0.0 中文文档贡献者
 
-* [@那伊抹微笑](https://github.com/wangyangting>)
-* [@mikechengwei](https://github.com/mikechengwei>)
-* [@lc3030](https://github.com/lc3030>)
-* [@Elena7](https://github.com/Elena7>)
-* [@Raymoonkie](https://github.com/Raymoonkie>)
-* [@gongchu](https://github.com/gongchu>)
-* [@Islotus](https://github.com/Islotus>)
-* [@coboe](https://github.com/coboe>)
-* [@Qanora](https://github.com/Qanora>)
-* [@sirwangshuai](https://github.com/sirwangshuai>)
-* [@hyper-xx](https://github.com/hyper-xx>)
-* [@aspoman](https://github.com/aspoman>)
-* [@chenliusuo](https://github.com/chenliusuo>)
-* [@mantianstar](https://github.com/mantianstar>) 
+* [@那伊抹微笑](https://github.com/wangyangting)
+* [@mikechengwei](https://github.com/mikechengwei)
+* [@lc3030](https://github.com/lc3030)
+* [@Elena7](https://github.com/Elena7)
+* [@Raymoonkie](https://github.com/Raymoonkie)
+* [@gongchu](https://github.com/gongchu)
+* [@Islotus](https://github.com/Islotus)
+* [@coboe](https://github.com/coboe)
+* [@Qanora](https://github.com/Qanora)
+* [@sirwangshuai](https://github.com/sirwangshuai)
+* [@hyper-xx](https://github.com/hyper-xx)
+* [@aspoman](https://github.com/aspoman)
+* [@chenliusuo](https://github.com/chenliusuo)
+* [@mantianstar](https://github.com/mantianstar) 
 
 
 
