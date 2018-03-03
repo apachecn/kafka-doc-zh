@@ -115,22 +115,23 @@ Kafka 支持 GZIP，Snappy 和 LZ4 压缩协议，更多有关压缩的资料参
 
 <h4><a id="design_loadbalancing" href="#design_loadbalancing">Load balancing</a></h4>
 <p>
-The producer sends data directly to the broker that is the leader for the partition without any intervening routing tier. To help the producer do this all Kafka nodes can answer a request for metadata about which
-servers are alive and where the leaders for the partitions of a topic are at any given time to allow the producer to appropriately direct its requests.
+    生产者直接发送数据到主分区的服务器上，不需要经过任何中间路由。
+    为了让生产者实现这个功能，所有的 kafka 服务器节点都能响应这样的元数据请求：
+    哪些服务器是活着的，主题的哪些分区是主分区，分配在哪个服务器上，这样生产者就能适当地直接发送它的请求到服务器上。
 <p>
-The client controls which partition it publishes messages to. This can be done at random, implementing a kind of random load balancing, or it can be done by some semantic partitioning function. We expose the interface
-for semantic partitioning by allowing the user to specify a key to partition by and using this to hash to a partition (there is also an option to override the partition function if need be). For example if the key
-chosen was a user id then all data for a given user would be sent to the same partition. This in turn will allow consumers to make locality assumptions about their consumption. This style of partitioning is explicitly
-designed to allow locality-sensitive processing in consumers.
+    客户端控制消息发送数据到哪个分区，这个可以实现随机的负载均衡方式,或者使用一些特定语义的分区函数。
+    我们有提供特定分区的接口让用于根据指定的键值进行hash分区(当然也有选项可以重写分区函数)，例如，如果使用用户ID作为key，则用户相关的所有数据都会被分发到同一个分区上。
+    这允许消费者在消费数据时做一些特定的本地化处理。这样的分区风格经常被设计用于一些本地处理比较敏感的消费者。
 
 <h4><a id="design_asyncsend" href="#design_asyncsend">Asynchronous send</a></h4>
 <p>
-Batching is one of the big drivers of efficiency, and to enable batching the Kafka producer will attempt to accumulate data in memory and to send out larger batches in a single request. The batching can be configured
-to accumulate no more than a fixed number of messages and to wait no longer than some fixed latency bound (say 64k or 10 ms). This allows the accumulation of more bytes to send, and few larger I/O operations on the
-servers. This buffering is configurable and gives a mechanism to trade off a small amount of additional latency for better throughput.
+    批处理是提升性能的一个主要驱动，为了允许批量处理，kafka 生产者会尝试在内存中汇总数据，并用一次请求批次提交信息。
+    批处理，不仅仅可以配置指定的消息数量，也可以指定等待特定的延迟时间(如64k 或10ms)，这允许汇总更多的数据后再发送，在服务器端也会减少更多的IO操作。
+    该缓冲是可配置的，并给出了一个机制，通过权衡少量额外的延迟时间获取更好的吞吐量。
 <p>
-Details on <a href="#producerconfigs">configuration</a> and the <a href="http://kafka.apache.org/082/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">api</a> for the producer can be found
-elsewhere in the documentation.
+    更多的细节可以在 producer 的 <a href="#producerconfigs">configuration</a> 和 <a href="http://kafka.apache.org/082/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html">api</a>文档中进行详细的了解。
+
+
 
 <h3><a id="theconsumer" href="#theconsumer">4.5 消费者</a></h3>
 
