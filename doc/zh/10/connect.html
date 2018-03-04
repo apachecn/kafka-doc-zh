@@ -384,9 +384,9 @@
 
     <h5><a id="connect_resuming" href="#connect_resuming">Resuming from Previous Offsets</a></h5>
 
-    <p>The <code>SourceTask</code> implementation included a stream ID (the input filename) and offset (position in the file) with each record. The framework uses this to commit offsets periodically so that in the case of a failure, the task can recover and minimize the number of events that are reprocessed and possibly duplicated (or to resume from the most recent offset if Kafka Connect was stopped gracefully, e.g. in standalone mode or due to a job reconfiguration). This commit process is completely automated by the framework, but only the connector knows how to seek back to the right position in the input stream to resume from that location.</p>
+    <p><code>SourceTask</code> 的实现包含每条记录的 stream ID (本示例中是输入的文件名) 和 offset (记录在文件中的位置)。该框架使用它定期提交 offset 数据，以便在发生故障的情况下，task 可以恢复并且最小化 reprocess 和 可能重复的事件的数量（或者从最近 Kafka Connect 正常停止过的 offset 恢复，例如在独立模式下或作业重新配置导致的停止）。这个提交过程由框架完全自动化，但只有 connector 知道如何退回到 input stream 中的正确位置并从该位置恢复。</p>
 
-    <p>To correctly resume upon startup, the task can use the <code>SourceContext</code> passed into its <code>initialize()</code> method to access the offset data. In <code>initialize()</code>, we would add a bit more code to read the offset (if it exists) and seek to that position:</p>
+    <p>为了在启动时正确恢复，task 可以使用它的 <code>initialize()</code> 方法中传入的 <code>SourceContext</code> 来访问 offset 数据。在 <code>initialize()</code> 中，我们会添加更多的代码来读取 offset 数据（如果存在）并寻找对应的位置：</p>
 
     <pre class="brush: java;">
         stream = new FileInputStream(filename);
@@ -398,7 +398,7 @@
         }
     </pre>
 
-    <p>Of course, you might need to read many keys for each of the input streams. The <code>OffsetStorageReader</code> interface also allows you to issue bulk reads to efficiently load all offsets, then apply them by seeking each input stream to the appropriate position.</p>
+    <p>当然，您可能需要为每个 input stream 读取多个 key。<code>OffsetStorageReader</code> 接口允许您发出批量读取以有效加载所有 offset，然后通过查找每个输入流来把它们放到对应的位置。</p>
 
     <h4><a id="connect_dynamicio" href="#connect_dynamicio">Dynamic Input/Output Streams</a></h4>
 
