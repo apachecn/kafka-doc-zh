@@ -311,7 +311,7 @@ Kafka 采取了一种稍微不同的方法来选择它的投票集。 Kafka 不�
     <li>选择第一个重新恢复正常服务的副本（不一定是 ISR 中的）作为leader。
 </ol>
 <p>
-这是可用性和一致性之间的简单妥协，如果我只等待 ISR 的备份节点，那么只要 ISR 备份节点都挂了，我们的服务将一直会不可用，如果它们的数据损坏了或者丢失了，那就会是长久的宕机。另一方面，如果不是 ISR 中的节点恢复服务并且我们也许它成为 leader ，
+这是可用性和一致性之间的简单妥协，如果我只等待 ISR 的备份节点，那么只要 ISR 备份节点都挂了，我们的服务将一直会不可用，如果它们的数据损坏了或者丢失了，那就会是长久的宕机。另一方面，如果不是 ISR 中的节点恢复服务并且我们允许它成为 leader ，
 那么它的数据就是可信的来源，即使它不能保证记录了每一个已经提交的消息。 kafka 默认选择第二种策略，当所有的 ISR 副本都挂掉时，会选择一个可能不同步的备份作为 leader ，可以配置属性 unclean.leader.election.enable 禁用此策略，那么就会使用第
 一种策略即停机时间优于不同步。
 <p>
@@ -337,7 +337,7 @@ ISR 副本同步完成，就会返回消息已经写入。例如，一个 topic 
 少数几个节点上。同样，我们也试图平衡leadership,以至于每个节点都是部分 partition 的leader节点。
 <p>
 优化主从关系的选举过程也是重要的，这是数据不可用的关键窗口。原始的实现是当有节点挂了后，进行主从关系选举时，会对挂掉节点的所有partition 的领导权重新选举。相反，我们会选择一个 broker 作为 “controller”节点。controller 节点负责
-检测 brokers 级别故障,并负责当一个 broker 挂了,改变该 broker 故障影响 partition 的 leadership。这种方式可以批量的通知主从关系的变化，使得对于拥有大量partition 的broker ,选举过程的代价更便宜并且速度更快。如果 controller 节点挂了，其他
+检测 brokers 级别故障,并负责在 broker 故障的情况下更改这个故障 Broker 中的 partition 的 leadership 。这种方式可以批量的通知主从关系的变化，使得对于拥有大量partition 的broker ,选举过程的代价更低并且速度更快。如果 controller 节点挂了，其他
 存活的 broker 都可能成为新的 controller 节点。
 
 <h3><a id="compaction" href="#compaction">4.8 日志压缩</a></h3>
