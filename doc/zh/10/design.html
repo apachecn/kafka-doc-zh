@@ -341,7 +341,7 @@ ISR 副本同步完成，就会返回消息已经写入。例如，一个 topic 
 存活的 broker 都可能成为新的 controller 节点。
 
 <h3><a id="compaction" href="#compaction">4.8 日志压缩</a></h3>
-日志压缩可确保Kafka始终至少为单个 topic partition 的数据日志中的每个 message key 保留最新的已知值。
+日志压缩可确保 Kafka 始终至少为单个 topic partition 的数据日志中的每个 message key 保留最新的已知值。
 这样的设计解决了应用程序崩溃、系统故障后恢复或者应用在运行维护过程中重启后重新加载缓存的场景。
 接下来让我们深入讨论这些在使用过程中的更多细节，阐述在这个过程中它是如何进行日志压缩的。
 
