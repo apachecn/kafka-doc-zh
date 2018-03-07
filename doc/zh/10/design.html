@@ -438,7 +438,7 @@ ISR 副本同步完成，就会返回消息已经写入。例如，一个 topic 
     <li>
         任何从头开始处理日志的Consumer至少会拿到每个key的最终状态。
         另外，只要Consumer在小于Topic的delete.retention.ms设置（默认24小时）的时间段内到达Log head，将会看到所有删除记录的所有删除标记。
-        换句话说，因为移除删除标记和读取是同事发生的，Consumer可能会因为落后超过delete.retention.ms而导致错过删除标记。
+        换句话说，因为移除删除标记和读取是同时发生的，Consumer可能会因为落后超过delete.retention.ms而导致错过删除标记。
 
 </ol>
 
@@ -461,9 +461,9 @@ Log Cleaner默认启用。这会启动清理的线程池。如果要开始特定
 这个可以通过创建Topic时配置或者之后使用Topic命令实现。
 <p>
     Log Cleaner可以配置保留最小的不压缩的head log。可以通过配置压缩的延迟时间：<pre class="brush: text;">  log.cleaner.min.compaction.lag.ms</pre>
-这可以用于保证消息比在被压缩的消息大一段时间。
+这可以保证消息在配置的时长内不被压缩。
 如果没有设置，除了最后一个日志外，所有的日志都会被压缩。
-当前写入的自如端不会被压缩，即使所有的消息都落后于比配置的最小压缩时间。
+活动的 segment 是不会被压缩的，即使它保存的消息的滞留时长已经超过了配置的最小压缩时间长。
 </p>
 <p>
     关于cleaner更详细的配置在 <a href="/documentation.html#brokerconfigs">这里</a>。
