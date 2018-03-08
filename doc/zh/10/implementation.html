@@ -145,7 +145,7 @@
     </pre>
     <h4><a id="impl_deletes" href="#impl_deletes">Deletes</a></h4>
     <p>
-    数据只能一次删除一个日志分片.日志管理器允许使用可插拔的删除策略来选择哪些文件符合删除条件.当前的删除策略会删除 <i>N</i> 天之前改动的日志,尽管保留最后的 <i>N</i> GB 数据可能有用.为了避免锁定读，同时允许删除修改 segment 列表，我们使用 copy-on-write 形式的 segment 列表实现，在删除的同时它提供了一致的视图允许在多个 segment 列表视图上执行二进制的搜索。
+    在一个时点下只有一个 log segment 的数据能被删除。日志管理器允许使用可插拔的删除策略来选择哪些文件符合删除条件.当前的删除策略会删除 <i>N</i> 天之前改动的日志,尽管保留最后的 <i>N</i> GB 数据可能有用.为了避免锁定读，同时允许删除修改 segment 列表，我们使用 copy-on-write 形式的 segment 列表实现，在删除的同时它提供了一致的视图允许在多个 segment 列表视图上执行二进制的搜索。
     </p>
     <h4><a id="impl_guarantees" href="#impl_guarantees">Guarantees</a></h4>
     <p>
