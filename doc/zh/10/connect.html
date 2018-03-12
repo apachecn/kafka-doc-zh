@@ -246,7 +246,7 @@
 
     <h5><a id="connect_connectorexample" href="#connect_connectorexample">Connector Example</a></h5>
 
-    <p>We'll cover the <code>SourceConnector</code> as a simple example. <code>SinkConnector</code> implementations are very similar. Start by creating the class that inherits from <code>SourceConnector</code> and add a couple of fields that will store parsed configuration information (the filename to read from and the topic to send data to):</p>
+    <p>首先我们用一个简单的例子介绍一下 <code>SourceConnector</code>，<code>SinkConnector</code> 的实现和它非常相似。首先创建一个继承自 <code>SourceConnector</code> 的类，并添加一些字段来存储解析出的配置信息(要读取的文件名以及要发送数据的topic):</p>
 
     <pre class="brush: java;">
     public class FileStreamSourceConnector extends SourceConnector {
@@ -254,7 +254,7 @@
         private String topic;
     </pre>
 
-    <p>The easiest method to fill in is <code>taskClass()</code>, which defines the class that should be instantiated in worker processes to actually read the data:</p>
+    <p>最简单的方法是<code>taskClass()</code>，它定义了应该在 worker 进程中实例化以实际读取数据的类:</p>
 
     <pre class="brush: java;">
     @Override
@@ -263,7 +263,7 @@
     }
     </pre>
 
-    <p>We will define the <code>FileStreamSourceTask</code> class below. Next, we add some standard lifecycle methods, <code>start()</code> and <code>stop()</code></p>:
+    <p>我们会在后面定义 <code>FileStreamSourceTask</code> 类。接下来，我们要往<code>FileStreamSourceConnector</code>类中添加一些标准的生命周期方法。</p>:
 
     <pre class="brush: java;">
     @Override
@@ -279,9 +279,7 @@
     }
     </pre>
 
-    <p>Finally, the real core of the implementation is in <code>taskConfigs()</code>. In this case we are only
-        handling a single file, so even though we may be permitted to generate more tasks as per the
-        <code>maxTasks</code> argument, we return a list with only one entry:</p>
+    <p>最后，实现的真正核心是 <code>taskConfigs()</code>。因此即使允许我们按照<code>maxTasks</code>参数创建更多的 task，我们也只返回包含一个 entry 的 list：</p>
 
     <pre class="brush: java;">
     @Override
@@ -297,12 +295,12 @@
     }
     </pre>
 
-    <p>Although not used in the example, <code>SourceTask</code> also provides two APIs to commit offsets in the source system: <code>commit</code> and <code>commitRecord</code>. The APIs are provided for source systems which have an acknowledgement mechanism for messages. Overriding these methods allows the source connector to acknowledge messages in the source system, either in bulk or individually, once they have been written to Kafka.
-        The <code>commit</code> API stores the offsets in the source system, up to the offsets that have been returned by <code>poll</code>. The implementation of this API should block until the commit is complete. The <code>commitRecord</code> API saves the offset in the source system for each <code>SourceRecord</code> after it is written to Kafka. As Kafka Connect will record offsets automatically, <code>SourceTask</code>s are not required to implement them. In cases where a connector does need to acknowledge messages in the source system, only one of the APIs is typically required.</p>
+    <p>尽管这个示例中没有用到，但 <code> SourceTask </code> 还提供了两个用于提交源系统中的 offset 的 API：<code> commit </code>和<code> commitRecord </code>。这些 API 是为具有消息确认机制的源系统提供的。覆盖这些方法允许 source connector 在源系统中的消息被写入 Kafka 后，批量或单独确认消息。
+                <code> commit </code> API 将偏移量存储在源系统中，<code> poll </code>方法每次返回的偏移量都会被存储起来。这个API 的实现应该一直处于阻塞状态直到提交完成。在每个<code> SourceRecord </code>被写入 Kafka 之后，<code> commitRecord </code> API 会将其偏移量保存在源系统中。由于 Kafka Connect 会自动记录偏移量，因此不需要<code> SourceTask </code>来实现它们。在 connector 确实需要确认源系统中的消息的情况下，通常只需要其中一个API。</p>
 
-    <p>Even with multiple tasks, this method implementation is usually pretty simple. It just has to determine the number of input tasks, which may require contacting the remote service it is pulling data from, and then divvy them up. Because some patterns for splitting work among tasks are so common, some utilities are provided in <code>ConnectorUtils</code> to simplify these cases.</p>
+    <p>即使是多任务, 这个方法实现通常也很简单。它只需要确定 input task 的数量，这可能需要联系它从中拉取数据的远程服务，然后由这些 task 来分摊工作。由于这些多个 task 分摊工作的的模式非常普遍，因为在 <code>ConnectorUtils</code> 工具类中提供了一些实用程序来简化这些模式。</p>
 
-    <p>Note that this simple example does not include dynamic input. See the discussion in the next section for how to trigger updates to task configs.</p>
+    <p>注意，这个简单的例子没有包括动态输入。有关如何触发 task 配置的更新，请参阅下一节的讨论。</p>
 
     <h5><a id="connect_taskexample" href="#connect_taskexample">Task Example - Source Task</a></h5>
 
