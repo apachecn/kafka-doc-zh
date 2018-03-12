@@ -246,7 +246,7 @@
 
     <h5><a id="connect_connectorexample" href="#connect_connectorexample">Connector Example</a></h5>
 
-    <p>我们拿 <code>SourceConnector</code> 作为一个简单的例子. <code>SinkConnector</code> 实现是非常相似的. 首先创建一个继承 <code>SourceConnector</code>的类并添加一些字段来存储分析的配置信息(要读取的文件名以及要发送数据的topic):</p>
+    <p>首先我们用一个简单的例子介绍一下 <code>SourceConnector</code>，<code>SinkConnector</code> 的实现和它非常相似。首先创建一个继承自 <code>SourceConnector</code> 的类，并添加一些字段来存储解析出的配置信息(要读取的文件名以及要发送数据的topic):</p>
 
     <pre class="brush: java;">
     public class FileStreamSourceConnector extends SourceConnector {
@@ -254,7 +254,7 @@
         private String topic;
     </pre>
 
-    <p>要填写的最简单的方法是 <code>taskClass()</code> 方法,这个类应该在 worker中实例化后读取相应的数据:</p>
+    <p>最简单的方法是<code>taskClass()</code>，它定义了应该在 worker 进程中实例化以实际读取数据的类:</p>
 
     <pre class="brush: java;">
     @Override
@@ -263,7 +263,7 @@
     }
     </pre>
 
-    <p>我们会在下面定义 <code>FileStreamSourceTask</code> class 类. 然后,我添加一些标准的生命周期的 methods , <code>start()</code> 和 <code>stop()</code></p>:
+    <p>我们会在后面定义 <code>FileStreamSourceTask</code> 类。接下来，我们要往<code>FileStreamSourceConnector</code>类中添加一些标准的生命周期方法。</p>:
 
     <pre class="brush: java;">
     @Override
@@ -279,8 +279,7 @@
     }
     </pre>
 
-    <p>最后,真正核心的实现在<code>taskConfigs()</code>. 在这个例子里面我们只处理单个文件,因此即使我们可能允许按照
-        <code>maxTasks</code> 参数生成更多的任务, 我们也只返回一个 entry 的list:</p>
+    <p>最后，实现的真正核心是 <code>taskConfigs()</code>。因此即使允许我们按照<code>maxTasks</code>参数创建更多的 task，我们也只返回包含一个 entry 的 list：</p>
 
     <pre class="brush: java;">
     @Override
@@ -296,12 +295,12 @@
     }
     </pre>
 
-    <p>尽管没有在示例中使用，但是<code> SourceTask </code>还提供了两个API来提交源系统中的偏移量：<code> commit </code>和<code> commitRecord </code>。这些API是为具有消息确认机制的源系统提供的。覆盖这些方法允许source connector 在源系统中写入Kafka后，批量或单独确认消息。
-                <code> commit </code> API将偏移量存储在源系统中，直至由<code> poll </code>返回的偏移量。这个API的实现应该阻塞直到提交完成。在写入Kafka之后，<code> commitRecord </code> API将每个<code> SourceRecord </code>的偏移量保存在 source 系统中。由于Kafka Connect会自动记录偏移量，因此不需要<code> SourceTask </code>来实现它们。在 connector 确实需要确认源系统中的消息的情况下，通常只需要其中一个API。</p>
+    <p>尽管这个示例中没有用到，但 <code> SourceTask </code> 还提供了两个用于提交源系统中的 offset 的 API：<code> commit </code>和<code> commitRecord </code>。这些 API 是为具有消息确认机制的源系统提供的。覆盖这些方法允许 source connector 在源系统中的消息被写入 Kafka 后，批量或单独确认消息。
+                <code> commit </code> API 将偏移量存储在源系统中，<code> poll </code>方法每次返回的偏移量都会被存储起来。这个API 的实现应该一直处于阻塞状态直到提交完成。在每个<code> SourceRecord </code>被写入 Kafka 之后，<code> commitRecord </code> API 会将其偏移量保存在源系统中。由于 Kafka Connect 会自动记录偏移量，因此不需要<code> SourceTask </code>来实现它们。在 connector 确实需要确认源系统中的消息的情况下，通常只需要其中一个API。</p>
 
-    <p>即使是多任务, 这个方法实现通常也很简单。它只需要确定输入 task 的数量，这可能需要联系拉取数据的远程服务，然后将数据分解。由于这些用于任务之间分割的方式非常普遍，因为在 <code>ConnectorUtils</code> 工具类中提供了一些实用程序来简化这些方式。</p>
+    <p>即使是多任务, 这个方法实现通常也很简单。它只需要确定 input task 的数量，这可能需要联系它从中拉取数据的远程服务，然后由这些 task 来分摊工作。由于这些多个 task 分摊工作的的模式非常普遍，因为在 <code>ConnectorUtils</code> 工具类中提供了一些实用程序来简化这些模式。</p>
 
-    <p>由于这个简单的例子不包括动态输入。详见在下一节讨论如何触发更新任务配置.</p>
+    <p>注意，这个简单的例子没有包括动态输入。有关如何触发 task 配置的更新，请参阅下一节的讨论。</p>
 
     <h5><a id="connect_taskexample" href="#connect_taskexample">Task Example - Source Task</a></h5>
 
