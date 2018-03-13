@@ -16,59 +16,59 @@
   ~-->
 
 <script id="connect-template" type="text/x-handlebars-template">
-    <h3><a id="connect_overview" href="#connect_overview">8.1 Overview</a></h3>
+    <h3><a id="connect_overview" href="#connect_overview">8.1 概述</a></h3>
 
-    <p>Kafka Connect is a tool for scalably and reliably streaming data between Apache Kafka and other systems. It makes it simple to quickly define <i>connectors</i> that move large collections of data into and out of Kafka. Kafka Connect can ingest entire databases or collect metrics from all your application servers into Kafka topics, making the data available for stream processing with low latency. An export job can deliver data from Kafka topics into secondary storage and query systems or into batch systems for offline analysis.</p>
+    <p>Kafka Connect 是一款可扩展并且可靠地在 Apache Kafka 和其他系统之间进行数据传输的工具。 可以很简单的快速定义 <i>connectors</i> 将大量数据从 Kafka 移入和移出. Kafka Connect 可以摄取数据库数据或者收集应用程序的 metrics 存储到 Kafka topics，使得数据可以用于低延迟的流处理。 一个导出的 job 可以将来自 Kafka topic 的数据传输到二级存储，用于系统查询或者批量进行离线分析。</p>
 
-    <p>Kafka Connect features include:</p>
+    <p>Kafka Connect 功能包括:</p>
     <ul>
-        <li><b>A common framework for Kafka connectors</b> - Kafka Connect standardizes integration of other data systems with Kafka, simplifying connector development, deployment, and management</li>
-        <li><b>Distributed and standalone modes</b> - scale up to a large, centrally managed service supporting an entire organization or scale down to development, testing, and small production deployments</li>
-        <li><b>REST interface</b> - submit and manage connectors to your Kafka Connect cluster via an easy to use REST API</li>
-        <li><b>Automatic offset management</b> - with just a little information from connectors, Kafka Connect can manage the offset commit process automatically so connector developers do not need to worry about this error prone part of connector development</li>
-        <li><b>Distributed and scalable by default</b> - Kafka Connect builds on the existing group management protocol. More workers can be added to scale up a Kafka Connect cluster.</li>
-        <li><b>Streaming/batch integration</b> - leveraging Kafka's existing capabilities, Kafka Connect is an ideal solution for bridging streaming and batch data systems</li>
+        <li><b>Kafka connectors 通用框架：</b> - Kafka Connect 将其他数据系统和Kafka集成标准化,简化了 connector 的开发,部署和管理</li>
+        <li><b>分布式和单机模式</b> - 可以扩展成一个集中式的管理服务，也可以单机方便的开发,测试和生产环境小型的部署。</li>
+        <li><b>REST 接口</b> - submit and manage connectors to your Kafka Connect cluster via an easy to use REST API</li>
+        <li><b>offset 自动管理</b> - 只需要connectors 的一些信息，Kafka Connect 可以自动管理offset 提交的过程，因此开发人员无需担心开发中offset提交出错的这部分。</li>
+        <li><b>分布式的并且可扩展</b> - Kafka Connect 构建在现有的 group 管理协议上。Kafka Connect 集群可以扩展添加更多的workers。</li>
+        <li><b>整合流处理/批处理</b> - 利用 Kafka 已有的功能，Kafka Connect 是一个桥接stream 和批处理系统理想的方式。</li>
     </ul>
 
-    <h3><a id="connect_user" href="#connect_user">8.2 User Guide</a></h3>
+    <h3><a id="connect_user" href="#connect_user">8.2 用户指南</a></h3>
 
-    <p>The quickstart provides a brief example of how to run a standalone version of Kafka Connect. This section describes how to configure, run, and manage Kafka Connect in more detail.</p>
+    <p> quickstart 提供了一个简单的例子，演示如何运行一个单机版的Kafka Connect。 这一节描述如何配置，如何管理Kafka Connect 的更多细节。</p>
 
-    <h4><a id="connect_running" href="#connect_running">Running Kafka Connect</a></h4>
+    <h4><a id="connect_running" href="#connect_running">运行 Kafka Connect</a></h4>
 
-    <p>Kafka Connect currently supports two modes of execution: standalone (single process) and distributed.</p>
+    <p>Kafka Connect 当前支持两种执行方式: 单机 (单个进程) 和 分布式.</p>
 
-    <p>In standalone mode all work is performed in a single process. This configuration is simpler to setup and get started with and may be useful in situations where only one worker makes sense (e.g. collecting log files), but it does not benefit from some of the features of Kafka Connect such as fault tolerance. You can start a standalone process with the following command:</p>
+    <p>在单机模式下所有的工作都是在一个进程中运行的。connect的配置项很容易配置和开始使用，当只有一台机器(worker)的时候也是可用的(例如，收集日志文件到kafka)，但是不利于Kafka Connect 的容错。你可以通过下面的命令启动一个单机进程:</p>
 
     <pre class="brush: bash;">
     &gt; bin/connect-standalone.sh config/connect-standalone.properties connector1.properties [connector2.properties ...]
     </pre>
 
-    <p>The first parameter is the configuration for the worker. This includes settings such as the Kafka connection parameters, serialization format, and how frequently to commit offsets. The provided example should work well with a local cluster running with the default configuration provided by <code>config/server.properties</code>. It will require tweaking to use with a different configuration or production deployment. All workers (both standalone and distributed) require a few configs:</p>
+    <p>第一个参数是 worker 的配置文件. 其中包括 Kafka connection 参数，序列化格式，和如何频繁的提交offsets。 所提供的示例可以在本地良好的运行，使用默认提供的配置 <code>config/server.properties</code> 。它需要调整以配合不同的配置或生产环境部署。所有的workers（独立和分布式）都需要一些配置 :</p>
     <ul>
         <li><code>bootstrap.servers</code> - List of Kafka servers used to bootstrap connections to Kafka</li>
         <li><code>key.converter</code> - Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the keys in messages written to or read from Kafka, and since this is independent of connectors it allows any connector to work with any serialization format. Examples of common formats include JSON and Avro.</li>
         <li><code>value.converter</code> - Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the values in messages written to or read from Kafka, and since this is independent of connectors it allows any connector to work with any serialization format. Examples of common formats include JSON and Avro.</li>
     </ul>
 
-    <p>The important configuration options specific to standalone mode are:</p>
+    <p>单机模式的重要配置如下:</p>
     <ul>
-        <li><code>offset.storage.file.filename</code> - File to store offset data in</li>
+        <li><code>offset.storage.file.filename</code> - 存储 offset 数据的文件</li>
     </ul>
 
-    <p>The parameters that are configured here are intended for producers and consumers used by Kafka Connect to access the configuration, offset and status topics. For configuration of Kafka source and Kafka sink tasks, the same parameters can be used but need to be prefixed with <code>consumer.</code> and <code>producer.</code> respectively. The only parameter that is inherited from the worker configuration is <code>bootstrap.servers</code>, which in most cases will be sufficient, since the same cluster is often used for all purposes. A notable exeption is a secured cluster, which requires extra parameters to allow connections. These parameters will need to be set up to three times in the worker configuration, once for management access, once for Kafka sinks and once for Kafka sources.</p>
+    <p>此处配置的参数适用于由Kafka Connect使用的 producer 和 consumer 访问配置，offset 和 status topic。对于 Kafka source和 sink 任务的配置，可以使用相同的参数，但必须以<code>consumer.</code> 和 <code>producer.</code> 作为前缀。 此外，从 worker 配置中继承的参数只有一个，就是 <code>bootstrap.servers</code>。大多数情况下，这是足够的，因为同一个集群通常用于所有的场景。但是需要注意的是一个安全集群，需要额外的参数才能允许连接。这些参数需要在 worker 配置中设置三次，一次用于管理访问，一次用于 Kafka sinks，还有一次用于 Kafka source。</p>
 
-    <p>The remaining parameters are connector configuration files. You may include as many as you want, but all will execute within the same process (on different threads).</p>
+    <p>其余参数用于 connector 的配置文件，你可以导入尽可能多的配置文件，但是所有的配置文件都将在同一个进程内(在不同的线程上)执行。</p>
 
-    <p>Distributed mode handles automatic balancing of work, allows you to scale up (or down) dynamically, and offers fault tolerance both in the active tasks and for configuration and offset commit data. Execution is very similar to standalone mode:</p>
+    <p>分布式模式下会自动进行负载均衡，允许动态的扩缩容，并提供对 active task，以及这个任务对应的配置和offset提交记录的容错。分布式执行方式和单机模式非常相似:</p>
 
     <pre class="brush: bash;">
     &gt; bin/connect-distributed.sh config/connect-distributed.properties
     </pre>
 
-    <p>The difference is in the class which is started and the configuration parameters which change how the Kafka Connect process decides where to store configurations, how to assign work, and where to store offsets and task statues. In the distributed mode, Kafka Connect stores the offsets, configs and task statuses in Kafka topics. It is recommended to manually create the topics for offset, configs and statuses in order to achieve the desired the number of partitions and replication factors. If the topics are not yet created when starting Kafka Connect, the topics will be auto created with default number of partitions and replication factor, which may not be best suited for its usage.</p>
+    <p>和单机模式不同在于启动的实现类和决定 Kafka connect 进程如何工作的配置参数，如何分配 work,offsets 存储在哪里和任务状态。在分布式模式中，Kafka Connect 存储 offsets,配置和存储在 Kafka topic中的任务状态。建议手动创建Kafka 的 offsets,配置和状态，以实现自己所期望的分区数和备份因子。如果启动Kafka Connect之前没有创建 topic，则会使用默认分区数和复制因子自动创建创建 topic，但这可能不是最适合的。</p>
 
-    <p>In particular, the following configuration parameters, in addition to the common settings mentioned above, are critical to set before starting your cluster:</p>
+    <p>特别是，除了上面提到的常用设置之外，以下配置参数在启动集群之前至关重要:</p>
     <ul>
         <li><code>group.id</code> (default <code>connect-cluster</code>) - unique name for the cluster, used in forming the Connect cluster group; note that this <b>must not conflict</b> with consumer group IDs</li>
         <li><code>config.storage.topic</code> (default <code>connect-configs</code>) - topic to use for storing connector and task configurations; note that this should be a single partition, highly replicated, compacted topic. You may need to manually create the topic to ensure the correct configuration as auto created topics may have multiple partitions or be automatically configured for deletion rather than compaction</li>
@@ -76,14 +76,14 @@
         <li><code>status.storage.topic</code> (default <code>connect-status</code>) - topic to use for storing statuses; this topic can have multiple partitions, and should be replicated and configured for compaction</li>
     </ul>
 
-    <p>Note that in distributed mode the connector configurations are not passed on the command line. Instead, use the REST API described below to create, modify, and destroy connectors.</p>
+    <p>注意在分布式模式下 connector 配置不会通过命令行传递。相反，会使用下面提到的 REST API来创建，修改和销毁 connectors。</p>
 
 
     <h4><a id="connect_configuring" href="#connect_configuring">Configuring Connectors</a></h4>
 
-    <p>Connector configurations are simple key-value mappings. For standalone mode these are defined in a properties file and passed to the Connect process on the command line. In distributed mode, they will be included in the JSON payload for the request that creates (or modifies) the connector.</p>
+    <p>Connector 配置是简单的key-value 映射的格式。对于单机模式，这些配置会在 properties 文件中定义，并通过命令行传递给 Connect 进程。在分布式模式中，它们将被包含在创建（或修改）connector 的请求的JSON格式串中。</p>
 
-    <p>Most configurations are connector dependent, so they can't be outlined here. However, there are a few common options:</p>
+    <p>大多数配置都依赖于 connectors,所以在这里不能概述。但是，有几个常见选项可以看一下:</p>
 
     <ul>
         <li><code>name</code> - Unique name for the connector. Attempting to register again with the same name will fail.</li>
@@ -93,20 +93,20 @@
         <li><code>value.converter</code> - (optional) Override the default value converter set by the worker.</li>
     </ul>
 
-    <p>The <code>connector.class</code> config supports several formats: the full name or alias of the class for this connector. If the connector is org.apache.kafka.connect.file.FileStreamSinkConnector, you can either specify this full name or use FileStreamSink or FileStreamSinkConnector to make the configuration a bit shorter.</p>
+    <p> <code>connector.class</code> 配置支持多种名称格式：这个 connector class 的全名或者别名。如果 connector 是 org.apache.kafka.connect.file.FileStreamSinkConnector，则可以指定全名，也可以使用FileStreamSink 或 FileStreamSinkConnector 来简化配置。</p>
 
-    <p>Sink connectors also have one additional option to control their input:</p>
+    <p>Sink connectors 还有一个额外的选项来控制他的输出:</p>
     <ul>
         <li><code>topics</code> - A list of topics to use as input for this connector</li>
     </ul>
 
-    <p>For any other options, you should consult the documentation for the connector.</p>
+    <p>对于任何其他选项，你应该查阅 connector的文档.</p>
 
     <h4><a id="connect_transforms" href="#connect_transforms">Transformations</a></h4>
 
-    <p>Connectors can be configured with transformations to make lightweight message-at-a-time modifications. They can be convenient for data massaging and event routing.</p>
+    <p>connectors可以配置 transformations 操作，实现轻量级的消息单次修改，他们可以方便地用于数据修改和事件路由。</p>
 
-    <p>A transformation chain can be specified in the connector configuration.</p>
+    <p>A transformation chain 可以在connector 配置中指定。</p>
 
     <ul>
         <li><code>transforms</code> - List of aliases for the transformation, specifying the order in which the transformations will be applied.</li>
@@ -114,22 +114,22 @@
         <li><code>transforms.$alias.$transformationSpecificConfig</code> Configuration properties for the transformation</li>
     </ul>
 
-    <p>For example, lets take the built-in file source connector and use a transformation to add a static field.</p>
+    <p>例如，让我们使用内置的 file soucre connector，并使用 transformation 来添加静态字段。</p>
 
-    <p>Throughout the example we'll use schemaless JSON data format. To use schemaless format, we changed the following two lines in <code>connect-standalone.properties</code> from true to false:</p>
+    <p>这个例子中，我们会使用 schemaless json 数据格式。为了使用 schemaless 格式，我们将 <code>connect-standalone.properties</code>  文件中下面两行从true改成false:</p>
 
     <pre class="brush: text;">
         key.converter.schemas.enable
         value.converter.schemas.enable
     </pre>
 
-    <p>The file source connector reads each line as a String. We will wrap each line in a Map and then add a second field to identify the origin of the event. To do this, we use two transformations:</p>
+    <p>这个 file source connector 读取每行数据作为一个字符串。我们会将每行数据包装进一个 Map 数据结构,然后添加一个二级字段来标识事件的来源。做这样一个操作，我们使用两个 transformations:</p>
     <ul>
         <li><b>HoistField</b> to place the input line inside a Map</li>
         <li><b>InsertField</b> to add the static field. In this example we'll indicate that the record came from a file connector</li>
     </ul>
 
-    <p>After adding the transformations, <code>connect-file-source.properties</code> file looks as following:</p>
+    <p>添加完 transformations, <code>connect-file-source.properties</code> 文件像下面这样:</p>
 
     <pre class="brush: text;">
         name=local-file-source
@@ -145,9 +145,9 @@
         transforms.InsertSource.static.value=test-file-source
     </pre>
 
-    <p>All the lines starting with <code>transforms</code> were added for the transformations. You can see the two transformations we created: "InsertSource" and "MakeMap" are aliases that we chose to give the transformations. The transformation types are based on the list of built-in transformations you can see below. Each transformation type has additional configuration: HoistField requires a configuration called "field", which is the name of the field in the map that will include the original String from the file. InsertField transformation lets us specify the field name and the value that we are adding.</p>
+    <p>所有以<code>transforms</code> 为开头的行都将被添加了静态字段用于 transformations 。 你可以看到我们创建的两个 transformations: "InsertSource" 和 "MakeMap" 是我们给的 transformations 的别称. transformation 类型基于下面给的一系列内嵌 transformations。每个 transformation 类型都有额外的配置: HoistField 需要一个配置叫做 "field”,这是 map中原始字符串的字段名称。InsertField transformation 让我们指定字段名称和我们要添加的内容。</p>
 
-    <p>When we ran the file source connector on my sample file without the transformations, and then read them using <code>kafka-console-consumer.sh</code>, the results were:</p>
+    <p>当我们对一个 sample file 运行 file source connector 操作，不做transformations 操作，然后使用<code>kafka-console-consumer.sh</code> 读取数据，结果如下:</p>
 
     <pre class="brush: text;">
         "foo"
@@ -155,7 +155,7 @@
         "hello world"
    </pre>
 
-    <p>We then create a new file connector, this time after adding the transformations to the configuration file. This time, the results will be:</p>
+    <p>然后我们创建一个新的file connector,然后将这个transformations 添加到配置文件中。这次结果如下:</p>
 
     <pre class="brush: json;">
         {"line":"foo","data_source":"test-file-source"}
@@ -163,9 +163,9 @@
         {"line":"hello world","data_source":"test-file-source"}
     </pre>
 
-    <p>You can see that the lines we've read are now part of a JSON map, and there is an extra field with the static value we specified. This is just one example of what you can do with transformations.</p>
+    <p>你可以看到我们读取的行现在JSON map的一部分，并且还有一个静态值的额外字段。这只是用 transformations 做的一个简单的例子。.</p>
 
-    <p>Several widely-applicable data and routing transformations are included with Kafka Connect:</p>
+    <p>Kafka Connect 包含几个广泛适用的数据和 routing transformations </p>
 
     <ul>
         <li>InsertField - Add a field using either static data or record metadata</li>
@@ -179,14 +179,243 @@
         <li>RegexRouter - modify the topic of a record based on original topic, replacement string and a regular expression</li>
     </ul>
 
-    <p>Details on how to configure each transformation are listed below:</p>
+    <p>如何配置每个transformation，参考下面: </p>
 
+    <div id="org.apache.kafka.connect.transforms.InsertField">
+<h5>org.apache.kafka.connect.transforms.InsertField</h5>
+Insert field(s) using attributes from the record metadata or a configured static value.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.InsertField$Key</code>) or value (<code>org.apache.kafka.connect.transforms.InsertField$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>offset.field</td><td>Field name for Kafka offset - only applicable to sink connectors.<br/>Suffix with <code>!</code> to make this a required field, or <code>?</code> to keep it optional (the default).</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<tr>
+<td>partition.field</td><td>Field name for Kafka partition. Suffix with <code>!</code> to make this a required field, or <code>?</code> to keep it optional (the default).</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<tr>
+<td>static.field</td><td>Field name for static data field. Suffix with <code>!</code> to make this a required field, or <code>?</code> to keep it optional (the default).</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<tr>
+<td>static.value</td><td>Static field value, if field name configured.</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<tr>
+<td>timestamp.field</td><td>Field name for record timestamp. Suffix with <code>!</code> to make this a required field, or <code>?</code> to keep it optional (the default).</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+<tr>
+<td>topic.field</td><td>Field name for Kafka topic. Suffix with <code>!</code> to make this a required field, or <code>?</code> to keep it optional (the default).</td><td>string</td><td>null</td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.ReplaceField">
+<h5>org.apache.kafka.connect.transforms.ReplaceField</h5>
+Filter or rename fields.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.ReplaceField$Key</code>) or value (<code>org.apache.kafka.connect.transforms.ReplaceField$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>blacklist</td><td>Fields to exclude. This takes precedence over the whitelist.</td><td>list</td><td>""</td><td></td><td>medium</td></tr>
+<tr>
+<td>renames</td><td>Field rename mappings.</td><td>list</td><td>""</td><td>list of colon-delimited pairs, e.g. <code>foo:bar,abc:xyz</code></td><td>medium</td></tr>
+<tr>
+<td>whitelist</td><td>Fields to include. If specified, only these fields will be used.</td><td>list</td><td>""</td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.MaskField">
+<h5>org.apache.kafka.connect.transforms.MaskField</h5>
+Mask specified fields with a valid null value for the field type (i.e. 0, false, empty string, and so on).<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.MaskField$Key</code>) or value (<code>org.apache.kafka.connect.transforms.MaskField$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>fields</td><td>Names of fields to mask.</td><td>list</td><td></td><td>non-empty list</td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.ValueToKey">
+<h5>org.apache.kafka.connect.transforms.ValueToKey</h5>
+Replace the record key with a new key formed from a subset of fields in the record value.
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>fields</td><td>Field names on the record value to extract as the record key.</td><td>list</td><td></td><td>non-empty list</td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.HoistField">
+<h5>org.apache.kafka.connect.transforms.HoistField</h5>
+Wrap data using the specified field name in a Struct when schema present, or a Map in the case of schemaless data.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.HoistField$Key</code>) or value (<code>org.apache.kafka.connect.transforms.HoistField$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>field</td><td>Field name for the single field that will be created in the resulting Struct or Map.</td><td>string</td><td></td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.ExtractField">
+<h5>org.apache.kafka.connect.transforms.ExtractField</h5>
+Extract the specified field from a Struct when schema present, or a Map in the case of schemaless data. Any null values are passed through unmodified.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.ExtractField$Key</code>) or value (<code>org.apache.kafka.connect.transforms.ExtractField$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>field</td><td>Field name to extract.</td><td>string</td><td></td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.SetSchemaMetadata">
+<h5>org.apache.kafka.connect.transforms.SetSchemaMetadata</h5>
+Set the schema name, version or both on the record's key (<code>org.apache.kafka.connect.transforms.SetSchemaMetadata$Key</code>) or value (<code>org.apache.kafka.connect.transforms.SetSchemaMetadata$Value</code>) schema.
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>schema.name</td><td>Schema name to set.</td><td>string</td><td>null</td><td></td><td>high</td></tr>
+<tr>
+<td>schema.version</td><td>Schema version to set.</td><td>int</td><td>null</td><td></td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.TimestampRouter">
+<h5>org.apache.kafka.connect.transforms.TimestampRouter</h5>
+Update the record's topic field as a function of the original topic value and the record timestamp.<p/>This is mainly useful for sink connectors, since the topic field is often used to determine the equivalent entity name in the destination system(e.g. database table or search index name).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>timestamp.format</td><td>Format string for the timestamp that is compatible with <code>java.text.SimpleDateFormat</code>.</td><td>string</td><td>yyyyMMdd</td><td></td><td>high</td></tr>
+<tr>
+<td>topic.format</td><td>Format string which can contain <code>${topic}</code> and <code>${timestamp}</code> as placeholders for the topic and timestamp, respectively.</td><td>string</td><td>${topic}-${timestamp}</td><td></td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.RegexRouter">
+<h5>org.apache.kafka.connect.transforms.RegexRouter</h5>
+Update the record topic using the configured regular expression and replacement string.<p/>Under the hood, the regex is compiled to a <code>java.util.regex.Pattern</code>. If the pattern matches the input topic, <code>java.util.regex.Matcher#replaceFirst()</code> is used with the replacement string to obtain the new topic.
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>regex</td><td>Regular expression to use for matching.</td><td>string</td><td></td><td>valid regex</td><td>high</td></tr>
+<tr>
+<td>replacement</td><td>Replacement string.</td><td>string</td><td></td><td></td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.Flatten">
+<h5>org.apache.kafka.connect.transforms.Flatten</h5>
+Flatten a nested data structure, generating names for each field by concatenating the field names at each level with a configurable delimiter character. Applies to Struct when schema present, or a Map in the case of schemaless data. The default delimiter is '.'.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.Flatten$Key</code>) or value (<code>org.apache.kafka.connect.transforms.Flatten$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>delimiter</td><td>Delimiter to insert between field names from the input record when generating field names for the output record</td><td>string</td><td>.</td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.Cast">
+<h5>org.apache.kafka.connect.transforms.Cast</h5>
+Cast fields or the entire key or value to a specific type, e.g. to force an integer field to a smaller width. Only simple primitive types are supported -- integers, floats, boolean, and string. <p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.Cast$Key</code>) or value (<code>org.apache.kafka.connect.transforms.Cast$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>spec</td><td>List of fields and the type to cast them to of the form field1:type,field2:type to cast fields of Maps or Structs. A single type to cast the entire value. Valid types are int8, int16, int32, int64, float32, float64, boolean, and string.</td><td>list</td><td></td><td>list of colon-delimited pairs, e.g. <code>foo:bar,abc:xyz</code></td><td>high</td></tr>
+</tbody></table>
+</div>
+<div id="org.apache.kafka.connect.transforms.TimestampConverter">
+<h5>org.apache.kafka.connect.transforms.TimestampConverter</h5>
+Convert timestamps between different formats such as Unix epoch, strings, and Connect Date/Timestamp types.Applies to individual fields or to the entire value.<p/>Use the concrete transformation type designed for the record key (<code>org.apache.kafka.connect.transforms.TimestampConverter$Key</code>) or value (<code>org.apache.kafka.connect.transforms.TimestampConverter$Value</code>).
+<p/>
+<table class="data-table"><tbody>
+<tr>
+<th>Name</th>
+<th>Description</th>
+<th>Type</th>
+<th>Default</th>
+<th>Valid Values</th>
+<th>Importance</th>
+</tr>
+<tr>
+<td>target.type</td><td>The desired timestamp representation: string, unix, Date, Time, or Timestamp</td><td>string</td><td></td><td></td><td>high</td></tr>
+<tr>
+<td>field</td><td>The field containing the timestamp, or empty if the entire value is a timestamp</td><td>string</td><td>""</td><td></td><td>high</td></tr>
+<tr>
+<td>format</td><td>A SimpleDateFormat-compatible format for the timestamp. Used to generate the output when type=string or used to parse the input if the input is a string.</td><td>string</td><td>""</td><td></td><td>medium</td></tr>
+</tbody></table>
+</div>
 
     <!--#include virtual="generated/connect_transforms.html" -->
 
     <h4><a id="connect_rest" href="#connect_rest">REST API</a></h4>
 
-    <p>Since Kafka Connect is intended to be run as a service, it also provides a REST API for managing connectors. By default, this service runs on port 8083. The following are the currently supported endpoints:</p>
+    <p>由于Kafka  Connect 旨在作为服务运行，它还提供了一个用于管理 connectors 的REST API。sssss默认情况下，此服务在端口8083上运行。以下是当前支持的功能:
+    </p>
 
     <ul>
         <li><code>GET /connectors</code> - return a list of active connectors</li>
@@ -204,48 +433,48 @@
         <li><code>DELETE /connectors/{name}</code> - delete a connector, halting all tasks and deleting its configuration</li>
     </ul>
 
-    <p>Kafka Connect also provides a REST API for getting information about connector plugins:</p>
+    <p>Kafka Connect还提供用于获取有关 connector plugin sss信息的REST API:</p>
 
     <ul>
         <li><code>GET /connector-plugins</code>- return a list of connector plugins installed in the Kafka Connect cluster. Note that the API only checks for connectors on the worker that handles the request, which means you may see inconsistent results, especially during a rolling upgrade if you add new connector jars</li>
         <li><code>PUT /connector-plugins/{connector-type}/config/validate</code> - validate the provided configuration values against the configuration definition. This API performs per config validation, returns suggested values and error messages during validation.</li>
     </ul>
 
-    <h3><a id="connect_development" href="#connect_development">8.3 Connector Development Guide</a></h3>
+    <h3><a id="connect_development" href="#connect_development">8.3 Connector 开发者指南</a></h3>
 
-    <p>This guide describes how developers can write new connectors for Kafka Connect to move data between Kafka and other systems. It briefly reviews a few key concepts and then describes how to create a simple connector.</p>
+    <p>本指南介绍开发人员如何为 Kafka connector 编写新的 connectors，用于Kafka和其他系统之间移动数据。</p>
 
-    <h4><a id="connect_concepts" href="#connect_concepts">Core Concepts and APIs</a></h4>
+    <h4><a id="connect_concepts" href="#connect_concepts">Core Concepts 和 APIs</a></h4>
 
-    <h5><a id="connect_connectorsandtasks" href="#connect_connectorsandtasks">Connectors and Tasks</a></h5>
+    <h5><a id="connect_connectorsandtasks" href="#connect_connectorsandtasks">Connectors 和 Tasks</a></h5>
+    <code>HDFSSinkConnector</code>
+    <p>要在Kafka和另一个系统之间复制数据，用户会为想要 pull 数据或者 push 数据的系统创建一个<code>connector</code>。 connector 有两类:<code>SourceConnectors</code> 从其他系统导入数据(e.g.<code>JDBCSourceConnector</code> 会将关系型数据库导入到Kafka中)和<code>SinkConnectors</code>导出数据(e.g. <code>HDFSSinkConnector</code>会将Kafka topic 的内容导出到 HDFS 文件)</p>
 
-    <p>To copy data between Kafka and another system, users create a <code>Connector</code> for the system they want to pull data from or push data to. Connectors come in two flavors: <code>SourceConnectors</code> import data from another system (e.g. <code>JDBCSourceConnector</code> would import a relational database into Kafka) and <code>SinkConnectors</code> export data (e.g. <code>HDFSSinkConnector</code> would export the contents of a Kafka topic to an HDFS file).</p>
+    <p><code>Connectors</code> 自身不执行任何数据复制:<code>Connector</code>的配置描述要复制的数据，并且<code>Connector</code> 负责负责将 job 分解为可分发给 worker 的一组 <code>Tasks</code>。这些<code>Tasks</code>也分为两类: <code>SourceTask</code> 和 <code>SinkTask</code>。</p>
 
-    <p><code>Connectors</code> do not perform any data copying themselves: their configuration describes the data to be copied, and the <code>Connector</code> is responsible for breaking that job into a set of <code>Tasks</code> that can be distributed to workers. These <code>Tasks</code> also come in two corresponding flavors: <code>SourceTask</code> and <code>SinkTask</code>.</p>
-
-    <p>With an assignment in hand, each <code>Task</code> must copy its subset of the data to or from Kafka. In Kafka Connect, it should always be possible to frame these assignments as a set of input and output streams consisting of records with consistent schemas. Sometimes this mapping is obvious: each file in a set of log files can be considered a stream with each parsed line forming a record using the same schema and offsets stored as byte offsets in the file. In other cases it may require more effort to map to this model: a JDBC connector can map each table to a stream, but the offset is less clear. One possible mapping uses a timestamp column to generate queries incrementally returning new data, and the last queried timestamp can be used as the offset.</p>
+    <p>通过分配，每个<code>Task</code> 必须将数据的一部分子集复制到Kafka或者从Kafka复制。在 Kafka Connect中，应该始终可以将这些分配的数据框架化为一组输入和输出流，这些流由具有一致结构的记录组成。有的时候这些映射是显而易见的:一组日志文件中的每个文件都认为是一个流，每条解析的行数据使用相同的模式和偏移量作为字节偏移量存储在文件中。在其他情况下，可能需要花费更多功夫来映射模型: 一个 JDBC connector可以将表映射成stream，但是offset不能确定。可以使用时间戳字段进行增量查询返回新的数据，最后查询的时间戳可以用作偏移量。</p>
 
 
-    <h5><a id="connect_streamsandrecords" href="#connect_streamsandrecords">Streams and Records</a></h5>
+    <h5><a id="connect_streamsandrecords" href="#connect_streamsandrecords">Streams 和 Records</a></h5>
 
-    <p>Each stream should be a sequence of key-value records. Both the keys and values can have complex structure -- many primitive types are provided, but arrays, objects, and nested data structures can be represented as well. The runtime data format does not assume any particular serialization format; this conversion is handled internally by the framework.</p>
+    <p>每个stream 都应该是一串 key-value的就。keys和values可以有复杂的数据结构-提供了很多基本类型，arrays，objects和嵌套的数据结构。每个stream 都应该是一串 key-value的就。keys和values可以有复杂的数据结构-提供了很多基本类型，也可以用来表示arrays，objects和嵌套的数据结构。运行时的数据格式不承担任何特定的序列化格式:此转换由框架内部处理。</p>
 
-    <p>In addition to the key and value, records (both those generated by sources and those delivered to sinks) have associated stream IDs and offsets. These are used by the framework to periodically commit the offsets of data that have been processed so that in the event of failures, processing can resume from the last committed offsets, avoiding unnecessary reprocessing and duplication of events.</p>
+    <p>除了 key 和 value, records(sources生成的记录和发送到sinks的记录) 关联 stream IDs和offsets。框架会定期的提交已经处理数据的offsets，以便在发生故障时，可以从最后一次提交的offsets恢复处理，避免不必要的重新处理和重复事件。.</p>
 
     <h5><a id="connect_dynamicconnectors" href="#connect_dynamicconnectors">Dynamic Connectors</a></h5>
 
-    <p>Not all jobs are static, so <code>Connector</code> implementations are also responsible for monitoring the external system for any changes that might require reconfiguration. For example, in the <code>JDBCSourceConnector</code> example, the <code>Connector</code> might assign a set of tables to each <code>Task</code>. When a new table is created, it must discover this so it can assign the new table to one of the <code>Tasks</code> by updating its configuration. When it notices a change that requires reconfiguration (or a change in the number of <code>Tasks</code>), it notifies the framework and the framework updates any corresponding <code>Tasks</code>.</p>
+    <p>不是所有的jobs都是静态，所以<code>Connector</code> 的实现还要负责监控外部系统是否需要重新更改配置。例如，在<code>JDBCSourceConnector</code>的例子中，这个<code>Connector</code>可能分配一组 tables 给 <code>Task</code>。当一个新的 table 创建了，必须发现这个时间，以便通过更新配置来将新表分配给其中一个<code>Tasks</code>。当发现需要重新配置的变更(或者<code>Tasks</code> 数量)的时候，他会通知框架，并更新相应的<code>Tasks</code>。</p>
 
 
-    <h4><a id="connect_developing" href="#connect_developing">Developing a Simple Connector</a></h4>
+    <h4><a id="connect_developing" href="#connect_developing">开发一个简单的 Connector</a></h4>
 
-    <p>Developing a connector only requires implementing two interfaces, the <code>Connector</code> and <code>Task</code>. A simple example is included with the source code for Kafka in the <code>file</code> package. This connector is meant for use in standalone mode and has implementations of a <code>SourceConnector</code>/<code>SourceTask</code> to read each line of a file and emit it as a record and a <code>SinkConnector</code>/<code>SinkTask</code> that writes each record to a file.</p>
+    <p>开发一个 connector 只需要实现两个接口,  <code>Connector</code> 和 <code>Task</code>接口. 一个简单的例子的源码在Kafka<code>file</code>  package中。 connector 用于单机模式，并拥有 <code>SourceConnector</code> 和<code>SourceTask</code>实现来读取一个文件的每行记录，并将其作为记录发发送，<code>SinkConnector</code>的<code>SinkTask</code>将记录写入到文件。</p>
 
-    <p>The rest of this section will walk through some code to demonstrate the key steps in creating a connector, but developers should also refer to the full example source code as many details are omitted for brevity.</p>
+    <p>本节的其余部分将通过一些代码演示创建 connector 的关键步骤，但开发人员还应参考完整的示例源代码，因为为简洁起见，省略了许多细节。</p>
 
     <h5><a id="connect_connectorexample" href="#connect_connectorexample">Connector Example</a></h5>
 
-    <p>We'll cover the <code>SourceConnector</code> as a simple example. <code>SinkConnector</code> implementations are very similar. Start by creating the class that inherits from <code>SourceConnector</code> and add a couple of fields that will store parsed configuration information (the filename to read from and the topic to send data to):</p>
+    <p>首先我们用一个简单的例子介绍一下 <code>SourceConnector</code>，<code>SinkConnector</code> 的实现和它非常相似。首先创建一个继承自 <code>SourceConnector</code> 的类，并添加一些字段来存储解析出的配置信息(要读取的文件名以及要发送数据的topic):</p>
 
     <pre class="brush: java;">
     public class FileStreamSourceConnector extends SourceConnector {
@@ -253,7 +482,7 @@
         private String topic;
     </pre>
 
-    <p>The easiest method to fill in is <code>taskClass()</code>, which defines the class that should be instantiated in worker processes to actually read the data:</p>
+    <p>最简单的方法是<code>taskClass()</code>，它定义了应该在 worker 进程中实例化以实际读取数据的类:</p>
 
     <pre class="brush: java;">
     @Override
@@ -262,7 +491,7 @@
     }
     </pre>
 
-    <p>We will define the <code>FileStreamSourceTask</code> class below. Next, we add some standard lifecycle methods, <code>start()</code> and <code>stop()</code></p>:
+    <p>我们会在后面定义 <code>FileStreamSourceTask</code> 类。接下来，我们要往<code>FileStreamSourceConnector</code>类中添加一些标准的生命周期方法。</p>:
 
     <pre class="brush: java;">
     @Override
@@ -278,9 +507,7 @@
     }
     </pre>
 
-    <p>Finally, the real core of the implementation is in <code>taskConfigs()</code>. In this case we are only
-    handling a single file, so even though we may be permitted to generate more tasks as per the
-    <code>maxTasks</code> argument, we return a list with only one entry:</p>
+    <p>最后，实现的真正核心是 <code>taskConfigs()</code>。因此即使允许我们按照<code>maxTasks</code>参数创建更多的 task，我们也只返回包含一个 entry 的 list：</p>
 
     <pre class="brush: java;">
     @Override
@@ -296,18 +523,18 @@
     }
     </pre>
 
-    <p>Although not used in the example, <code>SourceTask</code> also provides two APIs to commit offsets in the source system: <code>commit</code> and <code>commitRecord</code>. The APIs are provided for source systems which have an acknowledgement mechanism for messages. Overriding these methods allows the source connector to acknowledge messages in the source system, either in bulk or individually, once they have been written to Kafka.
-    The <code>commit</code> API stores the offsets in the source system, up to the offsets that have been returned by <code>poll</code>. The implementation of this API should block until the commit is complete. The <code>commitRecord</code> API saves the offset in the source system for each <code>SourceRecord</code> after it is written to Kafka. As Kafka Connect will record offsets automatically, <code>SourceTask</code>s are not required to implement them. In cases where a connector does need to acknowledge messages in the source system, only one of the APIs is typically required.</p>
+    <p>尽管这个示例中没有用到，但 <code> SourceTask </code> 还提供了两个用于提交源系统中的 offset 的 API：<code> commit </code>和<code> commitRecord </code>。这些 API 是为具有消息确认机制的源系统提供的。覆盖这些方法允许 source connector 在源系统中的消息被写入 Kafka 后，批量或单独确认消息。
+                <code> commit </code> API 将偏移量存储在源系统中，<code> poll </code>方法每次返回的偏移量都会被存储起来。这个API 的实现应该一直处于阻塞状态直到提交完成。在每个<code> SourceRecord </code>被写入 Kafka 之后，<code> commitRecord </code> API 会将其偏移量保存在源系统中。由于 Kafka Connect 会自动记录偏移量，因此不需要<code> SourceTask </code>来实现它们。在 connector 确实需要确认源系统中的消息的情况下，通常只需要其中一个API。</p>
 
-    <p>Even with multiple tasks, this method implementation is usually pretty simple. It just has to determine the number of input tasks, which may require contacting the remote service it is pulling data from, and then divvy them up. Because some patterns for splitting work among tasks are so common, some utilities are provided in <code>ConnectorUtils</code> to simplify these cases.</p>
+    <p>即使是多任务, 这个方法实现通常也很简单。它只需要确定 input task 的数量，这可能需要联系它从中拉取数据的远程服务，然后由这些 task 来分摊工作。由于这些多个 task 分摊工作的的模式非常普遍，因为在 <code>ConnectorUtils</code> 工具类中提供了一些实用程序来简化这些模式。</p>
 
-    <p>Note that this simple example does not include dynamic input. See the discussion in the next section for how to trigger updates to task configs.</p>
+    <p>注意，这个简单的例子没有包括动态输入。有关如何触发 task 配置的更新，请参阅下一节的讨论。</p>
 
     <h5><a id="connect_taskexample" href="#connect_taskexample">Task Example - Source Task</a></h5>
 
-    <p>Next we'll describe the implementation of the corresponding <code>SourceTask</code>. The implementation is short, but too long to cover completely in this guide. We'll use pseudo-code to describe most of the implementation, but you can refer to the source code for the full example.</p>
+    <p>接下来我们将描述相应的 <code>SourceTask</code> 的实现。 这里的实现很简短, 但如果要想完全涵盖本指南的内容就太长了。我们将用伪代码描述大多数实现，你也可以参考完整示例的源代码。</p>
 
-    <p>Just as with the connector, we need to create a class inheriting from the appropriate base <code>Task</code> class. It also has some standard lifecycle methods:</p>
+    <p>就像 Connector 一样，我们需要创建一个类并继承对应的基类<code>Task</code>。 它也有一些标准的生命周期方法：</p>
 
 
     <pre class="brush: java;">
@@ -329,9 +556,9 @@
         }
     </pre>
 
-    <p>These are slightly simplified versions, but show that that these methods should be relatively simple and the only work they should perform is allocating or freeing resources. There are two points to note about this implementation. First, the <code>start()</code> method does not yet handle resuming from a previous offset, which will be addressed in a later section. Second, the <code>stop()</code> method is synchronized. This will be necessary because <code>SourceTasks</code> are given a dedicated thread which they can block indefinitely, so they need to be stopped with a call from a different thread in the Worker.</p>
+    <p>这是一个轻量级的简化版本，但表明这些方法应该相对简单，并且它们唯一要做的就是分配和释放资源。 关于这个实现有两点要注意： 第一， <code>start()</code> 方法没有处理从之前的 offset 恢复的情形，这一点将在后面的章节中讨论。第二， <code>stop()</code> 方法是同步的。这是必须的，因为 <code>SourceTasks</code> 有一个专用的线程，可以无限期的阻塞下去，所以它们需要通过 Worker 中另一个线程的调用来停止。</p>
 
-    <p>Next, we implement the main functionality of the task, the <code>poll()</code> method which gets events from the input system and returns a <code>List&lt;SourceRecord&gt;</code>:</p>
+    <p>接下来，我们要实现 task 的主要功能，<code>poll()</code>方法负责从输入系统获取事件并返回一个<code>List&lt;SourceRecord&gt;</code>：</p>
 
     <pre class="brush: java;">
     @Override
@@ -357,13 +584,13 @@
     }
     </pre>
 
-    <p>Again, we've omitted some details, but we can see the important steps: the <code>poll()</code> method is going to be called repeatedly, and for each call it will loop trying to read records from the file. For each line it reads, it also tracks the file offset. It uses this information to create an output <code>SourceRecord</code> with four pieces of information: the source partition (there is only one, the single file being read), source offset (byte offset in the file), output topic name, and output value (the line, and we include a schema indicating this value will always be a string). Other variants of the <code>SourceRecord</code> constructor can also include a specific output partition and a key.</p>
+    <p>同样，我们也省略了一些细节，但是我们可以看到重要的步骤：<code>poll()</code>方法会被反复调用，并且对于每次调用，它会循环尝试从文件中读取记录。对于它读取的每一行，它也会跟踪文件偏移量。它使用这些信息创建一个输出 <code>SourceRecord</code>，带有四部分信息：source partition（本示例中只有一个，即正在读取的单个文件），source offset（文件中的字节偏移量），output topic name 和 output value（读取的行，并且我们使用一个模式指定该值始终是一个字符串）。 SourceRecord构造函数的其他变体还可以包含特定的输出分区和密钥。</p>
 
-    <p>Note that this implementation uses the normal Java <code>InputStream</code> interface and may sleep if data is not available. This is acceptable because Kafka Connect provides each task with a dedicated thread. While task implementations have to conform to the basic <code>poll()</code> interface, they have a lot of flexibility in how they are implemented. In this case, an NIO-based implementation would be more efficient, but this simple approach works, is quick to implement, and is compatible with older versions of Java.</p>
+    <p>.注意，这个实现使用了普通的Java <code>InputStream</code>接口，没有可用数据时会休眠。这是可以接受的，因为 Kafka 为每个 task 提供了一个专用线程。虽然 task 的实现必须覆盖基本的 <code>poll()</code> 接口，但实现起来有很大的灵活性。在这种情况下，基于 NIO 的实现将更加高效，但这种简单的方法很有效，实现起来很快，并且与旧版本的 Java 兼容。</p>
 
     <h5><a id="connect_sinktasks" href="#connect_sinktasks">Sink Tasks</a></h5>
 
-    <p>The previous section described how to implement a simple <code>SourceTask</code>. Unlike <code>SourceConnector</code> and <code>SinkConnector</code>, <code>SourceTask</code> and <code>SinkTask</code> have very different interfaces because <code>SourceTask</code> uses a pull interface and <code>SinkTask</code> uses a push interface. Both share the common lifecycle methods, but the <code>SinkTask</code> interface is quite different:</p>
+    <p>之前的部分描述了如何实现一个简单的<code>SourceTask</code>。 与 <code>SourceConnector</code> 和 <code>SinkConnector</code>不同的是，<code>SourceTask</code> 和 <code>SinkTask</code> 有着完全不同的接口：<code>SourceTask</code> 使用 pull 接口， <code>SinkTask</code> 使用 push 接口。两者共享相同的生命周期方法，但 <code>SinkTask</code> 接口有点特殊：</p>
 
     <pre class="brush: java;">
     public abstract class SinkTask implements Task {
@@ -377,17 +604,16 @@
         }
     </pre>
 
-    <p>The <code>SinkTask</code> documentation contains full details, but this interface is nearly as simple as the <code>SourceTask</code>. The <code>put()</code> method should contain most of the implementation, accepting sets of <code>SinkRecords</code>, performing any required translation, and storing them in the destination system. This method does not need to ensure the data has been fully written to the destination system before returning. In fact, in many cases internal buffering will be useful so an entire batch of records can be sent at once, reducing the overhead of inserting events into the downstream data store. The <code>SinkRecords</code> contain essentially the same information as <code>SourceRecords</code>: Kafka topic, partition, offset and the event key and value.</p>
+    <p><code>SinkTask</code> 的文档包含了所有的细节，但这个接口几乎和 <code>SourceTask</code>一样简单。<code>put()</code>方法应包含了大部分实现，包括接受 <code>SinkRecords</code> 集合，以及执行任何必需的转换，并将它们存储在目标系统中。此方法无需确保数据在返回之前已完全写入目标系统。实际上，在许多情况下 internal buffering 会很有用，使得我们可以一次发送整批记录，从而减少将事件插入下游数据存储的开销。<code>SinkRecords</code> 而本质上和 <code>SourceRecords</code> 有着相同的信息: Kafka topic, partition, offset and the event key and value。</p>
 
-    <p>The <code>flush()</code> method is used during the offset commit process, which allows tasks to recover from failures and resume from a safe point such that no events will be missed. The method should push any outstanding data to the destination system and then block until the write has been acknowledged. The <code>offsets</code> parameter can often be ignored, but is useful in some cases where implementations want to store offset information in the destination store to provide exactly-once
-    delivery. For example, an HDFS connector could do this and use atomic move operations to make sure the <code>flush()</code> operation atomically commits the data and offsets to a final location in HDFS.</p>
+    <p><code>flush()</code> 方法用于提交 offset 数据，这使得 task 可以从故障中恢复并且从安全点恢复，因此不会有事件丢失。该方法应该将任何未完成的数据推送到目标系统，然后阻塞，直到写入被确认。 参数 <code>offsets</code> 通常会被忽略，但在某些情况下很有用，例如实现需要在目标存储区中存储 offset 信息以提供精确的 exactly-once 交付。例如，HDFS connector 可以做到这一点，它使用原子性移动操作来确保 <code>flush()</code> 操作以原子方式将数据和 offset 提交到 HDFS 中的最终位置。</p>
 
 
     <h5><a id="connect_resuming" href="#connect_resuming">Resuming from Previous Offsets</a></h5>
 
-    <p>The <code>SourceTask</code> implementation included a stream ID (the input filename) and offset (position in the file) with each record. The framework uses this to commit offsets periodically so that in the case of a failure, the task can recover and minimize the number of events that are reprocessed and possibly duplicated (or to resume from the most recent offset if Kafka Connect was stopped gracefully, e.g. in standalone mode or due to a job reconfiguration). This commit process is completely automated by the framework, but only the connector knows how to seek back to the right position in the input stream to resume from that location.</p>
+    <p><code>SourceTask</code> 的实现包含每条记录的 stream ID (本示例中是输入的文件名) 和 offset (记录在文件中的位置)。该框架使用它定期提交 offset 数据，以便在发生故障的情况下，task 可以恢复并且最小化 reprocess 和 可能重复的事件的数量（或者从最近 Kafka Connect 正常停止过的 offset 恢复，例如在独立模式下或作业重新配置导致的停止）。这个提交过程由框架完全自动化，但只有 connector 知道如何退回到 input stream 中的正确位置并从该位置恢复。</p>
 
-    <p>To correctly resume upon startup, the task can use the <code>SourceContext</code> passed into its <code>initialize()</code> method to access the offset data. In <code>initialize()</code>, we would add a bit more code to read the offset (if it exists) and seek to that position:</p>
+    <p>为了在启动时正确恢复，task 可以使用它的 <code>initialize()</code> 方法中传入的 <code>SourceContext</code> 来访问 offset 数据。在 <code>initialize()</code> 中，我们会添加更多的代码来读取 offset 数据（如果存在）并寻找对应的位置：</p>
 
     <pre class="brush: java;">
         stream = new FileInputStream(filename);
@@ -399,30 +625,30 @@
         }
     </pre>
 
-    <p>Of course, you might need to read many keys for each of the input streams. The <code>OffsetStorageReader</code> interface also allows you to issue bulk reads to efficiently load all offsets, then apply them by seeking each input stream to the appropriate position.</p>
+    <p>当然，您可能需要为每个 input stream 读取多个 key。<code>OffsetStorageReader</code> 接口允许您发出批量读取以有效加载所有 offset，然后通过查找每个输入流来把它们放到对应的位置。</p>
 
-    <h4><a id="connect_dynamicio" href="#connect_dynamicio">Dynamic Input/Output Streams</a></h4>
+    <h4><a id="connect_dynamicio" href="#connect_dynamicio">动态输入/输出流</a></h4>
 
-    <p>Kafka Connect is intended to define bulk data copying jobs, such as copying an entire database rather than creating many jobs to copy each table individually. One consequence of this design is that the set of input or output streams for a connector can vary over time.</p>
+    <p>Kafka Connect 旨在定义批量数据复制作业，例如复制整个数据库，而不是创建许多作业以分别复制每张表。这种设计的一个结果是，connector 的输入或输出流的集合可以随时间变化。</p>
 
-    <p>Source connectors need to monitor the source system for changes, e.g. table additions/deletions in a database. When they pick up changes, they should notify the framework via the <code>ConnectorContext</code> object that reconfiguration is necessary. For example, in a <code>SourceConnector</code>:</p>
+    <p>Source connector 需要监视源系统的变化，例如数据库中表的增加与删除。当数据库中的表发生改变时，他们应通过<code>ConnectorContext</code>对象通知框架需要重新配置。例如，在 <code>SourceConnector</code> 中：</p>
 
     <pre class="brush: java;">
         if (inputsChanged())
             this.context.requestTaskReconfiguration();
     </pre>
 
-    <p>The framework will promptly request new configuration information and update the tasks, allowing them to gracefully commit their progress before reconfiguring them. Note that in the <code>SourceConnector</code> this monitoring is currently left up to the connector implementation. If an extra thread is required to perform this monitoring, the connector must allocate it itself.</p>
+    <p>该框架将及时请求新的配置信息并更新 task，使它们能够在再次配置之前正常地提交进度。请注意，在 <code>SourceConnector</code> 中，该监视功能当前由 connector 实现决定。如果需要额外的线程来执行监视，则连接器必须自行分配线程。</p>
 
-    <p>Ideally this code for monitoring changes would be isolated to the <code>Connector</code> and tasks would not need to worry about them. However, changes can also affect tasks, most commonly when one of their input streams is destroyed in the input system, e.g. if a table is dropped from a database. If the <code>Task</code> encounters the issue before the <code>Connector</code>, which will be common if the <code>Connector</code> needs to poll for changes, the <code>Task</code> will need to handle the subsequent error. Thankfully, this can usually be handled simply by catching and handling the appropriate exception.</p>
+    <p>理想情况下，用于监视变动的的代码将独立于 <code>Connector</code>，不会对 task 有任何影响。然而，变动也可以影响 task，最常见的是其输入流之一在输入系统中被破坏，例如，如果一个表从数据库中删除。如果<code>Task</code>在<code>Connector</code>之前遇到问题，这在<code>Connector</code>轮询数据源变动的时候很常见，需要由 <code>Task</code> 处理后续的 error。谢天谢地，这通常可以通过捕捉和处理适当的 exception 来处理。</p>
 
-    <p><code>SinkConnectors</code> usually only have to handle the addition of streams, which may translate to new entries in their outputs (e.g., a new database table). The framework manages any changes to the Kafka input, such as when the set of input topics changes because of a regex subscription. <code>SinkTasks</code> should expect new input streams, which may require creating new resources in the downstream system, such as a new table in a database. The trickiest situation to handle in these cases may be conflicts between multiple <code>SinkTasks</code> seeing a new input stream for the first time and simultaneously trying to create the new resource. <code>SinkConnectors</code>, on the other hand, will generally require no special code for handling a dynamic set of streams.</p>
+    <p><code>SinkConnectors</code> 通常只需要处理 stream 中增加的内容，这可能会转化为其输出中的新条目（例如新的数据库表）。该框架负责管理 Kafka 输入发生的任何更改，例如，由于批量订阅而导致输入主题集发生更改时。 <code>SinkTasks</code> 应该期望新的输入流，这可能需要在下游系统中创建新资源，例如数据库中的新表。在这些情况下最棘手的情况可能是多个 <code>SinkTasks</code> 第一次看到新的输入流并同时尝试创建新的资源。另一方面，<code>SinkConnectors</code>通常不需要特殊的代码来处理动态的流集。</p>
 
-    <h4><a id="connect_configs" href="#connect_configs">Connect Configuration Validation</a></h4>
+    <h4><a id="connect_configs" href="#connect_configs">连接配置验证</a></h4>
 
-    <p>Kafka Connect allows you to validate connector configurations before submitting a connector to be executed and can provide feedback about errors and recommended values. To take advantage of this, connector developers need to provide an implementation of <code>config()</code> to expose the configuration definition to the framework.</p>
+    <p>Kafka Connect 允许在提交要执行的 connector 之前验证 connector 配置，并且可以提供有关错误和建议值的反馈。为了利用这一点，连接器开发人员需要提供一个<code>config()</code>的实现来将配置定义公开给框架。</p>
 
-    <p>The following code in <code>FileStreamSourceConnector</code> defines the configuration and exposes it to the framework.</p>
+    <p>下面 <code>FileStreamSourceConnector</code> 中的代码定义了配置并将其公开给框架。</p>
 
     <pre class="brush: java;">
         private static final ConfigDef CONFIG_DEF = new ConfigDef()
@@ -434,17 +660,17 @@
         }
     </pre>
 
-    <p><code>ConfigDef</code> class is used for specifying the set of expected configurations. For each configuration, you can specify the name, the type, the default value, the documentation, the group information, the order in the group, the width of the configuration value and the name suitable for display in the UI. Plus, you can provide special validation logic used for single configuration validation by overriding the <code>Validator</code> class. Moreover, as there may be dependencies between configurations, for example, the valid values and visibility of a configuration may change according to the values of other configurations. To handle this, <code>ConfigDef</code> allows you to specify the dependents of a configuration and to provide an implementation of <code>Recommender</code> to get valid values and set visibility of a configuration given the current configuration values.</p>
+    <p><code>ConfigDef</code> 类用于指定一组预期的配置。对于每个配置，您可以指定名称，类型，默认值，文档，组信息，组中的顺序，配置值的宽度以及适合在UI中显示的名称。另外，您可以通过覆盖 <code>Validator</code> 类来提供用于单个配置验证的特殊验证逻辑。此外，由于配置之间可能存在依赖关系，例如，配置的有效值和可见性可能会根据配置中的其它值而改变。为了解决这个问题，<code>ConfigDef</code> 允许你指定配置的依赖关系，并提供了一个 <code>Recommender</code> 的实现来获取有效的值，并给定当前配置值的配置可见性。</p>
 
-    <p>Also, the <code>validate()</code> method in <code>Connector</code> provides a default validation implementation which returns a list of allowed configurations together with configuration errors and recommended values for each configuration. However, it does not use the recommended values for configuration validation. You may provide an override of the default implementation for customized configuration validation, which may use the recommended values.</p>
+    <p>另外，<code>Connector</code> 中的 <code>validate()</code> 方法提供了一个默认验证的实现，该实现返回允许配置的列表以及每个配置的配置错误和推荐值。但是，它不使用建议的值进行配置验证。您可以覆盖默认实现以提供自定义的配置验证，该自定义配置验证可能使用推荐值。</p>
 
-    <h4><a id="connect_schemas" href="#connect_schemas">Working with Schemas</a></h4>
+    <h4><a id="connect_schemas" href="#connect_schemas">处理模式</a></h4>
 
-    <p>The FileStream connectors are good examples because they are simple, but they also have trivially structured data -- each line is just a string. Almost all practical connectors will need schemas with more complex data formats.</p>
+    <p>FileStream connector 是个很好的例子，因为它们很简单，但它们也有着简单的结构化数据——每行只是一个字符串。几乎所有实用的 connector 都需要具有更复杂数据格式的模式。</p>
 
-    <p>To create more complex data, you'll need to work with the Kafka Connect <code>data</code> API. Most structured records will need to interact with two classes in addition to primitive types: <code>Schema</code> and <code>Struct</code>.</p>
+    <p>要创建更复杂的数据，您需要使用 Kafka Connect 的<code>data</code> API。大多数结构化记录除了原始类型外还需要与两个类进行交互：<code>Schema</code> 和 <code>Struct</code>。</p>
 
-    <p>The API documentation provides a complete reference, but here is a simple example creating a <code>Schema</code> and <code>Struct</code>:</p>
+    <p>其 API 文档提供了一个完整的参考，但下面是一个创建 <code>Schema</code> 和 <code>Struct</code> 的简单示例：:</p>
 
     <pre class="brush: java;">
     Schema schema = SchemaBuilder.struct().name(NAME)
@@ -458,20 +684,20 @@
         .put("age", 75);
     </pre>
 
-    <p>If you are implementing a source connector, you'll need to decide when and how to create schemas. Where possible, you should avoid recomputing them as much as possible. For example, if your connector is guaranteed to have a fixed schema, create it statically and reuse a single instance.</p>
+    <p>如果您正在实现一个 source connector，则需要确定何时以及如何创建模式。在可能的情况下，应尽可能避免重新计算它们。例如，如果您的 connector 确定有固定模式，请静态创建并重用单个实例。</p>
 
-    <p>However, many connectors will have dynamic schemas. One simple example of this is a database connector. Considering even just a single table, the schema will not be predefined for the entire connector (as it varies from table to table). But it also may not be fixed for a single table over the lifetime of the connector since the user may execute an <code>ALTER TABLE</code> command. The connector must be able to detect these changes and react appropriately.</p>
+    <p>但是，许多 connector 都有动态模式。一个简单的例子就是 database connector。考虑到即使数据库只有一个表，也不会为整个 connector 预定义模式（因为它随表格而变化）。但是在 connector 的整个生命周期中，它也可能不会因为只有一张表而使用固定模式，因为用户可能会执行 <code>ALTER TABLE</code> 命令，connector必须能够检测到这些变化并做出适当的反应。</p>
 
-    <p>Sink connectors are usually simpler because they are consuming data and therefore do not need to create schemas. However, they should take just as much care to validate that the schemas they receive have the expected format. When the schema does not match -- usually indicating the upstream producer is generating invalid data that cannot be correctly translated to the destination system -- sink connectors should throw an exception to indicate this error to the system.</p>
+    <p>Sink connectors 通常更简单，因为它们在消耗数据，因此不需要创建模式。但是，他们应该同样仔细地验证他们收到的模式是否具有预期的格式。当模式不匹配时，通常表明上游 produce 正在生成无法正确转换到目标系统的无效数据，sink connector 应该抛出异常来向系统指示此错误。</p>
 
     <h4><a id="connect_administration" href="#connect_administration">Kafka Connect Administration</a></h4>
 
     <p>
-    Kafka Connect's <a href="#connect_rest">REST layer</a> provides a set of APIs to enable administration of the cluster. This includes APIs to view the configuration of connectors and the status of their tasks, as well as to alter their current behavior (e.g. changing configuration and restarting tasks).
+        Kafka Connect 的 <a href="#connect_rest">REST layer</a> 层提供了一组 API 对群集进行管理。这包括查看 connector 配置和任务状态的 API，以及更改其当前行为的 API（例如更改配置和重新启动任务）。
     </p>
 
     <p>
-    When a connector is first submitted to the cluster, the workers rebalance the full set of connectors in the cluster and their tasks so that each worker has approximately the same amount of work. This same rebalancing procedure is also used when connectors increase or decrease the number of tasks they require, or when a connector's configuration is changed. You can use the REST API to view the current status of a connector and its tasks, including the id of the worker to which each was assigned. For example, querying the status of a file source (using <code>GET /connectors/file-source/status</code>) might produce output like the following:
+        当 connector 首次提交到群集时，worker 将重新平衡群集中的全部 connector 及其 task，以便每个 worker的工作量大致相同。当 connector 增加或减少它们需要的任务数量或连接器的配置发生变化时，也使用相同的重新平衡过程。您可以使用 REST API 来查看 connector 及其 task 的当前状态，包括每个 connector 分配的 worker 的 ID。例如，查询文件源的状态（使用 GET/connectors/file-source/status）可能会产生如下输出：
     </p>
 
     <pre class="brush: json;">
@@ -492,22 +718,22 @@
     </pre>
 
     <p>
-    Connectors and their tasks publish status updates to a shared topic (configured with <code>status.storage.topic</code>) which all workers in the cluster monitor. Because the workers consume this topic asynchronously, there is typically a (short) delay before a state change is visible through the status API. The following states are possible for a connector or one of its tasks:
+        Connector及其 task 将状态更新发布到群集中所有 worker 监视的共享主题（使用status.storage.topic配置）。由于 worker 异步使用此主题，因此状态更改通过状态 API 可见之前通常会有（短）延迟。以下状态可用于 connector 或其 task 之一：
     </p>
 
     <ul>
-    <li><b>UNASSIGNED:</b> The connector/task has not yet been assigned to a worker.</li>
-    <li><b>RUNNING:</b> The connector/task is running.</li>
-    <li><b>PAUSED:</b> The connector/task has been administratively paused.</li>
-    <li><b>FAILED:</b> The connector/task has failed (usually by raising an exception, which is reported in the status output).</li>
+        <li><b>UNASSIGNED:</b> Connector/Task 还没有分配给一个worker。</li>
+        <li><b>RUNNING:</b> Connector/Task 正在运行。</li>
+        <li><b>PAUSED:</b> Connector/Task 已经被管理暂停。</li>
+        <li><b>FAILED:</b> Connector/Task 失败了(通常是通过引发一个异常，在状态输出中报告)。</li>
     </ul>
 
     <p>
-    In most cases, connector and task states will match, though they may be different for short periods of time when changes are occurring or if tasks have failed. For example, when a connector is first started, there may be a noticeable delay before the connector and its tasks have all transitioned to the RUNNING state. States will also diverge when tasks fail since Connect does not automatically restart failed tasks. To restart a connector/task manually, you can use the restart APIs listed above. Note that if you try to restart a task while a rebalance is taking place, Connect will return a 409 (Conflict) status code. You can retry after the rebalance completes, but it might not be necessary since rebalances effectively restart all the connectors and tasks in the cluster.
+        在大多数情况下，connector 和 task 状态都会匹配，但在发生变动或 task 失败时，它们在短时间内可能会有所不同。例如，首次启动 connector 时，connector 及其 task 全部转换为 RUNNING 状态之前可能会有明显的延迟。由于 Connect 不会自动重启失败的 task，因此 task 失败时状态也会发生变化。要手动重新启动 connector/task，可以使用上面列出的重启 API。请注意，如果尝试在重新平衡过程中重启 task，Connect 将返回409（冲突）状态码。您可以在重新平衡完成后重试，但可能没有必要，因为重新平衡实际上会重启群集中的所有 connector 和 task。
     </p>
 
     <p>
-    It's sometimes useful to temporarily stop the message processing of a connector. For example, if the remote system is undergoing maintenance, it would be preferable for source connectors to stop polling it for new data instead of filling logs with exception spam. For this use case, Connect offers a pause/resume API. While a source connector is paused, Connect will stop polling it for additional records. While a sink connector is paused, Connect will stop pushing new messages to it. The pause state is persistent, so even if you restart the cluster, the connector will not begin message processing again until the task has been resumed. Note that there may be a delay before all of a connector's tasks have transitioned to the PAUSED state since it may take time for them to finish whatever processing they were in the middle of when being paused. Additionally, failed tasks will not transition to the PAUSED state until they have been restarted.
+        有时候暂时停止 connector 的消息处理很有用。例如，如果远程系统正在进行维护，则 source connector 最好停止从该系统中轮询获取新数据，而不是使用异常垃圾消息填充日志。对于这个用例，Connect 提供了一个 pause/resume API。当 source connector 暂停时，Connect 将停止轮询它以获取其他记录。当 sink connector 暂停时，Connect 将停止向其发送新消息。暂停状态是持久化的，因此即使重新启动群集，connector 也不会再次开始消息处理，直到 task 恢复。请注意，在所有 connector 的 task 都转换到 PAUSED 状态之前可能会有一段延迟，因为它们可能需要一些时间才能完成暂停过程中的任何处理。另外，失败的任务在重启之前不会转换到 PAUSED 状态。
     </p>
 </script>
 

@@ -102,8 +102,19 @@ gulp.task('10streams', function () {
     }
 }); 
 
+gulp.task('10streams2', function () {
+    for(var i=0;i<folders.length;i++){
+    gulp.src('10/documentation/streams/**.html')
+        .pipe(fileinclude({
+            prefix: '@@',
+            basepath: '@file'
+        }))
+        .pipe(gulp.dest('dist/10/documentation/streams'));
+    }
+}); 
 
 
 
-gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams'] )
+
+gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2'] )
 

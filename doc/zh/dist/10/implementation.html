@@ -16,22 +16,22 @@
 -->
 
 <script id="implementation-template" type="text/x-handlebars-template">
-    <h3><a id="networklayer" href="#networklayer">5.1 Network Layer</a></h3>
+    <h3><a id="networklayer" href="#networklayer">5.1 网络层</a></h3>
     <p>
-    The network layer is a fairly straight-forward NIO server, and will not be described in great detail. The sendfile implementation is done by giving the <code>MessageSet</code> interface a <code>writeTo</code> method. This allows the file-backed message set to use the more efficient <code>transferTo</code> implementation instead of an in-process buffered write. The threading model is a single acceptor thread and <i>N</i> processor threads which handle a fixed number of connections each. This design has been pretty thoroughly tested <a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">elsewhere</a> and found to be simple to implement and fast. The protocol is kept quite simple to allow for future implementation of clients in other languages.
+    网络层相当于一个 NIO 服务,在此不在详细描述. sendfile(零拷贝) 的实现是通过 <code>MessageSet</code> 接口的 <code>writeTo</code> 方法完成的.这样的机制允许 file-backed 集使用更高效的 <code>transferTo</code> 实现,而不在使用进程内的写缓存.线程模型是一个单独的接受线程和 N 个处理线程,每个线程处理固定数量的连接.这种设计方式在<a href="http://sna-projects.com/blog/2009/08/introducing-the-nio-socketserver-implementation">其他地方</a>经过大量的测试,发现它是实现简单而且快速的.协议保持简单以允许未来实现其他语言的客户端.
     </p>
-    <h3><a id="messages" href="#messages">5.2 Messages</a></h3>
+    <h3><a id="messages" href="#messages">5.2 消息</a></h3>
     <p>
-    Messages consist of a variable-length header, a variable length opaque key byte array and a variable length opaque value byte array. The format of the header is described in the following section.
-    Leaving the key and value opaque is the right decision: there is a great deal of progress being made on serialization libraries right now, and any particular choice is unlikely to be right for all uses. Needless to say a particular application using Kafka would likely mandate a particular serialization type as part of its usage. The <code>RecordBatch</code> interface is simply an iterator over messages with specialized methods for bulk reading and writing to an NIO <code>Channel</code>.</p>
+    消息包含一个可变长度的 header ,一个可变长度不透明的字节数组 key ,一个可变长度不透明的字节数组 value ,消息中 header 的格式会在下一节描述.
+    保持消息中的 key 和 value 不透明(二进制格式)是正确的决定: 目前构建序列化库取得很大的进展,而且任何单一的序列化方式都不能满足所有的用途.毋庸置疑,使用kafka的特定应用程序可能会要求特定的序列化类型作为自己使用的一部分. <code>RecordBatch</code> 接口就是一种简单的消息迭代器,它可以使用特定的方法批量读写消息到 NIO 的 <code>Channel</code> 中.
 
-    <h3><a id="messageformat" href="#messageformat">5.3 Message Format</a></h3>
+    <h3><a id="messageformat" href="#messageformat">5.3 消息格式</a></h3>
     <p>
-    Messages (aka Records) are always written in batches. The technical term for a batch of messages is a record batch, and a record batch contains one or more records. In the degenerate case, we could have a record batch containing a single record.
-    Record batches and records have their own headers. The format of each is described below for Kafka version 0.11.0 and later (message format version v2, or magic=2). <a href="https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-Messagesets">Click here</a> for details about message formats 0 and 1.</p>
+    消息通常按照批量的方式写入.record batch 是批量消息的技术术语,它包含一条或多条 records.不良情况下, record batch 只包含一条 record.
+    Record batches 和 records 都有他们自己的 headers.在 kafka 0.11.0及后续版本中(消息格式的版本为 v2 或者 magic=2)解释了每种消息格式.<a href="https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol#AGuideToTheKafkaProtocol-Messagesets">点击</a>查看消息格式详情.</p>
 
     <h4><a id="recordbatch" href="#recordbatch">5.3.1 Record Batch</a></h4>
-	<p> The following is the on-disk format of a RecordBatch. </p>
+	<p> 以下为 RecordBatch 在硬盘上的格式.</p>
 	<p><pre class="brush: java;">
 		baseOffset: int64
 		batchLength: int32
@@ -56,30 +56,24 @@
 		baseSequence: int32
 		records: [Record]
 	</pre></p>
-    <p> Note that when compression is enabled, the compressed record data is serialized directly following the count of the number of records. </p>
+    <p> 请注意,启用压缩时，压缩的记录数据将直接按照记录数进行序列化。</p>
 
-    <p>The CRC covers the data from the attributes to the end of the batch (i.e. all the bytes that follow the CRC). It is located after the magic byte, which
-    means that clients must parse the magic byte before deciding how to interpret the bytes between the batch length and the magic byte. The partition leader
-    epoch field is not included in the CRC computation to avoid the need to recompute the CRC when this field is assigned for every batch that is received by
-    the broker. The CRC-32C (Castagnoli) polynomial is used for the computation.</p>
+    <p> CRC(一种数据校验码) 会覆盖从属性到批处理结束的数据, (即 CRC 后的所有字节数据). CRC 位于 magic 之后,这意味着,在决定如何解释批次的长度和 magic 类型之前,客户端需要解析 magic 类型.CRC 计算不包括分区 learder epoch 字段,是为了避免 broker 收到每个批次的数据时 需要重新分配计算 CRC . CRC-32C (Castagnoli) 多项式用于计算.</p>
 
-    <p>On compaction: unlike the older message formats, magic v2 and above preserves the first and last offset/sequence numbers from the original batch when the log is cleaned. This is required in order to be able to restore the
-    producer's state when the log is reloaded. If we did not retain the last sequence number, for example, then after a partition leader failure, the producer might see an OutOfSequence error. The base sequence number must
-    be preserved for duplicate checking (the broker checks incoming Produce requests for duplicates by verifying that the first and last sequence numbers of the incoming batch match the last from that producer). As a result,
-    it is possible to have empty batches in the log when all the records in the batch are cleaned but batch is still retained in order to preserve a producer's last sequence number. One oddity here is that the baseTimestamp
-    field is not preserved during compaction, so it will change if the first record in the batch is compacted away.</p>
+    <p>压缩: 不同于旧的消息格式, magic v2 及以上版本在清理日志时保留原始日志中首次及最后一次 offset/sequence .这是为了能够在日志重新加载时恢复生产者的状态.例如,如果我们不保留最后一次序列号,当分区 learder 失败以后,生产者会报 OutOfSequence 的错误.必须保留基础序列号来做重复检查(broker 通过检查生产者该批次请求中第一次及最后一次序列号是否与上一次的序列号相匹配来判断是否重复).因此,当批次中所有的记录被清理但批次数据依然保留是为了保存生产者最后一次的序列号,日志中可能有空的数据.不解的是在压缩中时间戳可能不会被保留,所以如果批次中的第一条记录被压缩,时间戳也会改变</p>
 
-    <h5><a id="controlbatch" href="#controlbatch">5.3.1.1 Control Batches</a></h5>
-    <p>A control batch contains a single record called the control record. Control records should not be passed on to applications. Instead, they are used by consumers to filter out aborted transactional messages.</p>
-    <p> The key of a control record conforms to the following schema: </p>
+    <h5><a id="controlbatch" href="#controlbatch">5.3.1.1 批次控制</a></h5>
+    <p>批次控制包含成为控制记录的单条记录. 控制记录不应该传送给应用程序,相反,他们是消费者用来过滤中断的事务消息.</p>
+    <p> 控制记录的 key 符合以下模式: </p>
     <p><pre class="brush: java">
        version: int16 (current version is 0)
        type: int16 (0 indicates an abort marker, 1 indicates a commit)
     </pre></p>
-    <p>The schema for the value of a control record is dependent on the type. The value is opaque to clients.</p>
+    <p>批次记录值的模式依赖于类型. 对客户端来说它是透明的.</p>
 
-	<h4><a id="record" href="#record">5.3.2 Record</a></h4>
+	<h4><a id="record" href="#record">5.3.2 Record(记录)</a></h4>
 	<p>Record level headers were introduced in Kafka 0.11.0. The on-disk format of a record with Headers is delineated below. </p>
+    <p>Record 级别的头部信息在0.11.0 版本引入. 拥有 headers 的 Record 的磁盘格式如下. </p>
 	<p><pre class="brush: java;">
 		length: varint
 		attributes: int8
@@ -99,36 +93,36 @@
 		headerValueLength: varint
 		Value: byte[]
 	</pre></p>
-    <p>We use the the same varint encoding as Protobuf. More information on the latter can be found <a href="https://developers.google.com/protocol-buffers/docs/encoding#varints">here</a>. The count of headers in a record
-    is also encoded as a varint.</p>
+    <p>我们使用了和 Protobuf 编码格式相同的 varint 编码. 更多后者相关的信息 <a href="https://developers.google.com/protocol-buffers/docs/encoding#varints">在这里</a>.
+     Record 中 headers 的数量也被编码为 varint .</p>
 
-    <h3><a id="log" href="#log">5.4 Log</a></h3>
+    <h3><a id="log" href="#log">5.4 日志</a></h3>
     <p>
-    A log for a topic named "my_topic" with two partitions consists of two directories (namely <code>my_topic_0</code> and <code>my_topic_1</code>) populated with data files containing the messages for that topic. The format of the log files is a sequence of "log entries""; each log entry is a 4 byte integer <i>N</i> storing the message length which is followed by the <i>N</i> message bytes. Each message is uniquely identified by a 64-bit integer <i>offset</i> giving the byte position of the start of this message in the stream of all messages ever sent to that topic on that partition. The on-disk format of each message is given below. Each log file is named with the offset of the first message it contains. So the first file created will be 00000000000.kafka, and each additional file will have an integer name roughly <i>S</i> bytes from the previous file where <i>S</i> is the max log file size given in the configuration.
+    命名为 "my_topic" 的主题日志有两个分区,包含两个目录 (命名为 <code>my_topic_0</code> 和 <code>my_topic_1</code>) ,目录中分布着包含该 topic 消息的日志文件.日志文件的格式是 "log entries" 的序列; 每个日志对象是由4位的数字<i>N</i>存储日志长度,后跟 <i>N</i> 字节的消息.每个消息使用64位的整数作为 <i>offset</i> 唯一标记, offset 即为发送到该 topic partition 中所有流数据的起始位置.每个消息的磁盘格式如下. 每个日志文件使用它包含的第一个日志的 offset 来命名.所以创建的第一个文件是 00000000000.kafka, 并且每个附件文件会有大概 <i>S</i> 字节前一个文件的整数名称,其中 <i>S</i> 是配置给出的最大文件大小.
     </p>
     <p>
-    The exact binary format for records is versioned and maintained as a standard interface so record batches can be transferred between producer, broker, and client without recopying or conversion when desirable. The previous section included details about the on-disk format of records.</p>
+    记录的精确二进制格式是版本化的,并且按照标准接口进行维护,所以批量的记录可以在 producer, broker 和客户端之间传输,而不需要在使用时进行重新复制或转化.前一章包含了记录的磁盘格式的详情.
     </p>
    <p>
-    The use of the message offset as the message id is unusual. Our original idea was to use a GUID generated by the producer, and maintain a mapping from GUID to offset on each broker. But since a consumer must maintain an ID for each server, the global uniqueness of the GUID provides no value. Furthermore, the complexity of maintaining the mapping from a random id to an offset requires a heavy weight index structure which must be synchronized with disk, essentially requiring a full persistent random-access data structure. Thus to simplify the lookup structure we decided to use a simple per-partition atomic counter which could be coupled with the partition id and node id to uniquely identify a message; this makes the lookup structure simpler, though multiple seeks per consumer request are still likely. However once we settled on a counter, the jump to directly using the offset seemed natural&mdash;both after all are monotonically increasing integers unique to a partition. Since the offset is hidden from the consumer API this decision is ultimately an implementation detail and we went with the more efficient approach.
+    消息的偏移量用作消息 id 是不常见的.我们最开始的想法是使用 producer 自增的 GUID ,并维护从 GUID 到每个 broker 的 offset 的映射.这样的话每个消费者需要为每个服务端维护一个 ID,提供全球唯一的 GUID 没有意义.而且,维护一个从随机 ID 到偏移量映射的复杂度需要一个重度的索引结构,它需要与磁盘进行同步,本质上需要一个完整的持久随机访问数据结构.因此为了简化查找结构,我们决定针对每个分区使用一个原子计数器,它可以利用分区id和节点id唯一标识一条消息.虽然这使得查找结构足够简单,但每个消费者的多个查询请求依然是相似的.一旦我们决定使用使用计数器,直接跳转到对应的偏移量显得更加自然-毕竟对于每个分区来说它们都是一个单调递增的整数.由于消费者API隐藏了偏移量，所以这个决定最终是一个实现细节，我们采用了更高效的方法。
     </p>
     <img class="centered" src="/{{version}}/images/kafka_log.png">
     <h4><a id="impl_writes" href="#impl_writes">Writes</a></h4>
     <p>
-    The log allows serial appends which always go to the last file. This file is rolled over to a fresh file when it reaches a configurable size (say 1GB). The log takes two configuration parameters: <i>M</i>, which gives the number of messages to write before forcing the OS to flush the file to disk, and <i>S</i>, which gives a number of seconds after which a flush is forced. This gives a durability guarantee of losing at most <i>M</i> messages or <i>S</i> seconds of data in the event of a system crash.
+    日志允许序列化的追加到最后一个文件中.当文件大小达到配置的大小(默认 1G)时,会生成一个新的文件.日志中有两个配置参数: <i>M</i> 是在 OS 强制写文件到磁盘之前的消息条数, <i>S</i> 是强制写盘的秒数.这提供了一个在系统崩溃时最多丢失 <i>M</i> 条或者 <i>S</i> 秒消息的保证.
     </p>
     <h4><a id="impl_reads" href="#impl_reads">Reads</a></h4>
     <p>
-    Reads are done by giving the 64-bit logical offset of a message and an <i>S</i>-byte max chunk size. This will return an iterator over the messages contained in the <i>S</i>-byte buffer. <i>S</i> is intended to be larger than any single message, but in the event of an abnormally large message, the read can be retried multiple times, each time doubling the buffer size, until the message is read successfully. A maximum message and buffer size can be specified to make the server reject messages larger than some size, and to give a bound to the client on the maximum it needs to ever read to get a complete message. It is likely that the read buffer ends with a partial message, this is easily detected by the size delimiting.
+    通过提供消息的64位逻辑偏移量和 <i>S</i> 位的 max chunk size 完成读请求.这会返回一个包含 <i>S</i> 位的消息缓存迭代器. <i>S</i> 必须大于任何单条的数据,但是在异常的大消息情况下,读取操作可以重试多次,每次会加倍缓冲的大小,直到消息被读取成功.可以指定最大消息大小和缓存大小使服务器拒绝接收超过其大小的消息,并为客户端设置消息的最大限度,它需要尝试读取多次获得完整的消息.读取缓冲区可能以部分消息结束,这很容易通过大小分界来检测.
     </p>
     <p>
-    The actual process of reading from an offset requires first locating the log segment file in which the data is stored, calculating the file-specific offset from the global offset value, and then reading from that file offset. The search is done as a simple binary search variation against an in-memory range maintained for each file.
+    按照偏移量读取的实际操作需要在数据存储目录中找到第一个日志分片的位置,在全局的偏移量中计算指定文件的偏移量,然后读取文件偏移量.搜索是使用二分查找法查找在内存中保存的每个文件的偏移量来完成的.
     </p>
     <p>
-    The log provides the capability of getting the most recently written message to allow clients to start subscribing as of "right now". This is also useful in the case the consumer fails to consume its data within its SLA-specified number of days. In this case when the client attempts to consume a non-existent offset it is given an OutOfRangeException and can either reset itself or fail as appropriate to the use case.
+    日志提供了将消息写入到当前的能力,以允许客户端从'当前开始订阅.在消费者未能在其SLA指定的天数内消费其数据的情况下,这也是有用的.在这种情况下,客户端会尝试消费不存在的偏移量的数据,这会抛出 OutOfRangeException 异常,并且也会重置 offset 或者失败.
     </p>
 
-    <p> The following is the format of the results sent to the consumer.
+    <p> 以下是发送给消费者的结果格式.
 
     <pre class="brush: text;">
     MessageSetSend (fetch result)
@@ -151,96 +145,95 @@
     </pre>
     <h4><a id="impl_deletes" href="#impl_deletes">Deletes</a></h4>
     <p>
-    Data is deleted one log segment at a time. The log manager allows pluggable delete policies to choose which files are eligible for deletion. The current policy deletes any log with a modification time of more than <i>N</i> days ago, though a policy which retained the last <i>N</i> GB could also be useful. To avoid locking reads while still allowing deletes that modify the segment list we use a copy-on-write style segment list implementation that provides consistent views to allow a binary search to proceed on an immutable static snapshot view of the log segments while deletes are progressing.
+    在一个时点下只有一个 log segment 的数据能被删除。日志管理器允许使用可插拔的删除策略来选择哪些文件符合删除条件.当前的删除策略会删除 <i>N</i> 天之前改动的日志,尽管保留最后的 <i>N</i> GB 数据可能有用.为了避免锁定读，同时允许删除修改 segment 列表，我们使用 copy-on-write 形式的 segment 列表实现，在删除的同时它提供了一致的视图允许在多个 segment 列表视图上执行二进制的搜索。
     </p>
     <h4><a id="impl_guarantees" href="#impl_guarantees">Guarantees</a></h4>
     <p>
-    The log provides a configuration parameter <i>M</i> which controls the maximum number of messages that are written before forcing a flush to disk. On startup a log recovery process is run that iterates over all messages in the newest log segment and verifies that each message entry is valid. A message entry is valid if the sum of its size and offset are less than the length of the file AND the CRC32 of the message payload matches the CRC stored with the message. In the event corruption is detected the log is truncated to the last valid offset.
+    日志提供了配置项 <i>M</i> ，它控制了在强制刷盘之前的最大消息数。启动时，日志恢复线程会运行，对最新的日志片段进行迭代，验证每条消息是否合法。如果消息对象的总数和偏移量小于文件的长度并且 消息数据包的 CRC32 校验值与存储在消息中的 CRC 校验值相匹配的话，说明这个消息对象是合法的。如果检测到损坏，日志会在最后一个合法 offset 处截断。
     </p>
     <p>
-    Note that two kinds of corruption must be handled: truncation in which an unwritten block is lost due to a crash, and corruption in which a nonsense block is ADDED to the file. The reason for this is that in general the OS makes no guarantee of the write order between the file inode and the actual block data so in addition to losing written data the file can gain nonsense data if the inode is updated with a new size but a crash occurs before the block containing that data is written. The CRC detects this corner case, and prevents it from corrupting the log (though the unwritten messages are, of course, lost).
-    </p>
-
-    <h3><a id="distributionimpl" href="#distributionimpl">5.5 Distribution</a></h3>
-    <h4><a id="impl_offsettracking" href="#impl_offsettracking">Consumer Offset Tracking</a></h4>
-    <p>
-    The high-level consumer tracks the maximum offset it has consumed in each partition and periodically commits its offset vector so that it can resume from those offsets in the event of a restart. Kafka provides the option to store all the offsets for a given consumer group in a designated broker (for that group) called the <i>offset manager</i>. i.e., any consumer instance in that consumer group should send its offset commits and fetches to that offset manager (broker). The high-level consumer handles this automatically. If you use the simple consumer you will need to manage offsets manually. This is currently unsupported in the Java simple consumer which can only commit or fetch offsets in ZooKeeper. If you use the Scala simple consumer you can discover the offset manager and explicitly commit or fetch offsets to the offset manager. A consumer can look up its offset manager by issuing a GroupCoordinatorRequest to any Kafka broker and reading the GroupCoordinatorResponse which will contain the offset manager. The consumer can then proceed to commit or fetch offsets from the offsets manager broker. In case the offset manager moves, the consumer will need to rediscover the offset manager. If you wish to manage your offsets manually, you can take a look at these <a href="https://cwiki.apache.org/confluence/display/KAFKA/Committing+and+fetching+consumer+offsets+in+Kafka">code samples that explain how to issue OffsetCommitRequest and OffsetFetchRequest</a>.
+    请注意，有两种损坏必须处理：由于崩溃导致的未写入的数据块的丢失和将无意义已损坏的数据块添加到文件。原因是：通常系统不能保证文件索引节点和实际数据快之间的写入顺序，除此之外，如果在块数据被写入之前，文件索引已更新为新的大小，若此时系统崩溃，文件不会的到有意义的数据，则会导致数据丢失。
     </p>
 
+    <h3><a id="distributionimpl" href="#distributionimpl">5.5 分布式</a></h3>
+    <h4><a id="impl_offsettracking" href="#impl_offsettracking">Consumer Offset Tracking（消费者offset跟踪）</a></h4>
     <p>
-    When the offset manager receives an OffsetCommitRequest, it appends the request to a special <a href="#compaction">compacted</a> Kafka topic named <i>__consumer_offsets</i>. The offset manager sends a successful offset commit response to the consumer only after all the replicas of the offsets topic receive the offsets. In case the offsets fail to replicate within a configurable timeout, the offset commit will fail and the consumer may retry the commit after backing off. (This is done automatically by the high-level consumer.) The brokers periodically compact the offsets topic since it only needs to maintain the most recent offset commit per partition. The offset manager also caches the offsets in an in-memory table in order to serve offset fetches quickly.
+        高级别的consumer跟踪每个分区已消费的offset，并定期提交，以便在重启的情况下可以从这些offset中恢复。Kafka提供了一个选项在指定的broker中来存储所有给定的consumer组的offset，称为offset manager。例如，该consumer组的所有consumer实例向offset manager（broker）发送提交和获取offset请求。高级别的consumer将会自动处理这些过程。如果你使用低级别的consumer，你将需要手动管理offset。目前在低级别的java consumer中不支持，只能在Zookeeper中提交或获取offset。如果你使用简单的Scala consumer，将可拿到offset manager，并显式的提交或获取offset。对于包含offset manager的consumer可以通过发送GroupCoordinatorRequest到任意kafka broker，并接受GroupCoordinatorResponse响应，consumer可以继续向`offset manager broker`提交或获取offset。如果offset manager位置变动，consumer需要重新发现offset manager。如果你想手动管理你的offset，你可以看看<a href="https://cwiki.apache.org/confluence/display/KAFKA/Committing+and+fetching+consumer+offsets+in+Kafka">OffsetCommitRequest 和 OffsetFetchRequest的源码</a>是如何实现的。
     </p>
 
     <p>
-    When the offset manager receives an offset fetch request, it simply returns the last committed offset vector from the offsets cache. In case the offset manager was just started or if it just became the offset manager for a new set of consumer groups (by becoming a leader for a partition of the offsets topic), it may need to load the offsets topic partition into the cache. In this case, the offset fetch will fail with an OffsetsLoadInProgress exception and the consumer may retry the OffsetFetchRequest after backing off. (This is done automatically by the high-level consumer.)
+        当offset manager接收到一个OffsetCommitRequest，它将追加请求到一个特定的<a href="#compaction">压缩</a>名为__consumer_offsets的kafka topic中，当offset topic的所有副本接收offset之后，offset manager将发送一个提交offset成功的响应给consumer。万一offset无法在规定的时间内复制，offset将提交失败，consumer在回退之后可重试该提交（高级别consumer自动进行）。broker会定期压缩offset topic，因为只需要保存每个分区最近的offset。offset manager会缓存offset在内存表中，以便offset快速获取。
     </p>
 
-    <h5><a id="offsetmigration" href="#offsetmigration">Migrating offsets from ZooKeeper to Kafka</a></h5>
     <p>
-    Kafka consumers in earlier releases store their offsets by default in ZooKeeper. It is possible to migrate these consumers to commit offsets into Kafka by following these steps:
+        当offset manager接收一个offset的获取请求，将从offset缓存中返回最新的的offset。如果offset manager刚启动或新的consumer组刚成为offset manager（成为offset topic分区的leader），则需要加载offset topic的分区到缓存中，在这种情况下，offset将获取失败，并报出OffsetsLoadInProgress异常，consumer回滚后，重试OffsetFetchRequest（高级别consumer自动进行这些操作）。
+    </p>
+
+    <h5><a id="offsetmigration" href="#offsetmigration">从ZooKeeper迁移offset到kafka</a></h5>
+    <p>
+        Kafka consumers在早先的版本中offset默认存储在ZooKeeper中。可以通过下面的步骤迁移这些consumer到Kafka：
     <ol>
-    <li>Set <code>offsets.storage=kafka</code> and <code>dual.commit.enabled=true</code> in your consumer config.
+    <li>在consumer配置中设置<code>offsets.storage=kafka</code> 和 <code>dual.commit.enabled=true</code>。
     </li>
-    <li>Do a rolling bounce of your consumers and then verify that your consumers are healthy.
+    <li>consumer做滚动消费，验证你的consumer是健康正常的。
     </li>
-    <li>Set <code>dual.commit.enabled=false</code> in your consumer config.
+    <li>在你的consumer配置中设置<code>dual.commit.enabled=false</code>。
     </li>
-    <li>Do a rolling bounce of your consumers and then verify that your consumers are healthy.
+    <li>consumer做滚动消费，验证你的consumer是健康正常的。
     </li>
     </ol>
-    A roll-back (i.e., migrating from Kafka back to ZooKeeper) can also be performed using the above steps if you set <code>offsets.storage=zookeeper</code>.
+    回滚（就是从kafka回到Zookeeper）也可以使用上面的步骤，通过设置 <code>offsets.storage=zookeeper</code>。
     </p>
 
-    <h4><a id="impl_zookeeper" href="#impl_zookeeper">ZooKeeper Directories</a></h4>
+    <h4><a id="impl_zookeeper" href="#impl_zookeeper">ZooKeeper 目录</a></h4>
     <p>
-    The following gives the ZooKeeper structures and algorithms used for co-ordination between consumers and brokers.
+        下面给出了Zookeeper的结构和算法，用于协调consumer和broker。
     </p>
 
     <h4><a id="impl_zknotation" href="#impl_zknotation">Notation</a></h4>
     <p>
-    When an element in a path is denoted [xyz], that means that the value of xyz is not fixed and there is in fact a ZooKeeper znode for each possible value of xyz. For example /topics/[topic] would be a directory named /topics containing a sub-directory for each topic name. Numerical ranges are also given such as [0...5] to indicate the subdirectories 0, 1, 2, 3, 4. An arrow -> is used to indicate the contents of a znode. For example /hello -> world would indicate a znode /hello containing the value "world".
+        当一个path中的元素表示为[XYZ]，这意味着xyz的值不是固定的，实际上每个xyz的值可能是Zookeeper的znode，例如`/topic/[topic]`是一个目录，/topic包含一个子目录(每个topic名称)。数字的范围如[0...5]来表示子目录0，1，2，3，4。箭头`->`用于表示znode的内容，例如:/hello->world表示znode /hello包含值”world”。
     </p>
 
-    <h4><a id="impl_zkbroker" href="#impl_zkbroker">Broker Node Registry</a></h4>
+    <h4><a id="impl_zkbroker" href="#impl_zkbroker">Broker节点注册</a></h4>
     <pre class="brush: json;">
     /brokers/ids/[0...N] --> {"jmx_port":...,"timestamp":...,"endpoints":[...],"host":...,"version":...,"port":...} (ephemeral node)
     </pre>
     <p>
-    This is a list of all present broker nodes, each of which provides a unique logical broker id which identifies it to consumers (which must be given as part of its configuration). On startup, a broker node registers itself by creating a znode with the logical broker id under /brokers/ids. The purpose of the logical broker id is to allow a broker to be moved to a different physical machine without affecting consumers. An attempt to register a broker id that is already in use (say because two servers are configured with the same broker id) results in an error.
+        这是当前所有broker的节点列表，其中每个提供了一个唯一的逻辑broker的id标识它的consumer（必须作为配置的一部分）。在启动时，broker节点通过在/brokers/ids/下用逻辑broker id创建一个znode来注册它自己。逻辑broker id的目的是当broker移动到不同的物理机器时，而不会影响消费者。尝试注册一个已存在的broker id时将返回错误（因为2个server配置了相同的broker id）。
     </p>
     <p>
-    Since the broker registers itself in ZooKeeper using ephemeral znodes, this registration is dynamic and will disappear if the broker is shutdown or dies (thus notifying consumers it is no longer available).
+        由于broker在Zookeeper中用的是临时znode来注册，因此这个注册是动态的，如果broker关闭或宕机，节点将消失（通知consumer不再可用）。
     </p>
-    <h4><a id="impl_zktopic" href="#impl_zktopic">Broker Topic Registry</a></h4>
+    <h4><a id="impl_zktopic" href="#impl_zktopic">Broker Topic 注册</a></h4>
     <pre class="brush: json;">
     /brokers/topics/[topic]/partitions/[0...N]/state --> {"controller_epoch":...,"leader":...,"version":...,"leader_epoch":...,"isr":[...]} (ephemeral node)
     </pre>
 
     <p>
-    Each broker registers itself under the topics it maintains and stores the number of partitions for that topic.
+        每个broker在它自己的topic下注册，维护和存储该topic分区的数据。
     </p>
 
     <h4><a id="impl_zkconsumers" href="#impl_zkconsumers">Consumers and Consumer Groups</a></h4>
     <p>
-    Consumers of topics also register themselves in ZooKeeper, in order to coordinate with each other and balance the consumption of data. Consumers can also store their offsets in ZooKeeper by setting <code>offsets.storage=zookeeper</code>. However, this offset storage mechanism will be deprecated in a future release. Therefore, it is recommended to <a href="#offsetmigration">migrate offsets storage to Kafka</a>.
+        topic的consumer也在zookeeper中注册自己，以便相互协调和平衡数据的消耗。consumer也可以通过设置offsets.storage = zookeeper将他们的偏移量存储在zookeeper中。但是，这个偏移存储机制将在未来的版本中被弃用。因此，建议将<a href="#offsetmigration">数据迁移到kafka</a>中。
     </p>
 
     <p>
-    Multiple consumers can form a group and jointly consume a single topic. Each consumer in the same group is given a shared group_id.
-    For example if one consumer is your foobar process, which is run across three machines, then you might assign this group of consumers the id "foobar". This group id is provided in the configuration of the consumer, and is your way to tell the consumer which group it belongs to.
+        多个consumer可组成一组，共同消费一个topic，在同一组中的每个consumer共享一个group_id。例如，如果一个consumer是foobar，在三台机器上运行，你可能分配这个这个consumer的ID是“foobar”。这个组id是在consumer的配置文件中配置的。 
     </p>
 
     <p>
-    The consumers in a group divide up the partitions as fairly as possible, each partition is consumed by exactly one consumer in a consumer group.
+        每个分区正好被一个consumer组的consumer所消费，一组中的consumer尽可能公平地分配分区。
     </p>
 
-    <h4><a id="impl_zkconsumerid" href="#impl_zkconsumerid">Consumer Id Registry</a></h4>
+    <h4><a id="impl_zkconsumerid" href="#impl_zkconsumerid">Consumer Id 注册</a></h4>
     <p>
-    In addition to the group_id which is shared by all consumers in a group, each consumer is given a transient, unique consumer_id (of the form hostname:uuid) for identification purposes. Consumer ids are registered in the following directory.
+        除了由所有consumer共享的group_id，每个consumer都有一个临时且唯一的consumer_id（主机名的形式:uuid）用于识别。consumer的id在以下目录中注册。
     <pre class="brush: json;">
     /consumers/[group_id]/ids/[consumer_id] --> {"version":...,"subscription":{...:...},"pattern":...,"timestamp":...} (ephemeral node)
     </pre>
-    Each of the consumers in the group registers under its group and creates a znode with its consumer_id. The value of the znode contains a map of &lt;topic, #streams&gt;. This id is simply used to identify each of the consumers which is currently active within a group. This is an ephemeral node so it will disappear if the consumer process dies.
+    组中的每个consumer用consumer_id注册znode。znode的值包含一个map<topic,#streams>。这个id只是用来识别在组里目前活跃的consumer，这是个临时节点，如果consumer在处理中挂掉，它就会消失。
     </p>
 
     <h4><a id="impl_zkconsumeroffsets" href="#impl_zkconsumeroffsets">Consumer Offsets</a></h4>
