@@ -19,7 +19,7 @@
 <!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
-    <h1>教程：编写一个Streams应用程序</h1>
+    <h1>编写自己的流处理程序</h1>
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
@@ -81,7 +81,7 @@
         &gt; rm src/main/java/myapps/*.java
     </pre>
 
-    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">书写第一个 Streams 应用: Pipe</a></h4>
+    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">编写第一个 Streams 应用: Pipe</a></h4>
 
     可以打开你喜欢的 IDE 并导入这个 Maven 项目，或者简单地打开一个文本编辑器，并在 <code>src/main/java</code> 下创建一个java文件。让我们命名为 <code>Pipe.java</code> :
 
@@ -101,7 +101,7 @@
     </p>
 
     <p>
-        写 Streams 应用程序的第一步是创建一个 <code>java.util.Properties</code> map 用来保存定义在 <code>StreamsConfig</code> 中不同的 Streams 执行配置参数。几个重要的配置值需要设置: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>,它指定用于和 Kafka 集群建立初始化连接的 host/port 对的列表, <code>StreamsConfig.APPLICATION_ID_CONFIG</code>,它提供了 Streams 应用程序的唯一标识符，以便于在同一个Kafka集群通信过程中区分自己和其他应用程序：
+        写 Streams 应用程序的第一步是创建一个 <code>java.util.Properties</code> 映射来保存定义在 <code>StreamsConfig</code> 中不同的 Streams 执行配置参数。几个重要的配置值需要设置: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>,它指定用于和 Kafka 集群建立初始化连接的 host/port 对的列表, <code>StreamsConfig.APPLICATION_ID_CONFIG</code>,它提供了 Streams 应用程序的唯一标识符，以便于在同一个Kafka集群通信过程中区分自己和其他应用程序：
     </p>
 
     <pre class="brush: java;">
@@ -111,7 +111,7 @@
     </pre>
 
     <p>
-        另外，你可以在同一个 map 中自定义其他配置，例如配置默认的序列化和反序列化库的键值对:
+        另外，你可以在同一个映射中自定义其他配置，例如配置默认的序列化和反序列化库的键值对:
     </p>
 
     <pre class="brush: java;">
@@ -124,7 +124,7 @@
     </p>
 
     <p>
-        接下来我们将定义 Streams 应用程序的计算逻辑。在 Kafka Streams 中，这个计算逻辑被定义为用来连接 processor nodes 的 <code>topology</code>。 我们可以使用 topology builder 来构建这样的 topology，
+        接下来我们将定义 Streams 应用程序的计算逻辑。在 Kafka Streams 中，这个计算逻辑被定义为<code>拓扑结构（topology）</code>（即连接起来的处理器节点（ processor nodes ）） 。 我们可以使用 topology builder 来构建这样的 topology，
     </p>
 
     <pre class="brush: java;">
@@ -132,7 +132,7 @@
     </pre>
 
     <p>
-        然后使用这个 topology builder 从 <code>streams-plaintext-input</code> 这个 Kafka topic 中创建的 source stream：
+        然后使用这个 topology builder 从 <code>streams-plaintext-input</code> 这个 Kafka topic 中创建 source stream：
     </p>
 
     <pre class="brush: java;">
@@ -467,10 +467,8 @@
     </pre>
 
     <p>
-        In order to do the counting aggregation we have to first specify that we want to key the stream on the value string, i.e. the lower cased word, with a <code>groupBy</code> operator.
-        This operator generate a new grouped stream, which can then be aggregated by a <code>count</code> operator, which generates a running count on each of the grouped keys:
-        为了使用<code> groupBy </code>运算符进行计数聚合，我们必须首先指定我们要将数据流上的value值（即小写单词）作为分组键 。
-        该运算符生成一个新的分组流，然后可以通过<code> count </code>运算符进行聚合，该运算符会在每个分组键上生成运行计数：
+        为了进行计数聚合，我们必须首先指定我们要使用<code> groupBy </code>运算符将 value 字符串（即小写单词）输入到流中。
+        该运算符生成一个新的分组流，然后可以通过<code> count </code>运算符进行聚合，该运算符会在每个分组键上持续计数：
     </p>
 
     <pre class="brush: java;">
@@ -493,16 +491,15 @@
     </pre>
 
     <p>
-        Note that the <code>count</code> operator has a <code>Materialized</code> parameter that specifies that the
-        running count should be stored in a state store named <code>counts-store</code>.
-        This <code>Counts</code> store can be queried in real-time, with details described in the <a href="/{{version}}/documentation/streams/developer-guide#streams_interactive_queries">Developer Manual</a>.
+        请注意，<code> count </code>运算符具有<code> Materialized </code>参数，该参数指定运行中的计数应存储在名为<code> counts-store </code>的 state store 中。
+        这个<code> Counts store </code> 支持实时查询，在<a href="/{{version}}/documentation/streams/developer-guide#streams_interactive_queries">开发者指南</a>中有更详细的描述。
     </p>
 
     <p>
-        We can also write the <code>counts</code> KTable's changelog stream back into another Kafka topic, say <code>streams-wordcount-output</code>.
-        Because the result is a changelog stream, the output topic <code>streams-wordcount-output</code> should be configured with log compaction enabled.
-        Note that this time the value type is no longer <code>String</code> but <code>Long</code>, so the default serialization classes are not viable for writing it to Kafka anymore.
-        We need to provide overridden serialization methods for <code>Long</code> types, otherwise a runtime exception will be thrown:
+        我们还可以将<code> counts </code> KTable 的 changelog Stream 写回到另一个 Kafka topic 中，比如<code> streams-wordcount-output </code>。
+        因为结果是一个 changlog stream ，所以 output topic <code> streams-wordcount-output </code> 需要配置为启用日志压缩。
+        请注意，这次的值类型不再是<code> String类型 </code>而是<code> Long类型 </code>，所以默认的序列化类已经不适合将long类型的结果写回 Kafka 。
+        我们需要为<code> Long </code>类型提供重写之后的序列化方法，否则将抛出运行时异常：
     </p>
 
     <pre class="brush: java;">
@@ -510,10 +507,10 @@
     </pre>
 
     <p>
-        Note that in order to read the changelog stream from topic <code>streams-wordcount-output</code>,
-        one needs to set the value deserialization as <code>org.apache.kafka.common.serialization.LongDeserializer</code>.
-        Details of this can be found in the <a href="/{{version}}/documentation/streams/quickstart">Play with a Streams Application</a> section.
-        Assuming lambda expression from JDK 8 can be used, the above code can be simplified as:
+        请注意，为了从 <code> streams-wordcount-output </code> 这个 topic 读取 changelog stream ，
+        需要将值反序列化设置为<code> org.apache.kafka.common.serialization.LongDeserializer </code>。
+        有关详细信息，请参见<a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>一节。
+        假设可以使用来自JDK 8的lambda表达式，上面的代码可以简化为：
     </p>
 
     <pre class="brush: java;">
@@ -526,7 +523,7 @@
     </pre>
 
     <p>
-        If we again describe this augmented topology as <code>System.out.println(topology.describe())</code>, we will get the following:
+        如果我们再次将此扩展拓扑描述为<code> System.out.println(topology.describe())</code>，我们将得到以下结果：
     </p>
 
     <pre class="brush: bash;">
@@ -549,20 +546,20 @@
     </pre>
 
     <p>
-        As we can see above, the topology now contains two disconnected sub-topologies.
-        The first sub-topology's sink node <code>KSTREAM-SINK-0000000004</code> will write to a repartition topic <code>Counts-repartition</code>,
-        which will be read by the second sub-topology's source node <code>KSTREAM-SOURCE-0000000006</code>.
-        The repartition topic is used to "shuffle" the source stream by its aggregation key, which is in this case the value string.
-        In addition, inside the first sub-topology a stateless <code>KSTREAM-FILTER-0000000005</code> node is injected between the grouping <code>KSTREAM-KEY-SELECT-0000000002</code> node and the sink node to filter out any intermediate record whose aggregate key is empty.
+        如上所述，拓扑现在包含两个断开的子拓扑。
+        第一个子拓扑的 sink node <code>KSTREAM-SINK-0000000004 </code>将写入一个重新分区的 topic ——<code> Counts-repartition </code>，
+        并将由第二个子拓扑的 source node<code> KSTREAM-SOURCE-0000000006 </code>读取。
+        重分区的 Topic 是通过聚合键（本例中的聚合键为值字符串）“混洗”源流。
+        此外，在第一个子拓扑结构中，为了取出聚合键为空的中间记录，一个无状态的<code> KSTREAM-FILTER-0000000005 </code>被嵌入到在分组节点<code> KSTREAM-KEY-SELECT-0000000002 </code>节点和 sink node 之间。
     </p>
     <p>
-        In the second sub-topology, the aggregation node <code>KSTREAM-AGGREGATE-0000000003</code> is associated with a state store named <code>Counts</code> (the name is specified by the user in the <code>count</code> operator).
-        Upon receiving each record from its upcoming stream source node, the aggregation processor will first query its associated <code>Counts</code> store to get the current count for that key, augment by one, and then write the new count back to the store.
-        Each updated count for the key will also be piped downstream to the <code>KTABLE-TOSTREAM-0000000007</code> node, which interpret this update stream as a record stream before further piping to the sink node <code>KSTREAM-SINK-0000000008</code> for writing back to Kafka.
+        在第二个子拓扑中，聚合节点<code> KSTREAM-AGGREGATE-0000000003 </code>与名为<code> Counts </code>的 state store 结合在一起（state store 的名称由用户在<code> cout</code>运算符指定）。
+        从 source node 接收记录时，聚合处理器将首先查询其关联的<code> Counts </code>store ，以获得该key值当前的计数，增加1，然后将新计数写回到 store。
+        每个更新的密钥计数都将传送到<code> KTABLE-TOSTREAM-0000000007 </code>节点的下游，该节点将count的更新流解析为记录流，然后再进一步传输到 sink node <code> KSTREAM-SINK-0000000008 </code> 以便写回 kafka 系统。
     </p>
 
     <p>
-        The complete code looks like this (assuming lambda expression is used):
+        完整的代码如下所示（假设使用lambda表达式）：
     </p>
 
     <pre class="brush: java;">
