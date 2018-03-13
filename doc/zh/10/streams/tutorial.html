@@ -235,7 +235,7 @@
     </pre>
 
     <p>
-        The complete code so far looks like this:
+        到目前为止完整的代码如下所示：
     </p>
 
     <pre class="brush: java;">
@@ -289,9 +289,9 @@
     </pre>
 
     <p>
-        If you already have the Kafka broker up and running at <code>localhost:9092</code>,
-        and the topics <code>streams-plaintext-input</code> and <code>streams-pipe-output</code> created on that broker,
-        you can run this code in your IDE or on the command line, using Maven:
+        如果你已经有一个正在运行的 Kafka broker （服务地址是：<code>localhost:9092</code>），
+        并且 <code>streams-plaintext-input</code> 和 <code>streams-pipe-output</code> 这两个 topic 也都创建好了，
+        那么就可以在IDE或者命令行上执行程序了，使用如下 Maven 命令：
     </p>
 
     <pre class="brush: brush;">
@@ -300,17 +300,16 @@
     </pre>
 
     <p>
-        For detailed instructions on how to run a Streams application and observe its computing results,
-        please read the <a href="/{{version}}/documentation/streams/quickstart">Play with a Streams Application</a> section.
-        We will not talk about this in the rest of this section.
+        有关如何运行Streams应用程序并观察计算结果的详细说明，请阅读<a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>部分。
+        本节的其余部分我们不会谈论这一点。
     </p>
 
-    <h4><a id="tutorial_code_linesplit" href="#tutorial_code_linesplit">Writing a second Streams application: Line Split</a></h4>
+    <h4><a id="tutorial_code_linesplit" href="#tutorial_code_linesplit">编写第二个流处理程序：Line Split</a></h4>
 
     <p>
-        We have learned how to construct a Streams client with its two key components: the <code>StreamsConfig</code> and <code>Topology</code>.
-        Now let's move on to add some real processing logic by augmenting the current topology.
-        We can first create another program by first copy the existing <code>Pipe.java</code> class:
+        我们已经学会了如何使用kafka Streams 的两个关键组件：<code> StreamsConfig </code>和<code> 拓扑结构（Topology） </code>来构建Streams客户端。
+        现在让我们继续给当前的拓扑结构添加一些实际的处理逻辑。
+        我们可以首先复制现有的<code> Pipe.java </code>类来创建另一个程序：
     </p>
 
     <pre class="brush: brush;">
@@ -318,7 +317,7 @@
     </pre>
 
     <p>
-        And change its class name as well as the application id config to distinguish with the original program:
+        并更改其类名以及应用程序ID配置以与原始程序区分开来：
     </p>
 
     <pre class="brush: java;">
@@ -333,8 +332,7 @@
     </pre>
 
     <p>
-        Since each of the source stream's record is a <code>String</code> typed key-value pair,
-        let's treat the value string as a text line and split it into words with a <code>FlatMapValues</code> operator:
+        由于每个 Stream 提供的记录都是一个<code> String </code>类型的键值对，因此我们将值字符串视为文本行，并使用<code> FlatMapValues </code>运算符将其拆分为单词：
     </p>
 
     <pre class="brush: java;">
@@ -348,11 +346,11 @@
     </pre>
 
     <p>
-        The operator will take the <code>source</code> stream as its input, and generate a new stream named <code>words</code>
-        by processing each record from its source stream in order and breaking its value string into a list of words, and producing
-        each word as a new record to the output <code>words</code> stream.
-        This is a stateless operator that does not need to keep track of any previously received records or processed results.
-        Note if you are using JDK 8 you can use lambda expression and simplify the above code as:
+
+        运算符将<code> source </code>流作为其输入，按顺序处理源流中的每条记录，并通过将记录的value值分解为一个字符串列表，以此来生成一个名为<code> words </code>的新的流，
+        并将每个单词作为输出流<code> words </code>的新记录。
+        这是一个无状态的操作符，无需跟踪之前收到的记录或处理结果。
+        请注意，如果您使用的是JDK 8，则可以使用lambda表达式并简化上面的代码：
     </p>
 
     <pre class="brush: java;">
@@ -361,8 +359,8 @@
     </pre>
 
     <p>
-        And finally we can write the word stream back into another Kafka topic, say <code>streams-linesplit-output</code>.
-        Again, these two steps can be concatenated as the following (assuming lambda expression is used):
+        最后，我们可以将 word 流写回另一个Kafka topic，比如<code> streams-linesplit-output </code>。
+        再次，这两个步骤可以如下所示连接（假设使用lambda表达式）：
     </p>
 
     <pre class="brush: java;">
@@ -372,7 +370,7 @@
     </pre>
 
     <p>
-        If we now describe this augmented topology as <code>System.out.println(topology.describe())</code>, we will get the following:
+        如果我们现在将这个扩展拓扑描述为<code> System.out.println(topology.describe())</code>，我们将得到以下结果：
     </p>
 
     <pre class="brush: bash;">
@@ -388,15 +386,15 @@
     </pre>
 
     <p>
-        As we can see above, a new processor node <code>KSTREAM-FLATMAPVALUES-0000000001</code> is injected into the topology between the original source and sink nodes.
-        It takes the source node as its parent and the sink node as its child.
-        In other words, each record fetched by the source node will first traverse to the newly added <code>KSTREAM-FLATMAPVALUES-0000000001</code> node to be processed,
-        and one or more new records will be generated as a result. They will continue traverse down to the sink node to be written back to Kafka.
-        Note this processor node is "stateless" as it is not associated with any stores (i.e. <code>(stores: [])</code>).
+        正如我们上面看到的那样，一个新的处理器节点<code> KSTREAM-FLATMAPVALUES-0000000001 </code>被注入到原始 source node 和 sink node 之间的拓扑结构中。
+        它将 source node 作为其父节点并将 sink node 作为其子节点。
+        换句话说，从 source node 获取的每个记录将首先传递给新加入的<code> KSTREAM-FLATMAPVALUES-0000000001 </code>节点进行处理，然后生成一个或多个新记录作为输出结果。
+        这些新记录会持续传递给 sink node 并最终回写到 kafka 。
+        注意这个处理器节点是“无状态的”，因为它不与任何 stores 相关联（即<code>(stores: [])</code>）。
     </p>
 
     <p>
-        The complete code looks like this (assuming lambda expression is used):
+        完整的代码如下所示（假设使用lambda表达式）：
     </p>
 
     <pre class="brush: java;">
@@ -437,11 +435,11 @@
         }
     </pre>
 
-    <h4><a id="tutorial_code_wordcount" href="#tutorial_code_wordcount">Writing a third Streams application: Wordcount</a></h4>
+    <h4><a id="tutorial_code_wordcount" href="#tutorial_code_wordcount">编写第三个流处理程序： Wordcount</a></h4>
 
     <p>
-        Let's now take a step further to add some "stateful" computations to the topology by counting the occurrence of the words split from the source text stream.
-        Following similar steps let's create another program based on the <code>LineSplit.java</code> class:
+        现在让我们进一步添加一些“有状态”计算过程（计算从源文本流中拆分出来的单词出现的次数）到拓扑结构中。
+        按照类似的步骤，我们创建另一个基于<code> LineSplit.java </code>类的程序：
     </p>
 
     <pre class="brush: java;">
@@ -456,7 +454,7 @@
     </pre>
 
     <p>
-        In order to count the words we can first modify the <code>flatMapValues</code> operator to treat all of them as lower case (assuming lambda expression is used):
+        为了计算单词，我们可以首先修改<code> flatMapValues </code>运算符，将它们全部作为小写字母（假设使用lambda表达式）：
     </p>
 
     <pre class="brush: java;">
@@ -471,6 +469,8 @@
     <p>
         In order to do the counting aggregation we have to first specify that we want to key the stream on the value string, i.e. the lower cased word, with a <code>groupBy</code> operator.
         This operator generate a new grouped stream, which can then be aggregated by a <code>count</code> operator, which generates a running count on each of the grouped keys:
+        为了使用<code> groupBy </code>运算符进行计数聚合，我们必须首先指定我们要将数据流上的value值（即小写单词）作为分组键 。
+        该运算符生成一个新的分组流，然后可以通过<code> count </code>运算符进行聚合，该运算符会在每个分组键上生成运行计数：
     </p>
 
     <pre class="brush: java;">
