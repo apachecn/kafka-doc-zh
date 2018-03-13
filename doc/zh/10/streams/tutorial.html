@@ -23,11 +23,11 @@
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">介绍</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">开发指导</a>
-                <a href="/{{version}}/documentation/streams/core-concepts">概念</a>
-                <a href="/{{version}}/documentation/streams/quickstart">运行Demo</a>
-                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">教程: 写Demo</a>
+                <a href="/{{version}}/documentation/streams/">简介</a>
+                <a href="/{{version}}/documentation/streams/developer-guide">开发者指南</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">核心思想</a>
+                <a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>
+                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">编写自己的流处理程序</a>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
     </pre>
 
     <p>
-        对于 <code>groupId</code>, <code>artifactId</code> and <code>package</code> 这三个参数你可以设置不同的值.
+        对于 <code>groupId</code>， <code>artifactId</code> 和 <code>package</code> 这三个参数你可以设置不同的值。
         假定使用上述的参数值，该命令将创建如下的项目结构:
     </p>
 
@@ -189,19 +189,18 @@
     </pre>
 
     <p>
-        As shown above, it illustrates that the constructed topology has two processor nodes, a source node <code>KSTREAM-SOURCE-0000000000</code> and a sink node <code>KSTREAM-SINK-0000000001</code>.
-        <code>KSTREAM-SOURCE-0000000000</code> continuously read records from Kafka topic <code>streams-plaintext-input</code> and pipe them to its downstream node <code>KSTREAM-SINK-0000000001</code>;
-        <code>KSTREAM-SINK-0000000001</code> will write each of its received record in order to another Kafka topic <code>streams-pipe-output</code>
-        (the <code>--&gt;</code> and <code>&lt;--</code> arrows dictates the downstream and upstream processor nodes of this node, i.e. "children" and "parents" within the topology graph).
-        It also illustrates that this simple topology has no global state stores associated with it (we will talk about state stores more in the following sections).
+        如上所示，搭建好的拓扑结构有两个处理器节点（processor nodes），一个 source node <code>KSTREAM-SOURCE-0000000000</code> 和一个 sink node <code>KSTREAM-SINK-0000000001</code> 。
+        <code>KSTREAM-SOURCE-0000000000</code> 持续地从 Kafka topic <code>streams-plaintext-input</code> 读取数据并将数据传递给下游节点 <code>KSTREAM-SINK-0000000001</code>；
+        <code>KSTREAM-SINK-0000000001</code> 会将它接收到的数据按顺序写入到其他 Kafka topic <code>streams-pipe-output</code>
+        （<code>--&gt;</code> 和 <code>&lt;--</code> 两个箭头分别指示该节点的下游和上游处理器节点 ，即拓扑结构中的父节点和子节点）。
+        另外，这种简单的拓扑没有与之相关联的全局状态存储（我们将在后面的章节中更多地讨论状态存储）。
     </p>
 
     <p>
-        Note that we can always describe the topology as we did above at any given point while we are building it in the code, so as a user you can interactively "try and taste" your computational logic defined in the topology until you are happy with it.
-        Suppose we are already done with this simple topology that just pipes data from one Kafka topic to another in an endless streaming manner,
-        we can now construct the Streams client with the two components we have just constructed above: the configuration map and the topology object
-        (one can also construct a <code>StreamsConfig</code> object from the <code>props</code> map and then pass that object to the constructor,
-        <code>KafkaStreams</code> have overloaded constructor functions to takes either type).
+        请注意，当我们在代码中构建拓扑结构时，我们可以总是像在上面那样在任意给定点上描述拓扑结构，因此作为用户，您可以交互式地“尝试并品尝”拓扑中定义的计算逻辑，直到您满意为止。
+        假设我们已经完成了这个简单的拓扑结构，它只是以一种无尽的流处理方式将数据从一个Kafka topic 传递到另一个 topic，
+        我们现在可以使用我们刚刚构建的两个组件构建Streams客户端：配置映射和拓扑对象（也可以从<code> props </code>映射构造一个<code> StreamsConfig </code>对象，然后将该对象传递给构造函数，
+        <code> KafkaStreams </code>具有重载的构造函数以接受任一类型）。
     </p>
 
     <pre class="brush: java;">
@@ -209,9 +208,9 @@
     </pre>
 
     <p>
-        By calling its <code>start()</code> function we can trigger the execution of this client.
-        The execution won't stop until <code>close()</code> is called on this client.
-        We can, for example, add a shutdown hook with a countdown latch to capture a user interrupt and close the client upon terminating this program:
+        通过调用它的<code> start()</code>函数，我们可以触发这个客户端开始运行。
+        除非在客户端上调用<code> close()</code>函数，否则程序不会停止。
+        例如，我们可以添加一个带有倒计数锁存器的关闭钩子来捕获用户中断，并在终止该程序时关闭客户端：
     </p>
 
     <pre class="brush: java;">
