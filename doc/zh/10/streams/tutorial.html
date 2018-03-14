@@ -193,14 +193,14 @@
         <code>KSTREAM-SOURCE-0000000000</code> 持续地从 Kafka topic <code>streams-plaintext-input</code> 读取数据并将数据传递给下游节点 <code>KSTREAM-SINK-0000000001</code>；
         <code>KSTREAM-SINK-0000000001</code> 会将它接收到的数据按顺序写入到其他 Kafka topic <code>streams-pipe-output</code>
         （<code>--&gt;</code> 和 <code>&lt;--</code> 两个箭头分别指示该节点的下游和上游处理器节点 ，即拓扑结构中的父节点和子节点）。
-        另外，这种简单的拓扑没有与之相关联的全局状态存储（我们将在后面的章节中更多地讨论状态存储）。
+        另外，这种简单的拓扑没有与之相关联的全局状态存储state-store（我们将在后面的章节中更多地讨论状态存储）。
     </p>
 
     <p>
-        请注意，当我们在代码中构建拓扑结构时，我们可以总是像在上面那样在任意给定点上描述拓扑结构，因此作为用户，您可以交互式地“尝试并品尝”拓扑中定义的计算逻辑，直到您满意为止。
+        请注意，如上所述，我们在代码中创建拓扑结构的时候可以在任何给定点上声明拓扑结构，因此作为用户，您可以交互式地“尝试并品尝”拓扑中定义的计算逻辑，直到您满意为止。
         假设我们已经完成了这个简单的拓扑结构，它只是以一种无尽的流处理方式将数据从一个Kafka topic 传递到另一个 topic，
         我们现在可以使用我们刚刚构建的两个组件构建Streams客户端：配置映射和拓扑对象（也可以从<code> props </code>映射构造一个<code> StreamsConfig </code>对象，然后将该对象传递给构造函数，
-        <code> KafkaStreams </code>具有重载的构造函数以接受任一类型）。
+        <code> KafkaStreams </code>具有重载的构造函数以接受任意类型）。
     </p>
 
     <pre class="brush: java;">
@@ -291,7 +291,7 @@
     <p>
         如果你已经有一个正在运行的 Kafka broker （服务地址是：<code>localhost:9092</code>），
         并且 <code>streams-plaintext-input</code> 和 <code>streams-pipe-output</code> 这两个 topic 也都创建好了，
-        那么就可以在IDE或者命令行上执行程序了，使用如下 Maven 命令：
+        那么就可以在IDE或者命令行上运行程序，使用如下 Maven 命令：
     </p>
 
     <pre class="brush: brush;">
@@ -307,7 +307,7 @@
     <h4><a id="tutorial_code_linesplit" href="#tutorial_code_linesplit">编写第二个流处理程序：Line Split</a></h4>
 
     <p>
-        我们已经学会了如何使用kafka Streams 的两个关键组件：<code> StreamsConfig </code>和<code> 拓扑结构（Topology） </code>来构建Streams客户端。
+        我们已经学会了如何使用 kafka Streams 的两个关键组件：<code> StreamsConfig </code>和<code> 拓扑结构（Topology） </code>来构建Streams客户端。
         现在让我们继续给当前的拓扑结构添加一些实际的处理逻辑。
         我们可以首先复制现有的<code> Pipe.java </code>类来创建另一个程序：
     </p>
@@ -332,7 +332,7 @@
     </pre>
 
     <p>
-        由于每个 Stream 提供的记录都是一个<code> String </code>类型的键值对，因此我们将值字符串视为文本行，并使用<code> FlatMapValues </code>运算符将其拆分为单词：
+        由于每个 Stream 提供的记录都是一个<code> String </code>类型的键值对，因此我们将 value 值视为一行文本，并使用<code> FlatMapValues </code>运算符将其拆分为单词：
     </p>
 
     <pre class="brush: java;">
@@ -454,7 +454,7 @@
     </pre>
 
     <p>
-        为了计算单词，我们可以首先修改<code> flatMapValues </code>运算符，将它们全部作为小写字母（假设使用lambda表达式）：
+        为了计算单词，我们可以首先修改<code> flatMapValues </code>运算符，将它们全部转为小写字母（假设使用lambda表达式）：
     </p>
 
     <pre class="brush: java;">
