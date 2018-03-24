@@ -6,7 +6,9 @@ Kafka 一款是基于磁盘顺序读写,支持批处理的消息队列。
 
 中文社区: <http://kafka.apachecn.org/> 
 
+1.0-client-demo: <https://github.com/mikechengwei/kafka-demo/>
 
+kafka技术交流QQ群: 733847341
 ## 项目负责人
 
 * [@mikechengwei](https://github.com/apachecn/kafka-doc-zh.git)
