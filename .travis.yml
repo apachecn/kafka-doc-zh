@@ -1,5 +1,6 @@
 script:
   - cd doc/zh
+  - rm -rf node_modules
 
 after_script:
   - git init
