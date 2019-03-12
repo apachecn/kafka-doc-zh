@@ -1,0 +1,18 @@
+@@include('includes/_header.htm')
+<!--#include virtual="includes/_header.htm" -->
+@@include('includes/_top.htm')
+<!--#include virtual="includes/_top.htm" -->
+<div class="content">
+    @@include('includes/_nav.htm')
+  <!--#include virtual="includes/_nav.htm" -->
+  <div class="right">
+		<h1>Use cases</h1>
+    @@include('10/uses.html')
+<!--#include virtual="10/uses.html" -->
+@@include('includes/_footer.htm')
+<!--#include virtual="includes/_footer.htm" -->
+
+<script>
+// Show selected style on nav item
+$(function() { $('.b-nav__uses').addClass('selected'); });
+</script>

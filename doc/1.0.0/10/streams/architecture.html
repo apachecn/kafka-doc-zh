@@ -1,0 +1,160 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<script>
+    @@include('../js/templateData.js')
+<!--#include virtual="../js/templateData.js" --></script>
+
+<script id="content-template" type="text/x-handlebars-template">
+    <h1>架构</h1>
+
+    Kafka Streams 建立在 Kafka 的 producer 和 consumer 两个库之上以简化应用开发，并利用 Kafka 的原生功能来提供数据的并行处理能力、分布式协调、容错和操作的简化。在这一节中，我们将阐述 Kafka Streams 是如何运作的。
+
+    <p>
+        下图展示了使用Kafka Streams库的应用程序的解剖结构。让我们来看看一些细节。
+    </p>
+    <img class="centered" src="/{{version}}/images/streams-architecture-overview.jpg" style="width:750px">
+
+    <h3><a id="streams_architecture_tasks" href="#streams_architecture_tasks">Stream Partitions and Tasks</a></h3>
+
+    <p>
+        Kafka 的消息层对数据进行分区存储并传输，而 Kafka Streams 对数据分区并处理。
+        在这两种情形下，分区是为了实现数据本地化，弹性，可扩展性，高性能和容错性。
+        Kafka Streams 使用 <b>partitions</b> 和 <b>tasks</b> 的概念作为并行模型的逻辑单元，它的并行模型是基于 Kafka topic partition 。
+        Kafka Streams 和 Kafka 之间有着紧密的联系：
+    </p>
+
+    <ul>
+        <li>每个 <b>stream partition</b> 都是完全有序的数据记录序列，并可以映射到 Kafka 的 <b> topic partition </b>。 </li>
+        <li>stream 中的一个<b>数据记录</b>可以映射到该主题的对应的Kafka <b>消息</b>。</li>
+        <li>数据记录的 <b>key值</b> 决定了该记录在 Kafka 和 Kafka Stream 中如何被分区，即数据如何路由到 topic 的特定分区。</li>
+    </ul>
+
+    <p>
+        应用程序的处理器拓扑结构通过将其分解为多个任务来实现可拓展性。
+        更具体地说，Kafka Streams 根据应用程序的 input stream partitions 创建固定数量的任务，每个任务都分配了来自 input stream （即 Kafka topic ）的一些 partitions。
+        任务与 partitions 的对应关系是永远不会改变，因此每个任务都是应用程序的固定并行单元。
+        任务可以基于所分配的分区实例化它们自己的处理器拓扑结构；它们还为每个分配的分区保留一个缓冲区，并从这些记录缓冲区中按照 one-at-a-time 的方式处理消息。
+        故流任务可以独立并行处理，无需人工干预。
+    </p>
+
+    <p>
+        我们需要明确一个很重要的观点： Kafka Streams 不是一个资源管理器，而是一个库，这个库“运行”在其流处理应用程序所需要的任何位置。
+        应用程序的多个实例可以在同一台机器上执行，也可以分布在多台机器上，任务可以由库自动分配给正在运行的应用程序实例。
+        任务与 partitions 的对应关系是不会改变的；如果应用程序实例失败，则其所有分配给它的任务将在其他实例上自动重新启动，并继续从相同的流分区中消费数据。
+    </p>
+
+    <p>
+        下图显示了两个任务，每个任务分配 input stream 的 一个 partition。
+    </p>
+    <img class="centered" src="/{{version}}/images/streams-architecture-tasks.jpg" style="width:400px">
+    <br>
+
+    <h3><a id="streams_architecture_threads" href="#streams_architecture_threads">Threading Model</a></h3>
+
+    <p>
+        Kafka Streams 允许用户配置应用程序实例中可并行的<b>线程数量</b>。
+        每个线程都可以按照处理器拓扑结构独立执行一个或多个任务。 例如，下图显示了一个运行两个流任务的流线程。
+    </p>
+    <img class="centered" src="/{{version}}/images/streams-architecture-threads.jpg" style="width:400px">
+
+    <p>
+        启动更多流线程或更多的应用程序实例仅仅意味着可以复制更多的拓扑结构来处理不同的Kafka分区子集，从而有效地并行处理。
+        值得注意的是，线程之间没有共享状态，所以不需要线程间协调。这使得跨应用程序实例和线程并行运行拓扑结构变得非常简单。
+        Kafka Streams 通过利用 <a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+Client-side+Assignment+Proposal">Kafka 的协作机制（Kafka's coordination）</a>在各个流线程之间分配 Kafka topic partition，这对于用户来说是透明的。
+    </p>
+
+    <p>
+        如上所述，使用 Kafka Streams 扩展流处理应用程序非常简单：你只需要为程序启动额外的实例，然后 Kafka Streams 负责在应用程序实例中的任务之间分配分区。
+        您可以启动与 input Kafka topic partitions 一样多的应用程序线程，以便在应用程序的所有正在运行的实例中，每个线程（或者说它运行的任务）至少有一个要处理的 input partition 。
+    </p>
+    <br>
+
+    <h3><a id="streams_architecture_state" href="#streams_architecture_state">本地状态存储（Local State Stores）</a></h3>
+
+    <p>
+        Kafka Streams 提供了所谓的<b> state stores </b>，它可以被流处理应用程序用来存储和查询数据，这是实现有状态操作时的一项重要功能。
+        例如， <a href="/{{version}}/documentation/streams/developer-guide#streams_dsl">Kafka Streams DSL</a> 会在您调用诸如<code> join（）</code>或<code> aggregate（）</code>等有状态运算符时，或者在窗口化一个流时自动创建和管理 state stores 。
+    </p>
+
+    <p>
+        Kafka Streams 应用程序中的每个流任务都可以嵌入一个或多个可通过API访问的 local state stores ，以存储和查询处理过程所需的数据。
+        Kafka Streams 为这些 local state stores 提供容错和自动恢复功能。
+    </p>
+
+    <p>
+        下图中的两个流任务都具有专用的 local state stores 。
+    </p>
+    <img class="centered" src="/{{version}}/images/streams-architecture-states.jpg" style="width:400px">
+    <br>
+
+    <h3><a id="streams_architecture_recovery" href="#streams_architecture_recovery">Fault Tolerance</a></h3>
+
+    <p>
+        Kafka Streams 是基于 Kafka 原生的容错功能。 Kafka partitions 是高可用和可复制的；因此当流数据持久化到 Kafka 之后，即使应用程序失败，数据也仍然可用并可重新处理。
+        Kafka Streams 利用 <a href="https://www.confluent.io/blog/tutorial-getting-started-with-the-new-apache-kafka-0.9-consumer-client/">Kafka consumer client</a> 提供的容错机制来处理失败的情况。
+        如果某台服务器上运行的某个任务失败了，则 Kafka Streams 会自动在应用程序剩余的某个运行实例中重新启动该任务。
+    </p>
+
+    <p>
+        此外，Kafka Streams 也确保 local state stores 的健壮性。对于每个 state store ，它都会维护一个可复制的 changelog Kafka topic 以便跟踪任何状态更新。
+        这些 changelog topics 也进行了分区，以便每个 local state store 实例以及访问这些 store 的任务都有其自己专用的 changelog topic partition 。
+        在 changelog topics 上会启用  <a href="/{{version}}/documentation/#compaction">日志压缩（Log compaction）</a>，以便可以安全地清除旧数据以防止 topic 无限增长。
+        如果任务在一台故障的服务器上运行，并在另一台服务器上重新启动，则 Kafka Streams 保证在另一台服务器启动需要恢复的任务之前，会回滚相应的 changelog topics ，将其关联的 state stores 恢复成失败前的内容。
+        因此，故障处理对最终用户来说是完全透明的。
+    </p>
+
+    <p>
+        请注意，任务（重新）初始化的时间通常取决于恢复 state 的时间（主要是回滚 state stores 相关联的 changelog topics 的时间）。
+        为了尽可能缩短恢复时间，用户可以将应用程序配置为具有<b>备用副本（standby replicas）</b>的local states（即完全可复制的 state 副本）。
+        当发生任务迁移时，Kafka Streams 会尝试将任务分配给已存在备用副本的应用程序实例，以最大程度地缩短任务（重新）初始化时间。请在 <a href="/{{version}}/documentation/#streamsconfigs"><b>Kafka Streams Configs</b></a> 部分查看 <code>num.standby.replicas</code> 配置项。
+    </p>
+
+    <div class="pagination">
+        <a href="/{{version}}/documentation/streams/core-concepts" class="pagination__btn pagination__btn__prev">Previous</a>
+        <a href="/{{version}}/documentation/streams/upgrade-guide" class="pagination__btn pagination__btn__next">Next</a>
+    </div>
+</script>
+
+@@include('../../includes/_header.htm')
+<!--#include virtual="../../includes/_header.htm" -->
+@@include('../../includes/_top.htm')
+<!--#include virtual="../../includes/_top.htm" -->
+<div class="content documentation documentation--current">
+        @@include('../../includes/_nav.htm')
+        <!--#include virtual="../../includes/_nav.htm" -->
+        <div class="right">
+                @@include('../../includes/_docs_banner.htm')
+            <!--#include virtual="../../includes/_docs_banner.htm" -->
+        <ul class="breadcrumbs">
+            <li><a href="/documentation">Documentation</a></li>
+            <li><a href="/documentation/streams">Kafka Streams API</a></li>
+        </ul>
+        <div class="p-content"></div>
+    </div>
+</div>
+@@include('../../includes/_footer.htm')
+<!--#include virtual="../../includes/_footer.htm" -->
+<script>
+$(function() {
+  // Show selected style on nav item
+  $('.b-nav__streams').addClass('selected');
+
+  // Display docs subnav items
+  $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
+});
+</script>
