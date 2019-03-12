@@ -13,6 +13,13 @@ kafka技术交流QQ群: 733847341
 
 * [@mikechengwei](https://github.com/apachecn/kafka-doc-zh.git)
 
+## Kafka 2.2.0 翻译活动开启
+
+- 目标:基于 1.0 版本优化出更容易理解的2.2.0版本
+- 时间:3.15-3.31
+- 希望一起加入的可以加群
+
+
 ## 贡献者
 
 ### Kafka 1.0.0 中文文档贡献者
