@@ -55,7 +55,7 @@
 <tr><td>INVALID_PRODUCER_EPOCH</td><td>47</td><td>False</td><td>Producer attempted an operation with an old epoch. Either there is a newer producer with the same transactionalId, or the producer's transaction has been expired by the broker.</td></tr>
 <tr><td>INVALID_TXN_STATE</td><td>48</td><td>False</td><td>The producer attempted a transactional operation in an invalid state</td></tr>
 <tr><td>INVALID_PRODUCER_ID_MAPPING</td><td>49</td><td>False</td><td>The producer attempted to use a producer id which is not currently assigned to its transactional id</td></tr>
-<tr><td>INVALID_TRANSACTION_TIMEOUT</td><td>50</td><td>False</td><td>The transaction timeout is larger than the maximum value allowed by the broker (as configured by max.transaction.timeout.ms).</td></tr>
+<tr><td>INVALID_TRANSACTION_TIMEOUT</td><td>50</td><td>False</td><td>The transaction timeout is larger than the maximum value allowed by the broker (as configured by transaction.max.timeout.ms).</td></tr>
 <tr><td>CONCURRENT_TRANSACTIONS</td><td>51</td><td>False</td><td>The producer attempted to update a transaction while another concurrent operation on the same transaction was ongoing</td></tr>
 <tr><td>TRANSACTION_COORDINATOR_FENCED</td><td>52</td><td>False</td><td>Indicates that the transaction coordinator sending a WriteTxnMarker is no longer the current coordinator for a given producer</td></tr>
 <tr><td>TRANSACTIONAL_ID_AUTHORIZATION_FAILED</td><td>53</td><td>False</td><td>Transactional Id authorization failed</td></tr>

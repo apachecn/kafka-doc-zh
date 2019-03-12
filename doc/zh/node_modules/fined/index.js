@@ -96,7 +96,9 @@ function findFile(basedir, relpath, extArr) {
     try {
       fs.statSync(filepath);
       return { path: filepath, extension: extArr[i] };
-    } catch (e) {}
+    } catch (e) {
+      // Ignore error
+    }
   }
 
   return null;

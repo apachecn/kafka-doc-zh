@@ -1,9 +1,6 @@
-@@include('includes/_header.htm')
-@@include('includes/_top.htm')
 <!--#include virtual="includes/_header.htm" -->
 <!--#include virtual="includes/_top.htm" -->
 <div class="content">
-		@@include('includes/_nav.htm')
 	<!--#include virtual="includes/_nav.htm" -->
 	<div class="right">
 		<h1>How to contribute</h1>
@@ -12,6 +9,13 @@
 		If you don't know Java or Scala you can still contribute to the project. An important area is the <a href="https://cwiki.apache.org/confluence/display/KAFKA/Clients">clients</a>. We want to have high quality, well documented clients for each programming language. These, as well as the surrounding <a href="https://cwiki.apache.org/confluence/display/KAFKA/Ecosystem">ecosystem</a> of integration tools that people use with Kafka&reg;, are critical aspects of the project.
 		<p>
 		Nor is code the only way to contribute to the project. We strongly value documentation and gladly accept improvements to the documentation.
+
+		<h2>Reporting An Issue</h2>
+
+		Reporting potential issues as <a href="https://issues.apache.org/jira/browse/KAFKA">JIRA tickets</a> is more than welcome as a significant contribution to the project. But please be aware that JIRA tickets should not be used for FAQs:
+		if you have a question or are simply not sure if it is really an issue or not, please <a href="/contact.html">contact us</a> first before you create a new JIRA ticket.
+
+		To create a new JIRA ticket, please follow the instructions in <a href="https://cwiki.apache.org/confluence/display/KAFKA/Reporting+Issues+in+Apache+Kafka">this page</a>.
 
 		<h2>Contributing A Code Change</h2>
 
@@ -50,11 +54,32 @@
 
 		<h2>Becoming a Committer</h2>
 
-		We are always interested in adding new contributors. What we look for is a series of contributions, good taste, and an ongoing interest in the project. If you are interested in becoming a committer, let one of the existing committers know and they can help guide you through the process.
+		We are always interested in adding new contributors. What we look for is a series of contributions, good taste, and an ongoing interest in the project.
+		Kafka PMC looks at the following guidelines for promoting new committers:
+
+		<ul>
+			<li>Made significant contributions in areas such as design, code and/or documentation. The following are some examples (list not exclusive):
+				<ul>
+					<li>Submitted and completed non-trivial KIPs.</li>
+					<li>Fixed critical bugs (including performance improvements).</li>
+					<li>Made major tech-debt cleanup.</li>
+					<li>Made major documentation (web docs and java docs) improvements.</li>
+				</ul>
+			</li>
+			<li>Consistently helped the community in at least one of the following areas since more than 6 months back (list not exclusive):
+				<ul>
+					<li>Mailing list participation.</li>
+					<li>Code reviews and KIP reviews.</li>
+					<li>Release validations including testing and benchmarking, etc.</li>
+					<li>Evangelism events: technical talks, blog posts, etc.</li>
+				</ul>
+			</li>
+			<li>Demonstrated good understanding and exercised good technical judgement on at least one component of the codebase (e.g. core, clients, connect, streams, tests) from contribution activities in the above mentioned areas.</li>
+		</ul>
 
 	<script>
 	// Show selected style on nav item
 	$(function() { $('.b-nav__project').addClass('selected'); });
 	</script>
-	@@include('includes/_footer.htm')
+
 <!--#include virtual="includes/_footer.htm" -->

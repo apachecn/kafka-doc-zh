@@ -30,7 +30,7 @@
 <tr>
 <td>num.stream.threads</td><td>The number of threads to execute stream processing.</td><td>int</td><td>1</td><td></td><td>medium</td></tr>
 <tr>
-<td>processing.guarantee</td><td>The processing guarantee that should be used. Possible values are <code>at_least_once</code> (default) and <code>exactly_once</code>.</td><td>string</td><td>at_least_once</td><td>[at_least_once, exactly_once]</td><td>medium</td></tr>
+<td>processing.guarantee</td><td>The processing guarantee that should be used. Possible values are <code>at_least_once</code> (default) and <code>exactly_once</code>. Note that exactly-once processing requires a cluster of at least three brokers by default what is the recommended setting for production; for development you can change this, by adjusting broker setting `transaction.state.log.replication.factor`.</td><td>string</td><td>at_least_once</td><td>[at_least_once, exactly_once]</td><td>medium</td></tr>
 <tr>
 <td>security.protocol</td><td>Protocol used to communicate with brokers. Valid values are: PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL.</td><td>string</td><td>PLAINTEXT</td><td></td><td>medium</td></tr>
 <tr>
@@ -75,6 +75,8 @@
 <td>state.cleanup.delay.ms</td><td>The amount of time in milliseconds to wait before deleting state when a partition has migrated. Only state directories that have not been modified for at least state.cleanup.delay.ms will be removed</td><td>long</td><td>600000</td><td></td><td>low</td></tr>
 <tr>
 <td>timestamp.extractor</td><td>Timestamp extractor class that implements the <code>TimestampExtractor</code> interface. This config is deprecated, use <code>default.timestamp.extractor</code> instead</td><td>class</td><td>null</td><td></td><td>low</td></tr>
+<tr>
+<td>upgrade.from</td><td>Allows upgrading from version 0.10.0 to version 0.10.1 (or newer) in a backward compatible way. Default is null. Accepted values are "0.10.0" (for upgrading from 0.10.0.x).</td><td>string</td><td>null</td><td>[null, 0.10.0]</td><td>low</td></tr>
 <tr>
 <td>value.serde</td><td>Serializer / deserializer class for value that implements the <code>Serde</code> interface. This config is deprecated, use <code>default.value.serde</code> instead</td><td>class</td><td>null</td><td></td><td>low</td></tr>
 <tr>

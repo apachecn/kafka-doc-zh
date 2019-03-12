@@ -15,9 +15,7 @@
  limitations under the License.
 -->
 
-<script>
-  @@include('../js/templateData.js')
-<!--#include virtual="../js/templateData.js" --></script>
+<script><!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
     <h1>Core Concepts</h1>
@@ -117,16 +115,12 @@
     </div>
 </script>
 
-@@include('../../includes/_header.htm')
 <!--#include virtual="../../includes/_header.htm" -->
-@@include('../../includes/_top.htm')
 <!--#include virtual="../../includes/_top.htm" -->
 <div class="content documentation documentation--current">
-        @@include('../../includes/_nav.htm')
-        <!--#include virtual="../../includes/_nav.htm" -->
-        <div class="right">
-                @@include('../../includes/_docs_banner.htm')
-            <!--#include virtual="../../includes/_docs_banner.htm" -->
+	<!--#include virtual="../../includes/_nav.htm" -->
+	<div class="right">
+		<!--#include virtual="../../includes/_docs_banner.htm" -->
         <ul class="breadcrumbs">
             <li><a href="/documentation">Documentation</a></li>
             <li><a href="/documentation/streams">Streams</a></li>
@@ -134,7 +128,6 @@
         <div class="p-content"></div>
     </div>
 </div>
-@@include('../../includes/_footer.htm')
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {

@@ -14,33 +14,40 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<script>
-  @@include('../js/templateData.js')
-<!--#include virtual="../js/templateData.js" --></script>
+<script><!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
 
-<h1>运行 Streams 的 Demo 程序</h1>
-<div class="sub-nav-sticky">
+  <h1>Run Streams Demo Application</h1>
+    <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">简介</a>
-                <a href="/{{version}}/documentation/streams/developer-guide.html">开发者指南</a>
-                <a href="/{{version}}/documentation/streams/core-concepts.html">核心思想</a>
-                <a class="active-menu-item" href="/{{version}}/documentation/streams/quickstart.html">运行 demo 程序</a>
-                <a href="/{{version}}/documentation/streams/tutorial.html">编写自己的流处理程序</a>
+                <a href="/{{version}}/documentation/streams/">Introduction</a>
+                <a class="active-menu-item" href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
+                <a href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
+                <a href="/{{version}}/documentation/streams/architecture">Architecture</a>
+                <a href="/{{version}}/documentation/streams/developer-guide/">Developer Guide</a>
+                <a href="/{{version}}/documentation/streams/upgrade-guide">Upgrade</a>
             </div>
         </div>
-</div>  
+    </div>
 <p>
-  本教程假定您是新手并且没有现成的 Kafka 或 ZooKeeper 数据。 但是，如果您已经启动了Kafka和ZooKeeper，请随时跳过前两个步骤。
+  This tutorial assumes you are starting fresh and have no existing Kafka or ZooKeeper data. However, if you have already started Kafka and
+  ZooKeeper, feel free to skip the first two steps.
 </p>
 
   <p>
-  Kafka Streams 是用于构建关键任务的实时应用程序和微服务的客户端库，输入或输出数据存储在Kafka集群中。 Kafka Streams 结合了在客户端开发和部署标准Java和Scala应用程序的简易性，以及通过 Kafka 服务器端集群技术的优势，使这些应用程序具有高度可伸缩性，弹性，容错性，分布式等特性。
+ Kafka Streams is a client library for building mission-critical real-time applications and microservices,
+  where the input and/or output data is stored in Kafka clusters. Kafka Streams combines the simplicity of
+  writing and deploying standard Java and Scala applications on the client side with the benefits of Kafka's
+  server-side cluster technology to make these applications highly scalable, elastic, fault-tolerant, distributed,
+ and much more.
   </p>
-  <p>这个简易示例将演示如何在这个库中运行一个流应用程序。以下是 <code><a href="https://github.com/apache/kafka/blob/{{dotVersion}}/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java">WordCountDemo</a></code> 的示例代码（转换为使用Java 8 lambda表达式以便于阅读）。
-  </p>
+  <p>
+This quickstart example will demonstrate how to run a streaming application coded in this library. Here is the gist
+of the <code><a href="https://github.com/apache/kafka/blob/{{dotVersion}}/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java">WordCountDemo</a></code> example code (converted to use Java 8 lambda expressions for easy reading).
+</p>
 <pre class="brush: java;">
 // Serializers/deserializers (serde) for String and Long types
 final Serde&lt;String&gt; stringSerde = Serdes.String();
@@ -67,29 +74,33 @@ wordCounts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String
 </pre>
 
 <p>
-    以上代码实现了WordCount算法，它根据输入文本计算一个单词出现频次的直方图。
-    但是，这个程序与您之前可能看到过的对有界数据进行操作的其他WordCount程序不同，这个WordCount演示应用程序的行为稍有不同，因为它是
-    设计用于操作<b>无穷、无界的流数据</b>。 类似于有界变体，它是一个可以跟踪和更新单词的数量的有状态的算法。
-    但是，因为它必须假设输入数据是无界的，因此它将定期输出当前状态和结果，同时继续处理更多数据，因为它无法知道它何时能处理完“全部”输入数据。
+It implements the WordCount
+algorithm, which computes a word occurrence histogram from the input text. However, unlike other WordCount examples
+you might have seen before that operate on bounded data, the WordCount demo application behaves slightly differently because it is
+designed to operate on an <b>infinite, unbounded stream</b> of data. Similar to the bounded variant, it is a stateful algorithm that
+tracks and updates the counts of words. However, since it must assume potentially
+unbounded input data, it will periodically output its current state and results while continuing to process more data
+because it cannot know when it has processed "all" the input data.
 </p>
 <p>
-  第一步，我们将启动 Kafka (除非你已经启动)，然后我们将为 Kafka topic 准备输入数据，随后将由 Kafka 流应用程序处理流数据。
+  As the first step, we will start Kafka (unless you already have it started) and then we will
+  prepare input data to a Kafka topic, which will subsequently be processed by a Kafka Streams application.
 </p>
 
-<h4><a id="quickstart_streams_download" href="#quickstart_streams_download">步骤1： 下载源代码</a></h4>
+<h4><a id="quickstart_streams_download" href="#quickstart_streams_download">Step 1: Download the code</a></h4>
 
-<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz" title="Kafka downloads">下载</a> {{fullDotVersion}} release版本并解压。
-注意有多个可下载的Scala版本程序，我们选择推荐的版本 ({{scalaVersion}}) :
+<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz" title="Kafka downloads">Download</a> the {{fullDotVersion}} release and un-tar it.
+Note that there are multiple downloadable Scala versions and we choose to use the recommended version ({{scalaVersion}}) here:
 
 <pre class="brush: bash;">
 &gt; tar -xzf kafka_{{scalaVersion}}-{{fullDotVersion}}.tgz
 &gt; cd kafka_{{scalaVersion}}-{{fullDotVersion}}
 </pre>
 
-<h4><a id="quickstart_streams_startserver" href="#quickstart_streams_startserver">步骤2： 启动 Kafka 服务</a></h4>
+<h4><a id="quickstart_streams_startserver" href="#quickstart_streams_startserver">Step 2: Start the Kafka server</a></h4>
 
 <p>
-Kafka 使用到 <a href="https://zookeeper.apache.org/">ZooKeeper</a> ，如果还没安装 ZooKeeper 的话需要先安装并启动 ZooKeeper 服务。 可以使用 kafka 打包的便捷脚本获取一个简单粗糙的单节点 ZooKeeper 实例。
+Kafka uses <a href="https://zookeeper.apache.org/">ZooKeeper</a> so you need to first start a ZooKeeper server if you don't already have one. You can use the convenience script packaged with kafka to get a quick-and-dirty single-node ZooKeeper instance.
 </p>
 
 <pre class="brush: bash;">
@@ -98,7 +109,7 @@ Kafka 使用到 <a href="https://zookeeper.apache.org/">ZooKeeper</a> ，如果�
 ...
 </pre>
 
-<p>现在可以启动 Kafka 服务：</p>
+<p>Now start the Kafka server:</p>
 <pre class="brush: bash;">
 &gt; bin/kafka-server-start.sh config/server.properties
 [2013-04-22 15:01:47,028] INFO Verifying properties (kafka.utils.VerifiableProperties)
@@ -107,7 +118,7 @@ Kafka 使用到 <a href="https://zookeeper.apache.org/">ZooKeeper</a> ，如果�
 </pre>
 
 
-<h4><a id="quickstart_streams_prepare" href="#quickstart_streams_prepare">步骤3：准备 input topic 和启动 Kafka producer</a></h4>
+<h4><a id="quickstart_streams_prepare" href="#quickstart_streams_prepare">Step 3: Prepare input topic and start Kafka producer</a></h4>
 
 <!--
 
@@ -123,7 +134,7 @@ Or on Windows:
 
 -->
 
-接下来，我们创建名字为 <b>streams-plaintext-input</b> 的 input topic 以及名字为 <b>streams-wordcount-output</b> 的 output topic：
+Next, we create the input topic named <b>streams-plaintext-input</b> and the output topic named <b>streams-wordcount-output</b>:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create \
@@ -134,9 +145,8 @@ Or on Windows:
 Created topic "streams-plaintext-input".
 </pre>
 
-注意：因为 output stream 是changlog stream，因此我们创建 output stream 的时候启动了压缩。
 Note: we create the output topic with compaction enabled because the output stream is a changelog stream
-(参考 <a href="#anchor-changelog-output">explanation of application output</a> ).
+(cf. <a href="#anchor-changelog-output">explanation of application output</a> below).
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create \
@@ -148,7 +158,7 @@ Note: we create the output topic with compaction enabled because the output stre
 Created topic "streams-wordcount-output".
 </pre>
 
-已创建的 topic 可以使用同样的 <b>kafka-topics</b> 工具来查询描述信息：
+The created topic can be described with the same <b>kafka-topics</b> tool:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --zookeeper localhost:2181 --describe
@@ -159,27 +169,27 @@ Topic:streams-wordcount-output	PartitionCount:1	ReplicationFactor:1	Configs:
 	Topic: streams-wordcount-output	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
 </pre>
 
-<h4><a id="quickstart_streams_start" href="#quickstart_streams_start">步骤4： 启动 Wordcount 程序</a></h4>
+<h4><a id="quickstart_streams_start" href="#quickstart_streams_start">Step 4: Start the Wordcount Application</a></h4>
 
-以下命令将启动 WordCount 示例程序：
+The following command starts the WordCount demo application:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo
 </pre>
 
 <p>
-    示例程序会从 input topic <b>streams-plaintext-input</b> 读取数据，以 WordCount 算法计算每条读到的消息，
-    并持续将当前的计算结果写到 output topic <b>streams-wordcount-output</b>。
-    因此，除了日志之外不会哟其他输出结果打印到STDOUT标准输出流，因为计算结构都回写到 Kafka 中。
+The demo application will read from the input topic <b>streams-plaintext-input</b>, perform the computations of the WordCount algorithm on each of the read messages,
+and continuously write its current results to the output topic <b>streams-wordcount-output</b>.
+Hence there won't be any STDOUT output except log entries as the results are written back into in Kafka.
 </p>
 
-现在我们可以在另外一个终端启动 Producer 会话来为这个 topic 写入数据：
+Now we can start the console producer in a separate terminal to write some input data to this topic:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
 </pre>
 
-然后可以在另外一个终端启动 consumer 会话从 output topic 中读取并检查 WordCount 示例程序的输出：
+and inspect the output of the WordCount demo application by reading from its output topic with the console consumer in a separate terminal:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
@@ -193,15 +203,11 @@ Topic:streams-wordcount-output	PartitionCount:1	ReplicationFactor:1	Configs:
 </pre>
 
 
-<h4><a id="quickstart_streams_process" href="#quickstart_streams_process">步骤5：处理数据</a></h4>
+<h4><a id="quickstart_streams_process" href="#quickstart_streams_process">Step 5: Process some data</a></h4>
 
 Now let's write some message with the console producer into the input topic <b>streams-plaintext-input</b> by entering a single line of text and then hit &lt;RETURN&gt;.
 This will send a new message to the input topic, where the message key is null and the message value is the string encoded text line that you just entered
 (in practice, input data for applications will typically be streaming continuously into Kafka, rather than being manually entered as we do in this quickstart):
-
-现在我们可以在 producer 控制台通过输入单行文本并回车的方式输入消息到 input topic <b>streams-plaintext-input</b>。
-这样会输入一条新的消息到 input topic，这条消息的key值是null，value值是刚刚输入的文本（实践中，应用程序的输入数据通常会不断地流进 Kafka，而不是像我们在这样子手动输入）：
-
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
@@ -209,7 +215,7 @@ all streams lead to kafka
 </pre>
 
 <p>
-该消息将被 Wordcount 程序处理而且以下结果将写入到 <b>streams-wordcount-output</b> topic 并打印在consumer控制台：
+This message will be processed by the Wordcount application and the following output data will be written to the <b>streams-wordcount-output</b> topic and printed by the console consumer:
 </p>
 
 <pre class="brush: bash;">
@@ -230,13 +236,12 @@ kafka	1
 </pre>
 
 <p>
-这里的第一个字段是 Kafka 消息的key值，格式是 <code>java.lang.String</code>，代表一个被统计到的单词，第二个字段是消息的value值，格式是 <code>java.lang.Long</code>，代表单词的最新统计次数。
+Here, the first column is the Kafka message key in <code>java.lang.String</code> format and represents a word that is being counted, and the second column is the message value in <code>java.lang.Long</code>format, representing the word's latest count.
 </p>
 
-接着我们继续在 producer 会话写入消息到input topic <b>streams-plaintext-input</b>。
-输入文本"hello kafka streams"并回车。
-终端应该如下：
-
+Now let's continue writing one more message with the console producer into the input topic <b>streams-plaintext-input</b>.
+Enter the text line "hello kafka streams" and hit &lt;RETURN&gt;.
+Your terminal should look as follows:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-plaintext-input
@@ -244,7 +249,7 @@ all streams lead to kafka
 hello kafka streams
 </pre>
 
-在另外一个运行着consumer的终端上，将观察到 WordCount 程序的如下输出数据：
+In your other terminal in which the console consumer is running, you will observe that the WordCount application wrote new output data:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092
@@ -266,9 +271,10 @@ kafka	2
 streams	2
 </pre>
 
-这里显示的最后两行 <b>kafka 2</b> 和 <b>streams 2</b> 表示  <b>kafka</b> 和 <b>streams</b> 这两个key的计数已经更新，从 <b>1</b> 增长到 <b>2</b> 。
-只要将更多输入消息写入 input topic ，都可以在 <b> streams-wordcount-output </b> topic 上观察到新消息，它们代表由WordCount应用程序计算出的最新字数。
-在圆满完成这个快速示例之前让我们在producer控制台向input topic <b>streams-wordcount-input</b> 输入最后一行文本 "join kafka summit" 并回车：
+Here the last printed lines <b>kafka 2</b> and <b>streams 2</b> indicate updates to the keys <b>kafka</b> and <b>streams</b> whose counts have been incremented from <b>1</b> to <b>2</b>.
+Whenever you write further input messages to the input topic, you will observe new messages being added to the <b>streams-wordcount-output</b> topic,
+representing the most recent word counts as computed by the WordCount application.
+Let's enter one final input text line "join kafka summit" and hit &lt;RETURN&gt; in the console producer to the input topic <b>streams-wordcount-input</b> before we wrap up this quickstart:
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-wordcount-input
@@ -278,7 +284,7 @@ join kafka summit
 </pre>
 
 <a name="anchor-changelog-output"></a>
-<b>streams-wordcount-output</b> topic 将随后显示单词的计数更新（查看最后三行）：
+The <b>streams-wordcount-output</b> topic will subsequently show the corresponding updated word counts (see last three lines):
 
 <pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092
@@ -303,36 +309,36 @@ kafka	3
 summit	1
 </pre>
 
-可以看出，Wordcount应用程序的输出实际上是连续更新的流，其中每个输出记录（即上面原始输出中的每行）是一个单词的更新计数，诸如“kafka”之类的记录的key值。
-对于有相同key值的多条记录，每条新的记录都是前一条记录的更新。
+As one can see, outputs of the Wordcount application is actually a continuous stream of updates, where each output record (i.e. each line in the original output above) is
+an updated count of a single word, aka record key such as "kafka". For multiple records with the same key, each later record is an update of the previous one.
 
 <p>
-    下面的两张图说明了后台实际发生的内容。
-    第一列显示代表单词出现次数 <code> count </code> 的 <code>KTable&lt;String, Long&gt;</code> 的当前状态的演变。
-    第二列显示从KTable的状态更新以及发送到Kafka output topic <b>streams-wordcount-output</b> 的更改记录。
+The two diagrams below illustrate what is essentially happening behind the scenes.
+The first column shows the evolution of the current state of the <code>KTable&lt;String, Long&gt;</code> that is counting word occurrences for <code>count</code>.
+The second column shows the change records that result from state updates to the KTable and that are being sent to the output Kafka topic <b>streams-wordcount-output</b>.
 </p>
 
 <img src="/{{version}}/images/streams-table-updates-02.png" style="float: right; width: 25%;">
 <img src="/{{version}}/images/streams-table-updates-01.png" style="float: right; width: 25%;">
 
 <p>
-    首先，当第一行文本 "all streams lead to kafka" 开始被处理。
-    当每个新单词产生一个新表项（用绿色背景突出显示）时，<code> KTable </code> 也开始创建，并将相应的更改记录发送到下游<code> KStream </code>。
+First the text line "all streams lead to kafka" is being processed.
+The <code>KTable</code> is being built up as each new word results in a new table entry (highlighted with a green background), and a corresponding change record is sent to the downstream <code>KStream</code>.
 </p>
 <p>
-    当处理第二行文本“hello kafka streams”时，我们首次观察到<code> KTable </code>中现有的条目更新（这里是："kafka"和"streams"两个key值）。同样地，更改记录也被发送到 output topic 。
+When the second text line "hello kafka streams" is processed, we observe, for the first time, that existing entries in the <code>KTable</code> are being updated (here: for the words "kafka" and for "streams"). And again, change records are being sent to the output topic.
 </p>
 <p>
-    处理过程大致如此（我们跳过了第三行如何处理的说明）。 这解释了为什么 output topic 具有我们上面显示的内容，因为它包含完整的更改记录。
+And so on (we skip the illustration of how the third line is being processed). This explains why the output topic has the contents we showed above, because it contains the full record of changes.
 </p>
 
 <p>
-    除了这个具体例子之外，Kafka Streams 还演示了如何利用 table 和 changelog stream 之间的对偶性（这里：table = KTable，changelog stream =下游KStream）：你可以将table的内容发布并转换为流，并且如果从头到尾使用整个 changelog stream ，则我们可以重新构建整个table的内容。
+Looking beyond the scope of this concrete example, what Kafka Streams is doing here is to leverage the duality between a table and a changelog stream (here: table = the KTable, changelog stream = the downstream KStream): you can publish every change of the table to a stream, and if you consume the entire changelog stream from beginning to end, you can reconstruct the contents of the table.
 </p>
 
 <h4><a id="quickstart_streams_stop" href="#quickstart_streams_stop">Step 6: Teardown the application</a></h4>
 
-<p>现在，你可以通过 <b>Ctrl + C</b> 按钮按顺序停止 consumer，producer，Wordcount程序， Kafka broker和ZooKeeper服务。</p>
+<p>You can now stop the console consumer, the console producer, the Wordcount application, the Kafka broker and the ZooKeeper server in order via <b>Ctrl-C</b>.</p>
 
  <div class="pagination">
         <a href="/{{version}}/documentation/streams" class="pagination__btn pagination__btn__prev">Previous</a>
@@ -342,16 +348,12 @@ summit	1
 
 <div class="p-quickstart-streams"></div>
 
-@@include('../../includes/_header.htm')
 <!--#include virtual="../../includes/_header.htm" -->
-@@include('../../includes/_top.htm')
 <!--#include virtual="../../includes/_top.htm" -->
 <div class="content documentation documentation--current">
-        @@include('../../includes/_nav.htm')
-        <!--#include virtual="../../includes/_nav.htm" -->
-        <div class="right">
-                @@include('../../includes/_docs_banner.htm')
-            <!--#include virtual="../../includes/_docs_banner.htm" -->
+    <!--#include virtual="../../includes/_nav.htm" -->
+    <div class="right">
+        <!--#include virtual="../../includes/_docs_banner.htm" -->
         <ul class="breadcrumbs">
             <li><a href="/documentation">Documentation</a></li>
             <li><a href="/documentation/streams">Streams</a></li>
@@ -359,16 +361,15 @@ summit	1
         <div class="p-content"></div>
     </div>
 </div>
-@@include('../../includes/_footer.htm')
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {
-           // Show selected style on nav item
-          $('.b-nav__streams').addClass('selected');
+  // Show selected style on nav item
+  $('.b-nav__streams').addClass('selected');
 
-   
-          //sticky secondary nav
-          var $navbar = $(".sub-nav-sticky"),
+
+     //sticky secondary nav
+    var $navbar = $(".sub-nav-sticky"),
                y_pos = $navbar.offset().top,
                height = $navbar.height();
        
@@ -381,7 +382,8 @@ $(function() {
                    $navbar.removeClass("navbar-fixed")
                }
            });
-           // Display docs subnav items
-          $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
+
+  // Display docs subnav items
+  $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
 });
 </script>

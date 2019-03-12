@@ -15,102 +15,100 @@
  limitations under the License.
 -->
 
-<script>
-    @@include('js/templateData.js')
-    <!--#include virtual="js/templateData.js" -->
-</script>
+<script><!--#include virtual="js/templateData.js" --></script>
 
 <script id="quickstart-template" type="text/x-handlebars-template">
-    <p>
-        本教程假定您是一只小白，没有Kafka 或ZooKeeper 方面的经验。
-        Kafka控制脚本在Unix和Windows平台有所不同，在Windows平台，请使用 <code>bin\windows\</code> 而不是<code>bin/</code>, 并将脚本扩展名改为<code>.bat</code>.
-    </p>
+<p>
+This tutorial assumes you are starting fresh and have no existing Kafka or ZooKeeper data.
+Since Kafka console scripts are different for Unix-based and Windows platforms, on Windows platforms use <code>bin\windows\</code> instead of <code>bin/</code>, and change the script extension to <code>.bat</code>.
+</p>
 
-    <h4><a id="quickstart_download" href="#quickstart_download">Step 1: 下载代码</a></h4>
+<h4><a id="quickstart_download" href="#quickstart_download">Step 1: Download the code</a></h4>
 
-    <a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_2.11-{{fullDotVersion}}.tgz" title="Kafka downloads">下载</a>  {{fullDotVersion}}版本并解压缩。.
+<a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/{{fullDotVersion}}/kafka_2.11-{{fullDotVersion}}.tgz" title="Kafka downloads">Download</a> the {{fullDotVersion}} release and un-tar it.
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; tar -xzf kafka_2.11-{{fullDotVersion}}.tgz
 &gt; cd kafka_2.11-{{fullDotVersion}}
 </pre>
 
-    <h4><a id="quickstart_startserver" href="#quickstart_startserver">Step 2: 启动服务器</a></h4>
+<h4><a id="quickstart_startserver" href="#quickstart_startserver">Step 2: Start the server</a></h4>
 
-    <p>
-        Kafka 使用 <a href="https://zookeeper.apache.org/">ZooKeeper</a> 如果你还没有ZooKeeper服务器，你需要先启动一个ZooKeeper服务器。 您可以通过与kafka打包在一起的便捷脚本来快速简单地创建一个单节点ZooKeeper实例。
+<p>
+Kafka uses <a href="https://zookeeper.apache.org/">ZooKeeper</a> so you need to first start a ZooKeeper server if you don't already have one. You can use the convenience script packaged with kafka to get a quick-and-dirty single-node ZooKeeper instance.
+</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/zookeeper-server-start.sh config/zookeeper.properties
 [2013-04-22 15:01:37,495] INFO Reading configuration from: config/zookeeper.properties (org.apache.zookeeper.server.quorum.QuorumPeerConfig)
 ...
 </pre>
 
-    <p>现在启动Kafka服务器：</p>
-    <pre class="brush: bash;">
+<p>Now start the Kafka server:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-server-start.sh config/server.properties
 [2013-04-22 15:01:47,028] INFO Verifying properties (kafka.utils.VerifiableProperties)
 [2013-04-22 15:01:47,051] INFO Property socket.send.buffer.bytes is overridden to 1048576 (kafka.utils.VerifiableProperties)
 ...
 </pre>
 
-    <h4><a id="quickstart_createtopic" href="#quickstart_createtopic">Step 3: 创建一个 topic</a></h4>
+<h4><a id="quickstart_createtopic" href="#quickstart_createtopic">Step 3: Create a topic</a></h4>
 
-    <p>让我们创建一个名为“test”的topic，它有一个分区和一个副本：</p>
-    <pre class="brush: bash;">
+<p>Let's create a topic named "test" with a single partition and only one replica:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
 </pre>
 
-    <p>现在我们可以运行list（列表）命令来查看这个topic：</p>
-    <pre class="brush: bash;">
+<p>We can now see that topic if we run the list topic command:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --list --zookeeper localhost:2181
 test
 </pre>
-    <p>或者，您也可将代理配置为：在发布的topic不存在时，自动创建topic，而不是手动创建。</p>
+<p>Alternatively, instead of manually creating topics you can also configure your brokers to auto-create topics when a non-existent topic is published to.</p>
 
-    <h4><a id="quickstart_send" href="#quickstart_send">Step 4: 发送一些消息</a></h4>
+<h4><a id="quickstart_send" href="#quickstart_send">Step 4: Send some messages</a></h4>
 
-    <p>Kafka自带一个命令行客户端，它从文件或标准输入中获取输入，并将其作为message（消息）发送到Kafka集群。默认情况下，每行将作为单独的message发送。</p>
-    <p>
-        运行 producer，然后在控制台输入一些消息以发送到服务器。</p>
+<p>Kafka comes with a command line client that will take input from a file or from standard input and send it out as messages to the Kafka cluster. By default, each line will be sent as a separate message.</p>
+<p>
+Run the producer and then type a few messages into the console to send to the server.</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
 This is a message
 This is another message
 </pre>
 
-    <h4><a id="quickstart_consume" href="#quickstart_consume">Step 5: 启动一个 consumer</a></h4>
+<h4><a id="quickstart_consume" href="#quickstart_consume">Step 5: Start a consumer</a></h4>
 
-    <p>Kafka 还有一个命令行consumer（消费者），将消息转储到标准输出。</p>
+<p>Kafka also has a command line consumer that will dump out messages to standard output.</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
 This is a message
 This is another message
 </pre>
-    <p>
-        如果您将上述命令在不同的终端中运行，那么现在就可以将消息输入到生产者终端中，并将它们在消费终端中显示出来。
-    <p>
-        所有的命令行工具都有其他选项；运行不带任何参数的命令将显示更加详细的使用信息。
-    </p>
+<p>
+If you have each of the above commands running in a different terminal then you should now be able to type messages into the producer terminal and see them appear in the consumer terminal.
+</p>
+<p>
+All of the command line tools have additional options; running the command with no arguments will display usage information documenting them in more detail.
+</p>
 
-    <h4><a id="quickstart_multibroker" href="#quickstart_multibroker">Step 6: 设置多代理集群</a></h4>
+<h4><a id="quickstart_multibroker" href="#quickstart_multibroker">Step 6: Setting up a multi-broker cluster</a></h4>
 
-    <p>到目前为止，我们一直在使用单个代理，这并不好玩。对 Kafka来说，单个代理只是一个大小为一的集群，除了启动更多的代理实例外，没有什么变化。
-        为了深入了解它，让我们把集群扩展到三个节点（仍然在本地机器上）。</p>
-    <p>
-        首先，为每个代理创建一个配置文件 (在Windows上使用<code>copy</code> 命令来代替)：
-    </p>
-    <pre class="brush: bash;">
+<p>So far we have been running against a single broker, but that's no fun. For Kafka, a single broker is just a cluster of size one, so nothing much changes other than starting a few more broker instances. But just to get feel for it, let's expand our cluster to three nodes (still all on our local machine).</p>
+<p>
+First we make a config file for each of the brokers (on Windows use the <code>copy</code> command instead):
+</p>
+<pre class="brush: bash;">
 &gt; cp config/server.properties config/server-1.properties
 &gt; cp config/server.properties config/server-2.properties
 </pre>
 
-    <p>
-        现在编辑这些新文件并设置如下属性：
-    </p>
-    <pre class="brush: text;">
+<p>
+Now edit these new files and set the following properties:
+</p>
+<pre class="brush: text;">
 
 config/server-1.properties:
     broker.id=1
@@ -122,56 +120,56 @@ config/server-2.properties:
     listeners=PLAINTEXT://:9094
     log.dir=/tmp/kafka-logs-2
 </pre>
-    <p><code>broker.id</code>属性是集群中每个节点的名称，这一名称是唯一且永久的。我们必须重写端口和日志目录，因为我们在同一台机器上运行这些，我们不希望所有的代理尝试在同一个端口注册，或者覆盖彼此的数据。</p>
-    <p>
-        我们已经建立Zookeeper和一个单节点了，现在我们只需要启动两个新的节点：
-    </p>
-    <pre class="brush: bash;">
+<p>The <code>broker.id</code> property is the unique and permanent name of each node in the cluster. We have to override the port and log directory only because we are running these all on the same machine and we want to keep the brokers from all trying to register on the same port or overwrite each other's data.</p>
+<p>
+We already have Zookeeper and our single node started, so we just need to start the two new nodes:
+</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-server-start.sh config/server-1.properties &amp;
 ...
 &gt; bin/kafka-server-start.sh config/server-2.properties &amp;
 ...
 </pre>
 
-    <p>现在创建一个副本为3的新topic：</p>
-    <pre class="brush: bash;">
+<p>Now create a new topic with a replication factor of three:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic
 </pre>
 
-    <p>Good，现在我们有一个集群，但是我们怎么才能知道那些代理在做什么呢？运行"describe topics"命令来查看：</p>
-    <pre class="brush: bash;">
+<p>Okay but now that we have a cluster how can we know which broker is doing what? To see that run the "describe topics" command:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic
 Topic:my-replicated-topic	PartitionCount:1	ReplicationFactor:3	Configs:
 	Topic: my-replicated-topic	Partition: 0	Leader: 1	Replicas: 1,2,0	Isr: 1,2,0
 </pre>
-    <p>以下是对输出信息的解释。第一行给出了所有分区的摘要，下面的每行都给出了一个分区的信息。因为我们只有一个分区，所以只有一行。</p>
-    <ul>
-        <li>“leader”是负责给定分区所有读写操作的节点。每个节点都是随机选择的部分分区的领导者。
-        <li>“replicas”是复制分区日志的节点列表，不管这些节点是leader还是仅仅活着。
-        <li>“isr”是一组“同步”replicas，是replicas列表的子集，它活着并被指到leader。
-    </ul>
-    <p>请注意，在示例中，节点1是该主题中唯一分区的领导者。</p>
-    <p>
-        我们可以在已创建的原始主题上运行相同的命令来查看它的位置：
-    </p>
-    <pre class="brush: bash;">
+<p>Here is an explanation of output. The first line gives a summary of all the partitions, each additional line gives information about one partition. Since we have only one partition for this topic there is only one line.</p>
+<ul>
+  <li>"leader" is the node responsible for all reads and writes for the given partition. Each node will be the leader for a randomly selected portion of the partitions.
+  <li>"replicas" is the list of nodes that replicate the log for this partition regardless of whether they are the leader or even if they are currently alive.
+  <li>"isr" is the set of "in-sync" replicas. This is the subset of the replicas list that is currently alive and caught-up to the leader.
+</ul>
+<p>Note that in my example node 1 is the leader for the only partition of the topic.</p>
+<p>
+We can run the same command on the original topic we created to see where it is:
+</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic test
 Topic:test	PartitionCount:1	ReplicationFactor:1	Configs:
 	Topic: test	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
 </pre>
-    <p>这没什么大不了，原来的主题没有副本且在服务器0上。我们创建集群时，这是唯一的服务器。</p>
-    <p>
-        让我们发表一些信息给我们的新topic：
-    </p>
-    <pre class="brush: bash;">
+<p>So there is no surprise there&mdash;the original topic has no replicas and is on server 0, the only server in our cluster when we created it.</p>
+<p>
+Let's publish a few messages to our new topic:
+</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic my-replicated-topic
 ...
 my test message 1
 my test message 2
 ^C
 </pre>
-    <p>现在我们来消费这些消息：</p>
-    <pre class="brush: bash;">
+<p>Now let's consume these messages:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic my-replicated-topic
 ...
 my test message 1
@@ -179,30 +177,30 @@ my test message 2
 ^C
 </pre>
 
-    <p>让我们来测试一下容错性。 Broker 1 现在是 leader，让我们来杀了它：</p>
-    <pre class="brush: bash;">
+<p>Now let's test out fault-tolerance. Broker 1 was acting as the leader so let's kill it:</p>
+<pre class="brush: bash;">
 &gt; ps aux | grep server-1.properties
 7564 ttys002    0:15.91 /System/Library/Frameworks/JavaVM.framework/Versions/1.8/Home/bin/java...
 &gt; kill -9 7564
 </pre>
 
-    在 Windows 上用:
-    <pre class="brush: bash;">
+On Windows use:
+<pre class="brush: bash;">
 &gt; wmic process where "caption = 'java.exe' and commandline like '%server-1.properties%'" get processid
 ProcessId
 6016
 &gt; taskkill /pid 6016 /f
 </pre>
 
-    <p>领导权已经切换到一个从属节点，而且节点1也不在同步副本集中了：</p>
+<p>Leadership has switched to one of the slaves and node 1 is no longer in the in-sync replica set:</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic
 Topic:my-replicated-topic	PartitionCount:1	ReplicationFactor:3	Configs:
 	Topic: my-replicated-topic	Partition: 0	Leader: 2	Replicas: 1,2,0	Isr: 2,0
 </pre>
-    <p>不过，即便原先写入消息的leader已经不在，这些消息仍可用于消费：</p>
-    <pre class="brush: bash;">
+<p>But the messages are still available for consumption even though the leader that took the writes originally is down:</p>
+<pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic my-replicated-topic
 ...
 my test message 1
@@ -211,80 +209,90 @@ my test message 2
 </pre>
 
 
-    <h4><a id="quickstart_kafkaconnect" href="#quickstart_kafkaconnect">Step 7: 使用Kafka Connect来导入/导出数据</a></h4>
+<h4><a id="quickstart_kafkaconnect" href="#quickstart_kafkaconnect">Step 7: Use Kafka Connect to import/export data</a></h4>
 
-    <p>从控制台读出数据并将其写回是十分方便操作的，但你可能需要使用其他来源的数据或将数据从Kafka导出到其他系统。针对这些系统，
-        你可以使用Kafka Connect来导入或导出数据，而不是写自定义的集成代码。</p>
+<p>Writing data from the console and writing it back to the console is a convenient place to start, but you'll probably want
+to use data from other sources or export data from Kafka to other systems. For many systems, instead of writing custom
+integration code you can use Kafka Connect to import or export data.</p>
 
-    <p>Kafka Connect是Kafka的一个工具，它可以将数据导入和导出到Kafka。它是一种可扩展工具，通过运行<i>connectors（连接器）</i>，
-        使用自定义逻辑来实现与外部系统的交互。 在本文中，我们将看到如何使用简单的connectors来运行Kafka Connect，这些connectors
-        将文件中的数据导入到Kafka topic中，并从中导出数据到一个文件。</p>
+<p>Kafka Connect is a tool included with Kafka that imports and exports data to Kafka. It is an extensible tool that runs
+<i>connectors</i>, which implement the custom logic for interacting with an external system. In this quickstart we'll see
+how to run Kafka Connect with simple connectors that import data from a file to a Kafka topic and export data from a
+Kafka topic to a file.</p>
 
-    <p>首先，我们将创建一些种子数据来进行测试：</p>
+<p>First, we'll start by creating some seed data to test with:</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; echo -e "foo\nbar" > test.txt
 </pre>
-    在Windows系统使用:
-    <pre class="brush: bash;">
+Or on Windows:
+<pre class="brush: bash;">
 &gt; echo foo> test.txt
 &gt; echo bar>> test.txt
 </pre>
 
-    <p>接下来，我们将启动两个<i>standalone（独立）</i>运行的连接器，这意味着它们各自运行在一个单独的本地专用
-        进程上。 我们提供三个配置文件。首先是Kafka Connect的配置文件，包含常用的配置，如Kafka brokers连接方式和数据的序列化格式。
-        其余的配置文件均指定一个要创建的连接器。这些文件包括连接器的唯一名称，类的实例，以及其他连接器所需的配置。</p>
+<p>Next, we'll start two connectors running in <i>standalone</i> mode, which means they run in a single, local, dedicated
+process. We provide three configuration files as parameters. The first is always the configuration for the Kafka Connect
+process, containing common configuration such as the Kafka brokers to connect to and the serialization format for data.
+The remaining configuration files each specify a connector to create. These files include a unique connector name, the connector
+class to instantiate, and any other configuration required by the connector.</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/connect-standalone.sh config/connect-standalone.properties config/connect-file-source.properties config/connect-file-sink.properties
 </pre>
 
-    <p>这些包含在Kafka中的示例配置文件使用您之前启动的默认本地群集配置，并创建两个连接器：
-        第一个是源连接器，用于从输入文件读取行，并将其输入到 Kafka topic。
-        第二个是接收器连接器，它从Kafka topic中读取消息，并在输出文件中生成一行。</p>
+<p>
+These sample configuration files, included with Kafka, use the default local cluster configuration you started earlier
+and create two connectors: the first is a source connector that reads lines from an input file and produces each to a Kafka topic
+and the second is a sink connector that reads messages from a Kafka topic and produces each as a line in an output file.
+</p>
 
-    <p>
-        在启动过程中，你会看到一些日志消息，包括一些连接器正在实例化的指示。
-        一旦Kafka Connect进程启动，源连接器就开始从<code> test.txt </code>读取行并且
-        将它们生产到主题<code> connect-test </code>中，同时接收器连接器也开始从主题<code> connect-test </code>中读取消息，
-        并将它们写入文件<code> test.sink.txt </code>中。我们可以通过检查输出文件的内容来验证数据是否已通过整个pipeline进行交付：
-    </p>
+<p>
+During startup you'll see a number of log messages, including some indicating that the connectors are being instantiated.
+Once the Kafka Connect process has started, the source connector should start reading lines from <code>test.txt</code> and
+producing them to the topic <code>connect-test</code>, and the sink connector should start reading messages from the topic <code>connect-test</code>
+and write them to the file <code>test.sink.txt</code>. We can verify the data has been delivered through the entire pipeline
+by examining the contents of the output file:
+</p>
 
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; more test.sink.txt
 foo
 bar
 </pre>
 
-    <p>
-        请注意，数据存储在Kafka topic<code> connect-test </code>中，因此我们也可以运行一个console consumer（控制台消费者）来查看
-        topic 中的数据（或使用custom consumer（自定义消费者）代码进行处理）：
-    </p>
+<p>
+Note that the data is being stored in the Kafka topic <code>connect-test</code>, so we can also run a console consumer to see the
+data in the topic (or use custom consumer code to process it):
+</p>
 
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic connect-test --from-beginning
 {"schema":{"type":"string","optional":false},"payload":"foo"}
 {"schema":{"type":"string","optional":false},"payload":"bar"}
 ...
 </pre>
 
-    <p>连接器一直在处理数据，所以我们可以将数据添加到文件中，并看到它在pipeline 中移动：</p>
+<p>The connectors continue to process data, so we can add data to the file and see it move through the pipeline:</p>
 
-    <pre class="brush: bash;">
+<pre class="brush: bash;">
 &gt; echo Another line>> test.txt
 </pre>
 
-    <p>您应该可以看到这一行出现在控制台用户输出和接收器文件中。</p>
+<p>You should see the line appear in the console consumer output and in the sink file.</p>
 
-    <h4><a id="quickstart_kafkastreams" href="#quickstart_kafkastreams">Step 8:使用 Kafka Streams 来处理数据</a></h4>
+<h4><a id="quickstart_kafkastreams" href="#quickstart_kafkastreams">Step 8: Use Kafka Streams to process data</a></h4>
 
-    <p>
-        Kafka Streams是用于构建实时关键应用程序和微服务的客户端库，输入与输出数据存储在Kafka集群中。
-        Kafka Streams把客户端能够轻便地编写部署标准Java和Scala应用程序的优势与Kafka服务器端集群技术相结合，使这些应用程序具有高度伸缩性、弹性、容错性、分布式等特性。
-        本<a href="/{{version}}/documentation/streams/quickstart">快速入门示例</a>将演示如何运行一个基于该库编程的流式应用程序。
-    </p>
+<p>
+  Kafka Streams is a client library for building mission-critical real-time applications and microservices,
+  where the input and/or output data is stored in Kafka clusters. Kafka Streams combines the simplicity of
+  writing and deploying standard Java and Scala applications on the client side with the benefits of Kafka's
+  server-side cluster technology to make these applications highly scalable, elastic, fault-tolerant, distributed,
+  and much more. This <a href="/{{version}}/documentation/streams/quickstart">quickstart example</a> will demonstrate how
+  to run a streaming application coded in this library. 
+</p>
 
 
 </script>

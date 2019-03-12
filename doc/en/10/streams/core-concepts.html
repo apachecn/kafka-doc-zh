@@ -23,10 +23,12 @@
         <div class="sticky-top">
             <div style="height:35px">
                 <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a class="active-menu-item"  href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
                 <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
                 <a href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a class="active-menu-item" href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
+                <a href="/{{version}}/documentation/streams/architecture">Architecture</a>
+                <a href="/{{version}}/documentation/streams/developer-guide/">Developer Guide</a>
+                <a href="/{{version}}/documentation/streams/upgrade-guide">Upgrade</a>
             </div>
         </div>
     </div>
@@ -61,7 +63,7 @@
     <ul>
         <li>A <b>stream</b> is the most important abstraction provided by Kafka Streams: it represents an unbounded, continuously updating data set. A stream is an ordered, replayable, and fault-tolerant sequence of immutable data records, where a <b>data record</b> is defined as a key-value pair.</li>
         <li>A <b>stream processing application</b> is any program that makes use of the Kafka Streams library. It defines its computational logic through one or more <b>processor topologies</b>, where a processor topology is a graph of stream processors (nodes) that are connected by streams (edges).</li>
-        <li>A <b>stream processor</b> is a node in the processor topology; it represents a processing step to transform data in streams by receiving one input record at a time from its upstream processors in the topology, applying its operation to it, and may subsequently produce one or more output records to its downstream processors. </li>
+        <li>A <b><a href="#streams_processor_node">stream processor</a></b> is a node in the processor topology; it represents a processing step to transform data in streams by receiving one input record at a time from its upstream processors in the topology, applying its operation to it, and may subsequently produce one or more output records to its downstream processors. </li>
     </ul>
 
     There are two special processors in the topology:
@@ -167,7 +169,7 @@
     </p>
 
     <div class="pagination">
-        <a href="/{{version}}/documentation/streams/developer-guide" class="pagination__btn pagination__btn__prev">Previous</a>
+        <a href="/{{version}}/documentation/streams/tutorial" class="pagination__btn pagination__btn__prev">Previous</a>
         <a href="/{{version}}/documentation/streams/architecture" class="pagination__btn pagination__btn__next">Next</a>
     </div>
 </script>
@@ -188,11 +190,11 @@
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {
-          // Show selected style on nav item
-          $('.b-nav__streams').addClass('selected');
+  // Show selected style on nav item
+  $('.b-nav__streams').addClass('selected');
 
-   
-          //sticky secondary nav
+
+     //sticky secondary nav
           var $navbar = $(".sub-nav-sticky"),
                y_pos = $navbar.offset().top,
                height = $navbar.height();
@@ -206,7 +208,8 @@ $(function() {
                    $navbar.removeClass("navbar-fixed")
                }
            });
-           // Display docs subnav items
-           $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
+
+  // Display docs subnav items
+  $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
 });
 </script>

@@ -4,18 +4,18 @@
 		<div class="footer">
 			<div class="footer__inner">
 				<div class="footer__legal">
-					<span class="footer__legal__one">The contents of this website are &copy; 2016 <a href="https://www.apache.org/" target="_blank">Apache Software Foundation</a> under the terms of the <a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">Apache License v2</a>.</span>
+					<span class="footer__legal__one">The contents of this website are &copy; 2017 <a href="https://www.apache.org/" target="_blank">Apache Software Foundation</a> under the terms of the <a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank">Apache License v2</a>.</span>
 					<span class="footer__legal__two">Apache Kafka, Kafka, and the Kafka logo are either registered trademarks or trademarks of The Apache Software Foundation</span>
 					<span class="footer__legal__three">in the United States and other countries.</span>
 				</div>
 				<a class="apache-feather" target="_blank" href="http://www.apache.org">
-					<img width="40" src="/images/feather-small.png" alt="Apache Feather">
+					<img width="40" src="./images/feather-small.png" alt="Apache Feather">
 				</a>
 			</div>
 		</div>
 	</body>
 
-    <script type="text/javascript" src="/js/syntaxhighlighter.js"></script>
+    <script type="text/javascript" src="./js/syntaxhighlighter.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.js"></script>
 	<script>
 		$(function () {
@@ -48,9 +48,28 @@
 		});
 	</script>
 
-	<script src="/js/jquery.sticky-kit.min.js"></script>
+	<script src="./js/jquery.sticky-kit.min.js"></script>
 	<script>
 		$(function() {
+
+
+            $('.download-version').mouseenter(function(){
+                $('a',this).css('visibility','visible');
+            });
+
+            $('.download-version').mouseleave(function(){
+                $('a',this).css('visibility','hidden');
+            });
+
+            $('.download-version a').click(function(){
+               $('a',this).css('visibility','hidden');
+            });
+
+
+            $('.download-version a').mouseenter(function(){
+               $('a',this).css('visibility','visible');
+            });
+
 			// Set mobile scroll position on nav
 			function setNavScroll(offsetLeft) {
 				$('.nav-scroller').animate({

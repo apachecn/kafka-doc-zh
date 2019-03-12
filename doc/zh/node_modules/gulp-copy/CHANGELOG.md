@@ -1,3 +1,5 @@
+## 1.1.0
+* Replace deprecated gulp-util, thx to @demurgos and @grig0ry
 
 ## 1.0.1
 * Fix for absolute paths

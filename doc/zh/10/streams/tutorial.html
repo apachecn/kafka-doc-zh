@@ -14,31 +14,32 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<script>
-  @@include('../js/templateData.js')
-<!--#include virtual="../js/templateData.js" --></script>
+<script><!--#include virtual="../js/templateData.js" --></script>
 
 <script id="content-template" type="text/x-handlebars-template">
-    <h1>编写自己的流处理程序</h1>
+    <h1>Tutorial: Write a Streams Application</h1>
     <div class="sub-nav-sticky">
         <div class="sticky-top">
             <div style="height:35px">
-                <a href="/{{version}}/documentation/streams/">简介</a>
-                <a href="/{{version}}/documentation/streams/developer-guide.html">开发者指南</a>
-                <a href="/{{version}}/documentation/streams/core-concepts.html">核心思想</a>
-                <a  href="/{{version}}/documentation/streams/quickstart.html">运行 demo 程序</a>
-                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial.html">编写自己的流处理程序</a>
+                <a href="/{{version}}/documentation/streams/">Introduction</a>
+                <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
+                <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
+                <a href="/{{version}}/documentation/streams/architecture">Architecture</a>
+                <a href="/{{version}}/documentation/streams/developer-guide/">Developer Guide</a>
+                <a href="/{{version}}/documentation/streams/upgrade-guide">Upgrade</a>
             </div>
         </div>
     </div>
     <p>
-        在本指南中，我们将从头开始建立属于自己的项目，使用Kafka Streams编写一个流处理应用程序。如果你还没阅读过 <a href="/{{version}}/documentation/streams/quickstart">quickstart</a> (在Kafka流中运行一个流应用程序)章节，我们强烈建议你先去阅读一下。
+        In this guide we will start from scratch on setting up your own project to write a stream processing application using Kafka Streams.
+        It is highly recommended to read the <a href="/{{version}}/documentation/streams/quickstart">quickstart</a> first on how to run a Streams application written in Kafka Streams if you have not done so.
     </p>
 
-    <h4><a id="tutorial_maven_setup" href="#tutorial_maven_setup">建立一个Maven项目</a></h4>
+    <h4><a id="tutorial_maven_setup" href="#tutorial_maven_setup">Setting up a Maven Project</a></h4>
 
     <p>
-        使用以下命令来创建具有Kafka Streams项目架构的Maven原型:
+        We are going to use a Kafka Streams Maven Archetype for creating a Streams project structure with the following commands:
     </p>
 
     <pre class="brush: bash;">
@@ -53,13 +54,13 @@
     </pre>
 
     <p>
-        对于 <code>groupId</code>， <code>artifactId</code> 和 <code>package</code> 这三个参数你可以设置不同的值。
-        假定使用上述的参数值，该命令将创建如下的项目结构:
+        You can use a different value for <code>groupId</code>, <code>artifactId</code> and <code>package</code> parameters if you like.
+        Assuming the above parameter values are used, this command will create a project structure that looks like this:
     </p>
 
     <pre class="brush: bash;">
         &gt; tree streams.examples
-        streams-quickstart
+        streams.examples
         |-- pom.xml
         |-- src
             |-- main
@@ -73,17 +74,20 @@
     </pre>
 
     <p>
-        项目中包含的 <code>pom.xml</code> 已经定义了 Streams 依赖，并且在 <code>src/main/java</code> 下已经有几个用 Streams 库编写的示例程序。既然我们要从头开始编写这些程序，那我们现在可以删除这些示例:
+        The <code>pom.xml</code> file included in the project already has the Streams dependency defined,
+        and there are already several example programs written with Streams library under <code>src/main/java</code>.
+        Since we are going to start writing such programs from scratch, we can now delete these examples:
     </p>
 
     <pre class="brush: bash;">
-        &gt; cd streams-quickstart
+        &gt; cd streams.examples
         &gt; rm src/main/java/myapps/*.java
     </pre>
 
-    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">编写第一个 Streams 应用: Pipe</a></h4>
+    <h4><a id="tutorial_code_pipe" href="#tutorial_code_pipe">Writing a first Streams application: Pipe</a></h4>
 
-    可以打开你喜欢的 IDE 并导入这个 Maven 项目，或者简单地打开一个文本编辑器，并在 <code>src/main/java</code> 下创建一个java文件。让我们命名为 <code>Pipe.java</code> :
+    It's coding time now! Feel free to open your favorite IDE and import this Maven project, or simply open a text editor and create a java file under <code>src/main/java</code>.
+    Let's name it <code>Pipe.java</code>:
 
     <pre class="brush: java;">
         package myapps;
@@ -97,11 +101,14 @@
     </pre>
 
     <p>
-        我们将在 <code>main</code> 函数中来编写这个 pipe 程序。注意，由于 ide 通常可以自动添加导入语句(import)，所以我们不会列出这些 import。但是，如果你使用的是文本编辑器，则需要手动添加导入，在本节的末尾，我们将向你展示带有 import 语句的完整代码片段。
+        We are going to fill in the <code>main</code> function to write this pipe program. Note that we will not list the import statements as we go since IDEs can usually add them automatically.
+        However if you are using a text editor you need to manually add the imports, and at the end of this section we'll show the complete code snippet with import statement for you.
     </p>
 
     <p>
-        写 Streams 应用程序的第一步是创建一个 <code>java.util.Properties</code> 映射来保存定义在 <code>StreamsConfig</code> 中不同的 Streams 执行配置参数。几个重要的配置值需要设置: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>,它指定用于和 Kafka 集群建立初始化连接的 host/port 对的列表, <code>StreamsConfig.APPLICATION_ID_CONFIG</code>,它提供了 Streams 应用程序的唯一标识符，以便于在同一个Kafka集群通信过程中区分自己和其他应用程序：
+        The first step to write a Streams application is to create a <code>java.util.Properties</code> map to specify different Streams execution configuration values as defined in <code>StreamsConfig</code>.
+        A couple of important configuration values you need to set are: <code>StreamsConfig.BOOTSTRAP_SERVERS_CONFIG</code>, which specifies a list of host/port pairs to use for establishing the initial connection to the Kafka cluster,
+        and <code>StreamsConfig.APPLICATION_ID_CONFIG</code>, which gives the unique identifier of your Streams application to distinguish itself with other applications talking to the same Kafka cluster:
     </p>
 
     <pre class="brush: java;">
@@ -111,7 +118,7 @@
     </pre>
 
     <p>
-        另外，你可以在同一个映射中自定义其他配置，例如配置默认的序列化和反序列化库的键值对:
+        In addition, you can customize other configurations in the same map, for example, default serialization and deserialization libraries for the record key-value pairs:
     </p>
 
     <pre class="brush: java;">
@@ -120,11 +127,13 @@
     </pre>
 
     <p>
-        有关 Kafka Streams 配置的完整列表，请参阅此 <a href="/{{version}}/documentation/#streamsconfigs">table</a>。
+        For a full list of configurations of Kafka Streams please refer to this <a href="/{{version}}/documentation/#streamsconfigs">table</a>.
     </p>
 
     <p>
-        接下来我们将定义 Streams 应用程序的计算逻辑。在 Kafka Streams 中，这个计算逻辑被定义为<code>拓扑结构（topology）</code>（即连接起来的处理器节点（ processor nodes ）） 。 我们可以使用 topology builder 来构建这样的 topology，
+        Next we will define the computational logic of our Streams application.
+        In Kafka Streams this computational logic is defined as a <code>topology</code> of connected processor nodes.
+        We can use a topology builder to construct such a topology,
     </p>
 
     <pre class="brush: java;">
@@ -132,7 +141,7 @@
     </pre>
 
     <p>
-        然后使用这个 topology builder 从 <code>streams-plaintext-input</code> 这个 Kafka topic 中创建 source stream：
+        And then create a source stream from a Kafka topic named <code>streams-plaintext-input</code> using this topology builder:
     </p>
 
     <pre class="brush: java;">
@@ -140,9 +149,9 @@
     </pre>
 
     <p>
-        现在我们得到一个 <code>KStream</code>，它不断地从 <code>streams-plaintext-input</code> 这个 Kafka topic 的数据流源头中生成记录。
-        记录被组织为 <code>String</code> 类型的 key-value 键值对。
-        对于这个 stream，最简单处理的方法就是将它写入另一个 Kafka topic，比如这个名为 <code>streams-pipe-output</code> 的 topic :
+        Now we get a <code>KStream</code> that is continuously generating records from its source Kafka topic <code>streams-plaintext-input</code>.
+        The records are organized as <code>String</code> typed key-value pairs.
+        The simplest thing we can do with this stream is to write it into another Kafka topic, say it's named <code>streams-pipe-output</code>:
     </p>
 
     <pre class="brush: java;">
@@ -150,7 +159,7 @@
     </pre>
 
     <p>
-        注意，我们也可以将上面的两行代码连接成一行:
+        Note that we can also concatenate the above two lines into a single line as:
     </p>
 
     <pre class="brush: java;">
@@ -158,7 +167,7 @@
     </pre>
 
     <p>
-        我们可以通过执行以下操作来检查此 builder 创建的 <code>topology</code> 结构类型：
+        We can inspect what kind of <code>topology</code> is created from this builder by doing the following:
     </p>
 
     <pre class="brush: java;">
@@ -166,7 +175,7 @@
     </pre>
 
     <p>
-        并将其描述打印为标准输出:
+        And print its description to standard output as:
     </p>
 
     <pre class="brush: java;">
@@ -174,7 +183,7 @@
     </pre>
 
     <p>
-        如果我们只编码到这里，然后编译并运行此程序，它将输出以下信息:
+        If we just stop here, compile and run the program, it will output the following information:
     </p>
 
     <pre class="brush: bash;">
@@ -189,18 +198,19 @@
     </pre>
 
     <p>
-        如上所示，搭建好的拓扑结构有两个处理器节点（processor nodes），一个 source node <code>KSTREAM-SOURCE-0000000000</code> 和一个 sink node <code>KSTREAM-SINK-0000000001</code> 。
-        <code>KSTREAM-SOURCE-0000000000</code> 持续地从 Kafka topic <code>streams-plaintext-input</code> 读取数据并将数据传递给下游节点 <code>KSTREAM-SINK-0000000001</code>；
-        <code>KSTREAM-SINK-0000000001</code> 会将它接收到的数据按顺序写入到其他 Kafka topic <code>streams-pipe-output</code>
-        （<code>--&gt;</code> 和 <code>&lt;--</code> 两个箭头分别指示该节点的下游和上游处理器节点 ，即拓扑结构中的父节点和子节点）。
-        另外，这种简单的拓扑没有与之相关联的全局状态存储state-store（我们将在后面的章节中更多地讨论状态存储）。
+        As shown above, it illustrates that the constructed topology has two processor nodes, a source node <code>KSTREAM-SOURCE-0000000000</code> and a sink node <code>KSTREAM-SINK-0000000001</code>.
+        <code>KSTREAM-SOURCE-0000000000</code> continuously read records from Kafka topic <code>streams-plaintext-input</code> and pipe them to its downstream node <code>KSTREAM-SINK-0000000001</code>;
+        <code>KSTREAM-SINK-0000000001</code> will write each of its received record in order to another Kafka topic <code>streams-pipe-output</code>
+        (the <code>--&gt;</code> and <code>&lt;--</code> arrows dictates the downstream and upstream processor nodes of this node, i.e. "children" and "parents" within the topology graph).
+        It also illustrates that this simple topology has no global state stores associated with it (we will talk about state stores more in the following sections).
     </p>
 
     <p>
-        请注意，如上所述，我们在代码中创建拓扑结构的时候可以在任何给定点上声明拓扑结构，因此作为用户，您可以交互式地“尝试并品尝”拓扑中定义的计算逻辑，直到您满意为止。
-        假设我们已经完成了这个简单的拓扑结构，它只是以一种无尽的流处理方式将数据从一个Kafka topic 传递到另一个 topic，
-        我们现在可以使用我们刚刚构建的两个组件构建Streams客户端：配置映射和拓扑对象（也可以从<code> props </code>映射构造一个<code> StreamsConfig </code>对象，然后将该对象传递给构造函数，
-        <code> KafkaStreams </code>具有重载的构造函数以接受任意类型）。
+        Note that we can always describe the topology as we did above at any given point while we are building it in the code, so as a user you can interactively "try and taste" your computational logic defined in the topology until you are happy with it.
+        Suppose we are already done with this simple topology that just pipes data from one Kafka topic to another in an endless streaming manner,
+        we can now construct the Streams client with the two components we have just constructed above: the configuration map and the topology object
+        (one can also construct a <code>StreamsConfig</code> object from the <code>props</code> map and then pass that object to the constructor,
+        <code>KafkaStreams</code> have overloaded constructor functions to takes either type).
     </p>
 
     <pre class="brush: java;">
@@ -208,9 +218,9 @@
     </pre>
 
     <p>
-        通过调用它的<code> start()</code>函数，我们可以触发这个客户端开始运行。
-        除非在客户端上调用<code> close()</code>函数，否则程序不会停止。
-        例如，我们可以添加一个带有倒计数锁存器的关闭钩子来捕获用户中断，并在终止该程序时关闭客户端：
+        By calling its <code>start()</code> function we can trigger the execution of this client.
+        The execution won't stop until <code>close()</code> is called on this client.
+        We can, for example, add a shutdown hook with a countdown latch to capture a user interrupt and close the client upon terminating this program:
     </p>
 
     <pre class="brush: java;">
@@ -235,7 +245,7 @@
     </pre>
 
     <p>
-        到目前为止完整的代码如下所示：
+        The complete code so far looks like this:
     </p>
 
     <pre class="brush: java;">
@@ -289,9 +299,9 @@
     </pre>
 
     <p>
-        如果你已经有一个正在运行的 Kafka broker （服务地址是：<code>localhost:9092</code>），
-        并且 <code>streams-plaintext-input</code> 和 <code>streams-pipe-output</code> 这两个 topic 也都创建好了，
-        那么就可以在IDE或者命令行上运行程序，使用如下 Maven 命令：
+        If you already have the Kafka broker up and running at <code>localhost:9092</code>,
+        and the topics <code>streams-plaintext-input</code> and <code>streams-pipe-output</code> created on that broker,
+        you can run this code in your IDE or on the command line, using Maven:
     </p>
 
     <pre class="brush: brush;">
@@ -300,16 +310,17 @@
     </pre>
 
     <p>
-        有关如何运行Streams应用程序并观察计算结果的详细说明，请阅读<a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>部分。
-        本节的其余部分我们不会谈论这一点。
+        For detailed instructions on how to run a Streams application and observe its computing results,
+        please read the <a href="/{{version}}/documentation/streams/quickstart">Play with a Streams Application</a> section.
+        We will not talk about this in the rest of this section.
     </p>
 
-    <h4><a id="tutorial_code_linesplit" href="#tutorial_code_linesplit">编写第二个流处理程序：Line Split</a></h4>
+    <h4><a id="tutorial_code_linesplit" href="#tutorial_code_linesplit">Writing a second Streams application: Line Split</a></h4>
 
     <p>
-        我们已经学会了如何使用 kafka Streams 的两个关键组件：<code> StreamsConfig </code>和<code> 拓扑结构（Topology） </code>来构建Streams客户端。
-        现在让我们继续给当前的拓扑结构添加一些实际的处理逻辑。
-        我们可以首先复制现有的<code> Pipe.java </code>类来创建另一个程序：
+        We have learned how to construct a Streams client with its two key components: the <code>StreamsConfig</code> and <code>Topology</code>.
+        Now let's move on to add some real processing logic by augmenting the current topology.
+        We can first create another program by first copy the existing <code>Pipe.java</code> class:
     </p>
 
     <pre class="brush: brush;">
@@ -317,7 +328,7 @@
     </pre>
 
     <p>
-        并更改其类名以及应用程序ID配置以与原始程序区分开来：
+        And change its class name as well as the application id config to distinguish with the original program:
     </p>
 
     <pre class="brush: java;">
@@ -332,7 +343,8 @@
     </pre>
 
     <p>
-        由于每个 Stream 提供的记录都是一个<code> String </code>类型的键值对，因此我们将 value 值视为一行文本，并使用<code> FlatMapValues </code>运算符将其拆分为单词：
+        Since each of the source stream's record is a <code>String</code> typed key-value pair,
+        let's treat the value string as a text line and split it into words with a <code>FlatMapValues</code> operator:
     </p>
 
     <pre class="brush: java;">
@@ -346,11 +358,11 @@
     </pre>
 
     <p>
-
-        运算符将<code> source </code>流作为其输入，按顺序处理源流中的每条记录，并通过将记录的value值分解为一个字符串列表，以此来生成一个名为<code> words </code>的新的流，
-        并将每个单词作为输出流<code> words </code>的新记录。
-        这是一个无状态的操作符，无需跟踪之前收到的记录或处理结果。
-        请注意，如果您使用的是JDK 8，则可以使用lambda表达式并简化上面的代码：
+        The operator will take the <code>source</code> stream as its input, and generate a new stream named <code>words</code>
+        by processing each record from its source stream in order and breaking its value string into a list of words, and producing
+        each word as a new record to the output <code>words</code> stream.
+        This is a stateless operator that does not need to keep track of any previously received records or processed results.
+        Note if you are using JDK 8 you can use lambda expression and simplify the above code as:
     </p>
 
     <pre class="brush: java;">
@@ -359,8 +371,8 @@
     </pre>
 
     <p>
-        最后，我们可以将 word 流写回另一个Kafka topic，比如<code> streams-linesplit-output </code>。
-        再次，这两个步骤可以如下所示连接（假设使用lambda表达式）：
+        And finally we can write the word stream back into another Kafka topic, say <code>streams-linesplit-output</code>.
+        Again, these two steps can be concatenated as the following (assuming lambda expression is used):
     </p>
 
     <pre class="brush: java;">
@@ -370,7 +382,7 @@
     </pre>
 
     <p>
-        如果我们现在将这个扩展拓扑描述为<code> System.out.println(topology.describe())</code>，我们将得到以下结果：
+        If we now describe this augmented topology as <code>System.out.println(topology.describe())</code>, we will get the following:
     </p>
 
     <pre class="brush: bash;">
@@ -386,15 +398,15 @@
     </pre>
 
     <p>
-        正如我们上面看到的那样，一个新的处理器节点<code> KSTREAM-FLATMAPVALUES-0000000001 </code>被注入到原始 source node 和 sink node 之间的拓扑结构中。
-        它将 source node 作为其父节点并将 sink node 作为其子节点。
-        换句话说，从 source node 获取的每个记录将首先传递给新加入的<code> KSTREAM-FLATMAPVALUES-0000000001 </code>节点进行处理，然后生成一个或多个新记录作为输出结果。
-        这些新记录会持续传递给 sink node 并最终回写到 kafka 。
-        注意这个处理器节点是“无状态的”，因为它不与任何 stores 相关联（即<code>(stores: [])</code>）。
+        As we can see above, a new processor node <code>KSTREAM-FLATMAPVALUES-0000000001</code> is injected into the topology between the original source and sink nodes.
+        It takes the source node as its parent and the sink node as its child.
+        In other words, each record fetched by the source node will first traverse to the newly added <code>KSTREAM-FLATMAPVALUES-0000000001</code> node to be processed,
+        and one or more new records will be generated as a result. They will continue traverse down to the sink node to be written back to Kafka.
+        Note this processor node is "stateless" as it is not associated with any stores (i.e. <code>(stores: [])</code>).
     </p>
 
     <p>
-        完整的代码如下所示（假设使用lambda表达式）：
+        The complete code looks like this (assuming lambda expression is used):
     </p>
 
     <pre class="brush: java;">
@@ -435,11 +447,11 @@
         }
     </pre>
 
-    <h4><a id="tutorial_code_wordcount" href="#tutorial_code_wordcount">编写第三个流处理程序： Wordcount</a></h4>
+    <h4><a id="tutorial_code_wordcount" href="#tutorial_code_wordcount">Writing a third Streams application: Wordcount</a></h4>
 
     <p>
-        现在让我们进一步添加一些“有状态”计算过程（计算从源文本流中拆分出来的单词出现的次数）到拓扑结构中。
-        按照类似的步骤，我们创建另一个基于<code> LineSplit.java </code>类的程序：
+        Let's now take a step further to add some "stateful" computations to the topology by counting the occurrence of the words split from the source text stream.
+        Following similar steps let's create another program based on the <code>LineSplit.java</code> class:
     </p>
 
     <pre class="brush: java;">
@@ -454,7 +466,7 @@
     </pre>
 
     <p>
-        为了计算单词，我们可以首先修改<code> flatMapValues </code>运算符，将它们全部转为小写字母（假设使用lambda表达式）：
+        In order to count the words we can first modify the <code>flatMapValues</code> operator to treat all of them as lower case (assuming lambda expression is used):
     </p>
 
     <pre class="brush: java;">
@@ -467,8 +479,8 @@
     </pre>
 
     <p>
-        为了进行计数聚合，我们必须首先指定我们要使用<code> groupBy </code>运算符将 value 字符串（即小写单词）输入到流中。
-        该运算符生成一个新的分组流，然后可以通过<code> count </code>运算符进行聚合，该运算符会在每个分组键上持续计数：
+        In order to do the counting aggregation we have to first specify that we want to key the stream on the value string, i.e. the lower cased word, with a <code>groupBy</code> operator.
+        This operator generate a new grouped stream, which can then be aggregated by a <code>count</code> operator, which generates a running count on each of the grouped keys:
     </p>
 
     <pre class="brush: java;">
@@ -491,26 +503,27 @@
     </pre>
 
     <p>
-        请注意，<code> count </code>运算符具有<code> Materialized </code>参数，该参数指定运行中的计数应存储在名为<code> counts-store </code>的 state store 中。
-        这个<code> Counts store </code> 支持实时查询，在<a href="/{{version}}/documentation/streams/developer-guide#streams_interactive_queries">开发者指南</a>中有更详细的描述。
+        Note that the <code>count</code> operator has a <code>Materialized</code> parameter that specifies that the
+        running count should be stored in a state store named <code>counts-store</code>.
+        This <code>Counts</code> store can be queried in real-time, with details described in the <a href="/{{version}}/documentation/streams/developer-guide#streams_interactive_queries">Developer Manual</a>.
     </p>
 
     <p>
-        我们还可以将<code> counts </code> KTable 的 changelog Stream 写回到另一个 Kafka topic 中，比如<code> streams-wordcount-output </code>。
-        因为结果是一个 changlog stream ，所以 output topic <code> streams-wordcount-output </code> 需要配置为启用日志压缩。
-        请注意，这次的值类型不再是<code> String类型 </code>而是<code> Long类型 </code>，所以默认的序列化类已经不适合将long类型的结果写回 Kafka 。
-        我们需要为<code> Long </code>类型提供重写之后的序列化方法，否则将抛出运行时异常：
+        We can also write the <code>counts</code> KTable's changelog stream back into another Kafka topic, say <code>streams-wordcount-output</code>.
+        Because the result is a changelog stream, the output topic <code>streams-wordcount-output</code> should be configured with log compaction enabled.
+        Note that this time the value type is no longer <code>String</code> but <code>Long</code>, so the default serialization classes are not viable for writing it to Kafka anymore.
+        We need to provide overridden serialization methods for <code>Long</code> types, otherwise a runtime exception will be thrown:
     </p>
 
     <pre class="brush: java;">
-        counts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long());
+        counts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
     </pre>
 
     <p>
-        请注意，为了从 <code> streams-wordcount-output </code> 这个 topic 读取 changelog stream ，
-        需要将值反序列化设置为<code> org.apache.kafka.common.serialization.LongDeserializer </code>。
-        有关详细信息，请参见<a href="/{{version}}/documentation/streams/quickstart">运行 demo 程序</a>一节。
-        假设可以使用来自JDK 8的lambda表达式，上面的代码可以简化为：
+        Note that in order to read the changelog stream from topic <code>streams-wordcount-output</code>,
+        one needs to set the value deserialization as <code>org.apache.kafka.common.serialization.LongDeserializer</code>.
+        Details of this can be found in the <a href="/{{version}}/documentation/streams/quickstart">Play with a Streams Application</a> section.
+        Assuming lambda expression from JDK 8 can be used, the above code can be simplified as:
     </p>
 
     <pre class="brush: java;">
@@ -519,11 +532,11 @@
               .groupBy((key, value) -> value)
               .count(Materialized.&lt;String, Long, KeyValueStore&lt;Bytes, byte[]&gt;&gt;as("counts-store"))
               .toStream()
-              .to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long());
+              .to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
     </pre>
 
     <p>
-        如果我们再次将此扩展拓扑描述为<code> System.out.println(topology.describe())</code>，我们将得到以下结果：
+        If we again describe this augmented topology as <code>System.out.println(topology.describe())</code>, we will get the following:
     </p>
 
     <pre class="brush: bash;">
@@ -546,20 +559,20 @@
     </pre>
 
     <p>
-        如上所述，拓扑现在包含两个断开的子拓扑。
-        第一个子拓扑的 sink node <code>KSTREAM-SINK-0000000004 </code>将写入一个重新分区的 topic ——<code> Counts-repartition </code>，
-        并将由第二个子拓扑的 source node<code> KSTREAM-SOURCE-0000000006 </code>读取。
-        重分区的 Topic 是通过聚合键（本例中的聚合键为值字符串）“混洗”源流。
-        此外，在第一个子拓扑结构中，为了取出聚合键为空的中间记录，一个无状态的<code> KSTREAM-FILTER-0000000005 </code>被嵌入到在分组节点<code> KSTREAM-KEY-SELECT-0000000002 </code>节点和 sink node 之间。
+        As we can see above, the topology now contains two disconnected sub-topologies.
+        The first sub-topology's sink node <code>KSTREAM-SINK-0000000004</code> will write to a repartition topic <code>Counts-repartition</code>,
+        which will be read by the second sub-topology's source node <code>KSTREAM-SOURCE-0000000006</code>.
+        The repartition topic is used to "shuffle" the source stream by its aggregation key, which is in this case the value string.
+        In addition, inside the first sub-topology a stateless <code>KSTREAM-FILTER-0000000005</code> node is injected between the grouping <code>KSTREAM-KEY-SELECT-0000000002</code> node and the sink node to filter out any intermediate record whose aggregate key is empty.
     </p>
     <p>
-        在第二个子拓扑中，聚合节点<code> KSTREAM-AGGREGATE-0000000003 </code>与名为<code> Counts </code>的 state store 结合在一起（state store 的名称由用户在<code> cout</code>运算符指定）。
-        从 source node 接收记录时，聚合处理器将首先查询其关联的<code> Counts </code>store ，以获得该key值当前的计数，增加1，然后将新计数写回到 store。
-        每个更新的密钥计数都将传送到<code> KTABLE-TOSTREAM-0000000007 </code>节点的下游，该节点将count的更新流解析为记录流，然后再进一步传输到 sink node <code> KSTREAM-SINK-0000000008 </code> 以便写回 kafka 系统。
+        In the second sub-topology, the aggregation node <code>KSTREAM-AGGREGATE-0000000003</code> is associated with a state store named <code>Counts</code> (the name is specified by the user in the <code>count</code> operator).
+        Upon receiving each record from its upcoming stream source node, the aggregation processor will first query its associated <code>Counts</code> store to get the current count for that key, augment by one, and then write the new count back to the store.
+        Each updated count for the key will also be piped downstream to the <code>KTABLE-TOSTREAM-0000000007</code> node, which interpret this update stream as a record stream before further piping to the sink node <code>KSTREAM-SINK-0000000008</code> for writing back to Kafka.
     </p>
 
     <p>
-        完整的代码如下所示（假设使用lambda表达式）：
+        The complete code looks like this (assuming lambda expression is used):
     </p>
 
     <pre class="brush: java;">
@@ -606,22 +619,18 @@
 
     <div class="pagination">
         <a href="/{{version}}/documentation/streams/quickstart" class="pagination__btn pagination__btn__prev">Previous</a>
-        <a href="/{{version}}/documentation/streams/developer-guide" class="pagination__btn pagination__btn__next">Next</a>
+        <a href="/{{version}}/documentation/streams/core-concepts" class="pagination__btn pagination__btn__next">Next</a>
     </div>
 </script>
 
 <div class="p-quickstart-streams"></div>
 
-@@include('../../includes/_header.htm')
 <!--#include virtual="../../includes/_header.htm" -->
-@@include('../../includes/_top.htm')
 <!--#include virtual="../../includes/_top.htm" -->
 <div class="content documentation documentation--current">
-        @@include('../../includes/_nav.htm')
-        <!--#include virtual="../../includes/_nav.htm" -->
-        <div class="right">
-                @@include('../../includes/_docs_banner.htm')
-            <!--#include virtual="../../includes/_docs_banner.htm" -->
+    <!--#include virtual="../../includes/_nav.htm" -->
+    <div class="right">
+        <!--#include virtual="../../includes/_docs_banner.htm" -->
         <ul class="breadcrumbs">
             <li><a href="/documentation">Documentation</a></li>
             <li><a href="/documentation/streams">Streams</a></li>
@@ -629,14 +638,13 @@
         <div class="p-content"></div>
     </div>
 </div>
-@@include('../../includes/_footer.htm')
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {
-          // Show selected style on nav item
-          $('.b-nav__streams').addClass('selected');
-  
-          //sticky secondary nav
+  // Show selected style on nav item
+  $('.b-nav__streams').addClass('selected');
+
+     //sticky secondary nav
           var $navbar = $(".sub-nav-sticky"),
                y_pos = $navbar.offset().top,
                height = $navbar.height();
@@ -650,7 +658,8 @@ $(function() {
                    $navbar.removeClass("navbar-fixed")
                }
            });
-           // Display docs subnav items
-           $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
+
+  // Display docs subnav items
+  $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
 });
 </script>

@@ -75,7 +75,7 @@ We expect a common use case to be multiple consumers on a topic. Using the zero-
 <p>
 This combination of pagecache and sendfile means that on a Kafka cluster where the consumers are mostly caught up you will see no read activity on the disks whatsoever as they will be serving data entirely from cache.
 <p>
-For more background on the sendfile and zero-copy support in Java, see this <a href="http://www.ibm.com/developerworks/linux/library/j-zerocopy">article</a>.
+For more background on the sendfile and zero-copy support in Java, see this <a href="https://developer.ibm.com/articles/j-zerocopy/">article</a>.
 
 <h4>End-to-end Batch Compression</h4>
 <p>

@@ -22,10 +22,12 @@
         <div class="sticky-top">
             <div style="height:35px">
                 <a href="/{{version}}/documentation/streams/">Introduction</a>
-                <a href="/{{version}}/documentation/streams/developer-guide">Developer Guide</a>
-                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
                 <a href="/{{version}}/documentation/streams/quickstart">Run Demo App</a>
                 <a class="active-menu-item" href="/{{version}}/documentation/streams/tutorial">Tutorial: Write App</a>
+                <a href="/{{version}}/documentation/streams/core-concepts">Concepts</a>
+                <a href="/{{version}}/documentation/streams/architecture">Architecture</a>
+                <a href="/{{version}}/documentation/streams/developer-guide/">Developer Guide</a>
+                <a href="/{{version}}/documentation/streams/upgrade-guide">Upgrade</a>
             </div>
         </div>
     </div>
@@ -58,7 +60,7 @@
 
     <pre class="brush: bash;">
         &gt; tree streams.examples
-        streams-quickstart
+        streams.examples
         |-- pom.xml
         |-- src
             |-- main
@@ -78,7 +80,7 @@
     </p>
 
     <pre class="brush: bash;">
-        &gt; cd streams-quickstart
+        &gt; cd streams.examples
         &gt; rm src/main/java/myapps/*.java
     </pre>
 
@@ -514,7 +516,7 @@
     </p>
 
     <pre class="brush: java;">
-        counts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long());
+        counts.toStream().to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
     </pre>
 
     <p>
@@ -530,7 +532,7 @@
               .groupBy((key, value) -> value)
               .count(Materialized.&lt;String, Long, KeyValueStore&lt;Bytes, byte[]&gt;&gt;as("counts-store"))
               .toStream()
-              .to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long());
+              .to("streams-wordcount-output", Produced.with(Serdes.String(), Serdes.Long()));
     </pre>
 
     <p>
@@ -617,7 +619,7 @@
 
     <div class="pagination">
         <a href="/{{version}}/documentation/streams/quickstart" class="pagination__btn pagination__btn__prev">Previous</a>
-        <a href="/{{version}}/documentation/streams/developer-guide" class="pagination__btn pagination__btn__next">Next</a>
+        <a href="/{{version}}/documentation/streams/core-concepts" class="pagination__btn pagination__btn__next">Next</a>
     </div>
 </script>
 
@@ -639,10 +641,10 @@
 <!--#include virtual="../../includes/_footer.htm" -->
 <script>
 $(function() {
-          // Show selected style on nav item
-          $('.b-nav__streams').addClass('selected');
-  
-          //sticky secondary nav
+  // Show selected style on nav item
+  $('.b-nav__streams').addClass('selected');
+
+     //sticky secondary nav
           var $navbar = $(".sub-nav-sticky"),
                y_pos = $navbar.offset().top,
                height = $navbar.height();
@@ -656,7 +658,8 @@ $(function() {
                    $navbar.removeClass("navbar-fixed")
                }
            });
-           // Display docs subnav items
-           $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
+
+  // Display docs subnav items
+  $('.b-nav__docs').parent().toggleClass('nav__item__with__subs--expanded');
 });
 </script>

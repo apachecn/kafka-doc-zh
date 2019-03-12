@@ -1,5 +1,6 @@
 'use strict';
 
+var extend = require('extend-shallow');
 var Snapdragon = require('snapdragon');
 var compilers = require('./compilers');
 var parsers = require('./parsers');
@@ -10,7 +11,7 @@ var utils = require('./utils');
  */
 
 function Braces(options) {
-  this.options = utils.extend({}, options);
+  this.options = extend({}, options);
 }
 
 /**
@@ -18,6 +19,8 @@ function Braces(options) {
  */
 
 Braces.prototype.init = function(options) {
+  if (this.isInitialized) return;
+  this.isInitialized = true;
   var opts = utils.createOptions({}, this.options, options);
   this.snapdragon = this.options.snapdragon || new Snapdragon(opts);
   this.compiler = this.snapdragon.compiler;
@@ -54,23 +57,12 @@ Braces.prototype.init = function(options) {
 };
 
 /**
- * Lazily initialize braces
- */
-
-Braces.prototype.lazyInit = function(options) {
-  if (!this.isInitialized) {
-    this.isInitialized = true;
-    this.init(options);
-  }
-};
-
-/**
  * Decorate `.parse` method
  */
 
 Braces.prototype.parse = function(ast, options) {
-  if (utils.isObject(ast) && ast.nodes) return ast;
-  this.lazyInit(options);
+  if (ast && typeof ast === 'object' && ast.nodes) return ast;
+  this.init(options);
   return this.snapdragon.parse(ast, options);
 };
 
@@ -82,10 +74,9 @@ Braces.prototype.compile = function(ast, options) {
   if (typeof ast === 'string') {
     ast = this.parse(ast, options);
   } else {
-    this.lazyInit(options);
+    this.init(options);
   }
-  var res = this.snapdragon.compile(ast, options);
-  return res;
+  return this.snapdragon.compile(ast, options);
 };
 
 /**

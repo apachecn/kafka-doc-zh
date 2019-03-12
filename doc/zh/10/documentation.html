@@ -15,85 +15,69 @@
  limitations under the License.
 -->
 
+<script><!--#include virtual="js/templateData.js" --></script>
 
-<script>
-@@include('js/templateData.js')
-<!--#include virtual="js/templateData.js" --></script>
-@@include('../includes/_header.htm')
-@@include('../includes/_top.htm')
 <!--#include virtual="../includes/_header.htm" -->
 <!--#include virtual="../includes/_top.htm" -->
 
 
 <div class="content documentation documentation--current">
-        @@include('../includes/_nav.htm')
 	<!--#include virtual="../includes/_nav.htm" -->
 	<div class="right">
-            @@include('../includes/_docs_banner.htm')
 		<!--#include virtual="../includes/_docs_banner.htm" -->
-    <h1>文档</h1>
-    <h3>Kafka 1.0 文档</h3>
+    <h1>Documentation</h1>
+    <h3>Kafka 1.0 Documentation</h3>
     Prior releases: <a href="/07/documentation.html">0.7.x</a>, <a href="/08/documentation.html">0.8.0</a>, <a href="/081/documentation.html">0.8.1.X</a>, <a href="/082/documentation.html">0.8.2.X</a>, <a href="/090/documentation.html">0.9.0.X</a>, <a href="/0100/documentation.html">0.10.0.X</a>, <a href="/0101/documentation.html">0.10.1.X</a>, <a href="/0102/documentation.html">0.10.2.X</a>, <a href="/0110/documentation.html">0.11.0.X</a>.
-    
-    
-    @@include('toc.html')
+
     <!--#include virtual="toc.html" -->
 
-    <h2><a id="gettingStarted" href="#gettingStarted">1. 入门</a></h2>
-      <h3><a id="introduction" href="#introduction">1.1 介绍</a></h3>
-      @@include('introduction.html')
+    <h2><a id="gettingStarted" href="#gettingStarted">1. Getting Started</a></h2>
+      <h3><a id="introduction" href="#introduction">1.1 Introduction</a></h3>
       <!--#include virtual="introduction.html" -->
-      <h3><a id="uses" href="#uses">1.2 使用案例</a></h3>
-      @@include('uses.html')
+      <h3><a id="uses" href="#uses">1.2 Use Cases</a></h3>
       <!--#include virtual="uses.html" -->
-      <h3><a id="quickstart" href="#quickstart">1.3 快速开始</a></h3>
-      @@include('quickstart.html')
+      <h3><a id="quickstart" href="#quickstart">1.3 Quick Start</a></h3>
       <!--#include virtual="quickstart.html" -->
-      <h3><a id="ecosystem" href="#ecosystem">1.4 生态圈</a></h3>
-      @@include('ecosystem.html')
+      <h3><a id="ecosystem" href="#ecosystem">1.4 Ecosystem</a></h3>
       <!--#include virtual="ecosystem.html" -->
-      <h3><a id="upgrade" href="#upgrade">1.5 升级版本</a></h3>
-      @@include('upgrade.html')
+      <h3><a id="upgrade" href="#upgrade">1.5 Upgrading From Previous Versions</a></h3>
       <!--#include virtual="upgrade.html" -->
 
     <h2><a id="api" href="#api">2. APIs</a></h2>
-    @@include('api.html')
+
     <!--#include virtual="api.html" -->
 
-    <h2><a id="configuration" href="#configuration">3. 配置</a></h2>
-    @@include('configuration.html')
+    <h2><a id="configuration" href="#configuration">3. Configuration</a></h2>
+
     <!--#include virtual="configuration.html" -->
 
-    <h2><a id="design" href="#design">4. 设计思想</a></h2>
-    @@include('design.html')
+    <h2><a id="design" href="#design">4. Design</a></h2>
+
     <!--#include virtual="design.html" -->
 
-    <h2><a id="implementation" href="#implementation">5. 实现思路</a></h2>
-    @@include('implementation.html')
+    <h2><a id="implementation" href="#implementation">5. Implementation</a></h2>
+
     <!--#include virtual="implementation.html" -->
 
-    <h2><a id="operations" href="#operations">6. 基本操作</a></h2>
-    @@include('ops.html')
+    <h2><a id="operations" href="#operations">6. Operations</a></h2>
+
     <!--#include virtual="ops.html" -->
 
-    <h2><a id="security" href="#security">7. 安全</a></h2>
-    @@include('security.html')
+    <h2><a id="security" href="#security">7. Security</a></h2>
     <!--#include virtual="security.html" -->
 
     <h2><a id="connect" href="#connect">8. Kafka Connect</a></h2>
-    @@include('connect.html')
     <!--#include virtual="connect.html" -->
 
     <h2><a id="streams" href="/10/documentation/streams">9. Kafka Streams</a></h2>
     <p>
-        Kafka Streams 是一个用于处理和分析存储在 Kafka 系统中的数据的客户端库。 它建立在重要的流处理概念上，如恰当地区分事件时间（event time）和处理时间（processing time），支持窗口操作（window），exactly-once 处理语义以及简单高效的应用程序状态管理。
+        Kafka Streams is a client library for processing and analyzing data stored in Kafka. It builds upon important stream processing concepts such as properly distinguishing between event time and processing time, windowing support, exactly-once processing semantics and simple yet efficient management of application state.
     </p>
     <p>
-        Kafka Streams 的<b>入门门槛很低</b>。我们可以在单节点环境上快速实现一个小规模的验证性的程序，只要程序能在多节点的集群环境成功运行即可部署到高负载的生产环境。 Kafka Streams 通过利用 Kafka 的并行模型实现对相同应用程序的多个实例的负载平衡，这对于用户来说是透明的。
+        Kafka Streams has a <b>low barrier to entry</b>: You can quickly write and run a small-scale proof-of-concept on a single machine; and you only need to run additional instances of your application on multiple machines to scale up to high-volume production workloads. Kafka Streams transparently handles the load balancing of multiple instances of the same application by leveraging Kafka's parallelism model.
     </p>
 
     <p>Learn More about Kafka Streams read <a href="/10/documentation/streams">this</a> Section.</p>
-    @@include('../includes/_footer.htm')
+
 <!--#include virtual="../includes/_footer.htm" -->
-@@include('../includes/_docs_footer.htm')
 <!--#include virtual="../includes/_docs_footer.htm" -->

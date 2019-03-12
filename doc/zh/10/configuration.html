@@ -16,59 +16,58 @@
 -->
 
 <script id="configuration-template" type="text/x-handlebars-template">
-  Kafkas使用<a href="http://en.wikipedia.org/wiki/.properties">property文件格式</a>的键值对来配置程序。这些键值对配置既可以来自property文件也可以来程序内部。
+  Kafka uses key-value pairs in the <a href="http://en.wikipedia.org/wiki/.properties">property file format</a> for configuration. These values can be supplied either from a file or programmatically.
 
-  <h3><a id="brokerconfigs" href="#brokerconfigs">3.1 Broker 配置</a></h3>
+  <h3><a id="brokerconfigs" href="#brokerconfigs">3.1 Broker Configs</a></h3>
 
-  核心基础配置如下:
+  The essential configurations are the following:
   <ul>
       <li><code>broker.id</code>
       <li><code>log.dirs</code>
       <li><code>zookeeper.connect</code>
   </ul>
 
-  Topic-level配置及其默认值在<a href="#topicconfigs">下面</a>有更详尽的讨论。
-  
-  @@include('generated/kafka_config.html')
+  Topic-level configurations and defaults are discussed in more detail <a href="#topicconfigs">below</a>.
+
   <!--#include virtual="generated/kafka_config.html" -->
 
   <p>More details about broker configuration can be found in the scala class <code>kafka.server.KafkaConfig</code>.</p>
 
-  <h3><a id="topicconfigs" href="#topicconfigs">3.2 Topic级别配置</a></h3>
+  <h3><a id="topicconfigs" href="#topicconfigs">3.2 Topic-Level Configs</a></h3>
 
-  与Topic相关的配置既包含服务器默认值，也包含可选的每个Topic覆盖值。 如果没有给出每个Topic的配置，那么服务器默认值就会被使用。 通过提供一个或多个 <code>--config</code> 选项，可以在创建Topic时设置覆盖值。 本示例使用自定义的最大消息大小和刷新率创建了一个名为 <i>my-topic</i> 的topic:
+  Configurations pertinent to topics have both a server default as well an optional per-topic override. If no per-topic configuration is given the server default is used. The override can be set at topic creation time by giving one or more <code>--config</code> options. This example creates a topic named <i>my-topic</i> with a custom max message size and flush rate:
   <pre class="brush: bash;">
   &gt; bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic my-topic --partitions 1
       --replication-factor 1 --config max.message.bytes=64000 --config flush.messages=1
   </pre>
-  也可以在使用alter configs命令稍后更改或设置覆盖值. 本示例重置<i>my-topic</i>的最大消息的大小:
+  Overrides can also be changed or set later using the alter configs command. This example updates the max message size for <i>my-topic</i>:
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic
       --alter --add-config max.message.bytes=128000
   </pre>
 
-  您可以执行如下操作来检查topic设置的覆盖值
+  To check overrides set on the topic you can do
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181 --entity-type topics --entity-name my-topic --describe
   </pre>
 
-  您可以执行如下操作来删除一个覆盖值
+  To remove an override you can do
   <pre class="brush: bash;">
   &gt; bin/kafka-configs.sh --zookeeper localhost:2181  --entity-type topics --entity-name my-topic --alter --delete-config max.message.bytes
   </pre>
 
-  以下是Topic级别配置。 “服务器默认属性”列是该属性的默认配置。 一个Topic如果没有给出一个明确的覆盖值，相应的服务器默认配置将会生效。
-  @@include('generated/topic_config.html')
+  The following are the topic-level configurations. The server's default configuration for this property is given under the Server Default Property heading. A given server default config value only applies to a topic if it does not have an explicit topic config override.
+
   <!--#include virtual="generated/topic_config.html" -->
 
-  <h3><a id="producerconfigs" href="#producerconfigs">3.3 Producer 配置</a></h3>
+  <h3><a id="producerconfigs" href="#producerconfigs">3.3 Producer Configs</a></h3>
 
-  以下是JAVA生产者的配置：
+  Below is the configuration of the Java producer:
   <!--#include virtual="generated/producer_config.html" -->
-  @@include('generated/producer_config.html')
+
   <p>
-      如果对老的Scala版本的 Producer 配置感兴趣，请点击 <a href="http://kafka.apache.org/082/documentation.html#producerconfigs">
-      这里</a>.
+      For those interested in the legacy Scala producer configs, information can be found <a href="http://kafka.apache.org/082/documentation.html#producerconfigs">
+      here</a>.
   </p>
 
   <h3><a id="consumerconfigs" href="#consumerconfigs">3.4 Consumer Configs</a></h3>
@@ -79,7 +78,7 @@
   <h4><a id="newconsumerconfigs" href="#newconsumerconfigs">3.4.1 New Consumer Configs</a></h4>
   Below is the configuration for the new consumer:
   <!--#include virtual="generated/consumer_config.html" -->
-  @@include('generated/consumer_config.html')
+
   <h4><a id="oldconsumerconfigs" href="#oldconsumerconfigs">3.4.2 Old Consumer Configs</a></h4>
 
   The essential old consumer configurations are the following:
@@ -250,7 +249,7 @@
   <h3><a id="connectconfigs" href="#connectconfigs">3.5 Kafka Connect Configs</a></h3>
   Below is the configuration of the Kafka Connect framework.
   <!--#include virtual="generated/connect_config.html" -->
-  @@include('generated/connect_config.html')
+
   <h3><a id="streamsconfigs" href="#streamsconfigs">3.6 Kafka Streams Configs</a></h3>
   Below is the configuration of the Kafka Streams client library.
   <!--#include virtual="generated/streams_config.html" -->
@@ -258,8 +257,6 @@
   <h3><a id="adminclientconfigs" href="#adminclientconfigs">3.7 AdminClient Configs</a></h3>
   Below is the configuration of the Kafka Admin client library.
   <!--#include virtual="generated/admin_client_config.html" -->
-
-  @@include('generated/admin_client_config.html')
 </script>
 
 <div class="p-configuration"></div>

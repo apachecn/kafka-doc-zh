@@ -1,7 +1,10 @@
 'use strict';
 
 var util = require('util');
-var utils = require('./utils');
+var union = require('arr-union');
+var define = require('define-property');
+var staticExtend = require('static-extend');
+var isObj = require('isobject');
 
 /**
  * Expose class utils
@@ -14,7 +17,7 @@ var cu = module.exports;
  */
 
 cu.isObject = function isObject(val) {
-  return utils.isObj(val) || typeof val === 'function';
+  return isObj(val) || typeof val === 'function';
 };
 
 /**
@@ -170,7 +173,9 @@ cu.hasConstructor = function hasConstructor(val) {
 
 cu.nativeKeys = function nativeKeys(val) {
   if (!cu.hasConstructor(val)) return [];
-  return Object.getOwnPropertyNames(val);
+  var keys = Object.getOwnPropertyNames(val);
+  if ('caller' in val) keys.push('caller');
+  return keys;
 };
 
 /**
@@ -273,7 +278,7 @@ cu.copy = function copy(receiver, provider, omit) {
     key = props[len];
 
     if (cu.has(keys, key)) {
-      utils.define(receiver, key, provider[key]);
+      define(receiver, key, provider[key]);
     } else if (!(key in receiver) && !cu.has(omit, key)) {
       cu.copyDescriptor(receiver, provider, key);
     }
@@ -337,7 +342,7 @@ cu.inherit = function inherit(receiver, provider, omit) {
 
 cu.extend = function() {
   // keep it lazy, instead of assigning to `cu.extend`
-  return utils.staticExtend.apply(null, arguments);
+  return staticExtend.apply(null, arguments);
 };
 
 /**
@@ -352,7 +357,7 @@ cu.bubble = function(Parent, events) {
   events = events || [];
   Parent.bubble = function(Child, arr) {
     if (Array.isArray(arr)) {
-      events = utils.union([], events, arr);
+      events = union([], events, arr);
     }
     var len = events.length;
     var idx = -1;

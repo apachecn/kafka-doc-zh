@@ -7,7 +7,6 @@
 var toRegex = require('to-regex');
 var unique = require('array-unique');
 var extend = require('extend-shallow');
-var define = require('define-property');
 
 /**
  * Local dependencies
@@ -119,8 +118,9 @@ braces.create = function(pattern, options) {
     throw new TypeError('expected a string');
   }
 
-  if (pattern.length >= MAX_LENGTH) {
-    throw new Error('expected pattern to be less than ' + MAX_LENGTH + ' characters');
+  var maxLength = (options && options.maxLength) || MAX_LENGTH;
+  if (pattern.length >= maxLength) {
+    throw new Error('expected pattern to be less than ' + maxLength + ' characters');
   }
 
   function create() {
@@ -154,7 +154,11 @@ braces.create = function(pattern, options) {
       arr = unique(arr);
     }
 
-    define(arr, 'result', result);
+    Object.defineProperty(arr, 'result', {
+      enumerable: false,
+      value: result
+    });
+
     return arr;
   }
 
@@ -181,8 +185,9 @@ braces.makeRe = function(pattern, options) {
     throw new TypeError('expected a string');
   }
 
-  if (pattern.length >= MAX_LENGTH) {
-    throw new Error('expected pattern to be less than ' + MAX_LENGTH + ' characters');
+  var maxLength = (options && options.maxLength) || MAX_LENGTH;
+  if (pattern.length >= maxLength) {
+    throw new Error('expected pattern to be less than ' + maxLength + ' characters');
   }
 
   function makeRe() {

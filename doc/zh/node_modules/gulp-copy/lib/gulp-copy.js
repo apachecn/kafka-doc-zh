@@ -3,7 +3,7 @@
 var through = require('through2');
 var path = require('path');
 var fs = require('fs');
-var PluginError = require('gulp-util').PluginError;
+var PluginError = require('plugin-error');
 
 /**
  * gulp copy method

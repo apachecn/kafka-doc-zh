@@ -1,7 +1,7 @@
 /*!
  * object.map <https://github.com/jonschlinkert/object.map>
  *
- * Copyright (c) 2014, 2017, Jon Schlinkert.
+ * Copyright (c) 2014-2017, Jon Schlinkert.
  * Released under the MIT License.
  */
 

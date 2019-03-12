@@ -226,13 +226,14 @@ extglob.create = function(pattern, options) {
 };
 
 /**
- * Returns an array of matches captured by `pattern` in `string, or `null` if the pattern did not match.
+ * Returns an array of matches captured by `pattern` in `string`, or `null`
+ * if the pattern did not match.
  *
  * ```js
  * var extglob = require('extglob');
  * extglob.capture(pattern, string[, options]);
  *
- * console.log(extglob.capture('test/*.js', 'test/foo.js));
+ * console.log(extglob.capture('test/*.js', 'test/foo.js'));
  * //=> ['foo']
  * console.log(extglob.capture('test/*.js', 'foo/bar.css'));
  * //=> null

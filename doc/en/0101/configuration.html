@@ -28,7 +28,7 @@
   </ul>
 
   Topic-level configurations and defaults are discussed in more detail <a href="#topic-config">below</a>.
-  @@include('generated/kafka_config.html')
+
   <!--#include virtual="generated/kafka_config.html" -->
 
   <p>More details about broker configuration can be found in the scala class <code>kafka.server.KafkaConfig</code>.</p>
@@ -56,14 +56,14 @@
   </pre>
 
   The following are the topic-level configurations. The server's default configuration for this property is given under the Server Default Property heading. A given server default config value only applies to a topic if it does not have an explicit topic config override.
-  @@include('generated/topic_config.html')
+
   <!--#include virtual="generated/topic_config.html" -->
 
   <h3><a id="producerconfigs" href="#producerconfigs">3.2 Producer Configs</a></h3>
 
   Below is the configuration of the Java producer:
   <!--#include virtual="generated/producer_config.html" -->
-  @@include('generated/producer_config.html')
+
   <p>
       For those interested in the legacy Scala producer configs, information can be found <a href="http://kafka.apache.org/082/documentation.html#producerconfigs">
       here</a>.
@@ -77,7 +77,7 @@
   <h4><a id="newconsumerconfigs" href="#newconsumerconfigs">3.3.1 New Consumer Configs</a></h4>
   Below is the configuration for the new consumer:
   <!--#include virtual="generated/consumer_config.html" -->
-  @@include('generated/consumer_config.html')
+
   <h4><a id="oldconsumerconfigs" href="#oldconsumerconfigs">3.3.2 Old Consumer Configs</a></h4>
 
   The essential old consumer configurations are the following:
@@ -248,12 +248,10 @@
   <h3><a id="connectconfigs" href="#connectconfigs">3.4 Kafka Connect Configs</a></h3>
   Below is the configuration of the Kafka Connect framework.
   <!--#include virtual="generated/connect_config.html" -->
-  @@include('generated/connect_config.html')
+
   <h3><a id="streamsconfigs" href="#streamsconfigs">3.5 Kafka Streams Configs</a></h3>
   Below is the configuration of the Kafka Streams client library.
   <!--#include virtual="generated/streams_config.html" -->
-
-  @@include('generated/streams_config.html')
 </script>
 
 <div class="p-configuration"></div>

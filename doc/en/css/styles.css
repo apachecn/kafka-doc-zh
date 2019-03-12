@@ -60,7 +60,7 @@ h2 {
     text-transform: uppercase;
     font-size: 2rem;
     font-weight: 700;
-    margin: 0;
+    margin: 40px 0px 0px 0px;
 }
 h3,
 h4 {
@@ -81,11 +81,7 @@ h3.bullet::after {
     width: 5rem;
 }
 a {
-    color: #0B6D88;
-    text-decoration: none;
-}
-a:hover {
-    color: #0C637B;
+    color: #0968DE;
 }
 img {
     max-width: 100%;
@@ -235,6 +231,46 @@ ol.toc > li {
     -webkit-hyphens: none;
     hyphens: none;
 }
+
+table.docutils  {    
+    border-collapse: collapse;
+    border-spacing: 0;
+    empty-cells: show;
+    background-color: transparent;
+    table-layout: fixed; width: 100%;
+    font-size:1.5rem;
+    line-height: 1.8;
+}
+
+td {
+    border: 1px solid #e1e4e5;
+    margin: 0;
+    padding: 16px;
+    overflow: hidden;
+    width: 200px;
+}
+
+
+th {
+    border: 1px solid #e1e4e5;
+    margin: 0;
+    overflow: visible;
+    padding: 8px 16px;
+    text-align:left;
+    background-color:#ccc;
+}
+
+tr:nth-child(even) {
+
+    background-color: #f2f2f2;
+
+}
+
+.highlight pre span {
+
+   font-size:1.4rem;
+}
+
 /* helper classes */
 
 .centered {
@@ -312,6 +348,9 @@ nav {
     float: left;
     text-transform: uppercase;
     width: 16rem;
+}
+nav a {
+    text-decoration: none;
 }
 .nav__item,
 .nav__item__with__subs {
@@ -725,6 +764,21 @@ nav .btn {
     background-image: url('/images/icons/check.png');
     background-size: contain;
 }
+
+.download-version a{
+    visibility: hidden;
+    padding-left:10px;
+  }
+  .svg-inline--fa.fa-w-16 {
+    width: 0.8em;
+ }
+
+#streams-use-case {
+    visibility: hidden;
+    opacity:0.7;
+        
+}
+
 /* Responsive styles */
 
 @media only screen and (max-width: 1240px) {

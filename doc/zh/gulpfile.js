@@ -55,7 +55,7 @@ gulp.task('copy6',function(){
 
     
 }) 
-var folders=['07','08','10','081','082','090','0100','0101','0102','0103','0110']
+var folders=['07','08','10','081','082','090','0100','0101','0102','0110','11','20','21','22']
 
 gulp.task('html', function () {
     for(var i=0;i<folders.length;i++){
@@ -78,7 +78,7 @@ gulp.task('documentation', function () {
     }
 }); 
 
-var streamsVersion=['0102','0110']
+var streamsVersion=['0102','0110','11','20','21','22']
 
 gulp.task('streams', function () {
     for(var i=0;i<folders.length;i++){
@@ -104,17 +104,38 @@ gulp.task('10streams', function () {
 
 gulp.task('10streams2', function () {
     for(var i=0;i<folders.length;i++){
-    gulp.src('10/documentation/streams/**.html')
+    gulp.src('22/documentation/streams/**.html')
         .pipe(fileinclude({
             prefix: '@@',
             basepath: '@file'
         }))
-        .pipe(gulp.dest('dist/10/documentation/streams'));
+        .pipe(gulp.dest('dist/22/documentation/streams'));
+    }
+}); 
+
+gulp.task('22imgae', function () {
+    for(var i=0;i<folders.length;i++){
+    gulp.src('22/images/**')
+        .pipe(fileinclude({
+            prefix: '@@',
+            basepath: '@file'
+        }))
+        .pipe(gulp.dest('dist/22/images'));
+    }
+}); 
+gulp.task('21imgae', function () {
+    for(var i=0;i<folders.length;i++){
+    gulp.src('21/images/**')
+        .pipe(fileinclude({
+            prefix: '@@',
+            basepath: '@file'
+        }))
+        .pipe(gulp.dest('dist/21/images'));
     }
 }); 
 
 
 
 
-gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2'] )
+gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2','22imgae','21imgae'] )
 

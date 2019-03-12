@@ -1,9 +1,6 @@
-@@include('includes/_header.htm')
-@@include('includes/_top.htm')
 <!--#include virtual="includes/_header.htm" -->
 <!--#include virtual="includes/_top.htm" -->
 <div class="content">
-		@@include('includes/_nav.htm')
 	<!--#include virtual="includes/_nav.htm" -->
 	<div class="right">
 		<h1>Coding guidelines</h1>
@@ -142,7 +139,7 @@
 					<li>If reformatting is neccessary, do a minor PR (either upfront or as follow up).</li>
 				</ul>
 			</li>
-			<li>Run <code>./gradlew clean chechstyleMain checkstyleTest</code> before opening/updating a PR.</li>
+			<li>Run <code>./gradlew clean checkstyleMain checkstyleTest</code> before opening/updating a PR.</li>
 			<li>Help reviewing!
                             No need to be shy; if you can contribute code, you know enough to comment on the work of others.</li>
 		</ul>
@@ -150,5 +147,5 @@
 	// Show selected style on nav item
 	$(function() { $('.b-nav__project').addClass('selected'); });
 	</script>
-	@@include('includes/_footer.htm')
+
 <!--#include virtual="includes/_footer.htm" -->

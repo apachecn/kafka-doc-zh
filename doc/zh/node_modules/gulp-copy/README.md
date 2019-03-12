@@ -10,7 +10,7 @@ Most likely you don't need this package for your gulp pipeline, a lot can be acc
 A reason to use this package would be to keep some depth (prefix options).
 
 ## Usage
-```
+```js
 // gulpfile.js
 
 var gulpCopy = require('gulp-copy');

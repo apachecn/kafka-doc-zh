@@ -16,103 +16,104 @@
 -->
 
 <script id="security-template" type="text/x-handlebars-template">
-    <h3><a id="security_overview" href="#security_overview">7.1 安全总览</a></h3>
-    在0.9.0.0版中，Kafka社区添加了一些特性，通过单独使用或者一起使用这些特性，提高了Kafka集群的安全性。目前支持下列安全措施：
+    <h3><a id="security_overview" href="#security_overview">7.1 Security Overview</a></h3>
+    In release 0.9.0.0, the Kafka community added a number of features that, used either separately or together, increases security in a Kafka cluster. The following security measures are currently supported:
     <ol>
-        <li>使用SSL或SASL验证来自客户端(producers和consumers)、其他brokers和工具的连接。Kafka支持以下SASL机制：
+        <li>Authentication of connections to brokers from clients (producers and consumers), other brokers and tools, using either SSL or SASL. Kafka supports the following SASL mechanisms:
         <ul>
-            <li>SASL/GSSAPI (Kerberos) - 从版本0.9.0.0开始</li>
-            <li>SASL/PLAIN - 从版本0.10.0.0开始</li>
-            <li>SASL/SCRAM-SHA-256 和 SASL/SCRAM-SHA-512 - 从版本0.10.2.0开始</li>
+            <li>SASL/GSSAPI (Kerberos) - starting at version 0.9.0.0</li>
+            <li>SASL/PLAIN - starting at version 0.10.0.0</li>
+            <li>SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512 - starting at version 0.10.2.0</li>
         </ul></li>
-        <li>验证从brokers 到 ZooKeeper的连接</li>
-        <li>对brokers与clients之间、brokers之间或brokers与工具之间使用SSL传输对数据加密(注意，启用SSL时性能会下降，其大小取决于CPU类型和JVM实现)。</li>
-        <li>授权客户端的读写操作</li>
-        <li>授权是可插拔的，并且支持与外部授权服务的集成</li>
+        <li>Authentication of connections from brokers to ZooKeeper</li>
+        <li>Encryption of data transferred between brokers and clients, between brokers, or between brokers and tools using SSL (Note that there is a performance degradation when SSL is enabled, the magnitude of which depends on the CPU type and the JVM implementation.)</li>
+        <li>Authorization of read / write operations by clients</li>
+        <li>Authorization is pluggable and integration with external authorization services is supported</li>
     </ol>
 
-    值得注意的是，安全是可选的 - 支持非安全集群，也支持需要认证，不需要认证，加密和未加密clients的混合集群。
+    It's worth noting that security is optional - non-secured clusters are supported, as well as a mix of authenticated, unauthenticated, encrypted and non-encrypted clients.
 
-    以下指南介绍了如何在clients和brokers中配置和使用安全功能。
+    The guides below explain how to configure and use the security features in both clients and brokers.
 
-    <h3><a id="security_ssl" href="#security_ssl">7.2 使用SSL加密和授权</a></h3>
-    Apache Kafka允许客户端通过SSL进行连接。默认情况下，SSL被禁用，但可以根据需要启用。
+    <h3><a id="security_ssl" href="#security_ssl">7.2 Encryption and Authentication using SSL</a></h3>
+    Apache Kafka allows clients to connect over SSL. By default, SSL is disabled but can be turned on as needed.
 
     <ol>
-        <li><h4><a id="security_ssl_key" href="#security_ssl_key">为每个Kafka broker生成SSL密钥和证书</a></h4>
-            部署一个或多个支持SSL的brokers的第一步是为集群中的每台计算机生成密钥和证书。你可以使用Java的keytool实用程序来完成此任务。最初我们将生成一个临时密钥库的密钥，以便我们稍后可以导出并用CA签名。
+        <li><h4><a id="security_ssl_key" href="#security_ssl_key">Generate SSL key and certificate for each Kafka broker</a></h4>
+            The first step of deploying one or more brokers with the SSL support is to generate the key and the certificate for each machine in the cluster. You can use Java's keytool utility to accomplish this task.
+            We will generate the key into a temporary keystore initially so that we can export and sign it later with CA.
             <pre class="brush: bash;">
             keytool -keystore server.keystore.jks -alias localhost -validity {validity} -genkey -keyalg RSA</pre>
 
-            你需要在上面的命令中指定两个参数：
+            You need to specify two parameters in the above command:
             <ol>
-                <li>keystore: 存储证书的密钥库文件。密钥库文件包含证书的私钥；因此，它需要安全保存。</li>
-                <li>validity: 证书有效期。</li>
+                <li>keystore: the keystore file that stores the certificate. The keystore file contains the private key of the certificate; therefore, it needs to be kept safely.</li>
+                <li>validity: the valid time of the certificate in days.</li>
             </ol>
             <br>
-            注意：默认情况下，属性ssl.endpoint.identification.algorithm未定义，所以不执行主机名验证。为了启用主机名验证，请设置以下属性：
+        Note: By default the property <code>ssl.endpoint.identification.algorithm</code> is not defined, so hostname verification is not performed. In order to enable hostname verification, set the following property:
 
         <pre class="brush: text;">	ssl.endpoint.identification.algorithm=HTTPS </pre>
 
-        启用后，客户端将根据以下两个字段之一验证服务器的完全限定域名(FQDN)：
+        Once enabled, clients will verify the server's fully qualified domain name (FQDN) against one of the following two fields:
         <ol>
             <li>Common Name (CN)
             <li>Subject Alternative Name (SAN)
         </ol>
         <br>
-        这两个字段都是有效的，但RFC-2818建议使用SAN。 SAN也更加灵活，允许声明多个DNS条目。另一个优点是可以将CN设置为更有意义的值用于授权目的。要添加SAN字段，请将以下参数<code> -ext SAN=DNS:{FQDN} </code>附加到keytool命令中：
+        Both fields are valid, RFC-2818 recommends the use of SAN however. SAN is also more flexible, allowing for multiple DNS entries to be declared. Another advantage is that the CN can be set to a more meaningful value for authorization purposes. To add a SAN field  append the following argument <code> -ext SAN=DNS:{FQDN} </code> to the keytool command:
         <pre class="brush: bash;">
         keytool -keystore server.keystore.jks -alias localhost -validity {validity} -genkey -keyalg RSA -ext SAN=DNS:{FQDN}
         </pre>
-        之后可以运行以下命令来验证生成的证书内容：
+        The following command can be run afterwards to verify the contents of the generated certificate:
         <pre class="brush: bash;">
         keytool -list -v -keystore server.keystore.jks
         </pre>
         </li>
-        <li><h4><a id="security_ssl_ca" href="#security_ssl_ca">创建你自己的证书管理机构 (CA)</a></h4>
-            在完成第一步之后, 集群中的每一台机器都有一个公私密钥对, 和一个用于标识该机器的证书. 但是, 这个证书是未签名的, 也就是说攻击者也可以创造一个这样的证书, 假装是其中任何一台机器.<p>
-            因此, 给集群中每个机器的证书签名, 来防止伪造的证书, 是非常重要的. 一个证书管理机构 (CA) 负责证书的签名. CA 的工作流程类似政府发放护照. 政府给每一个护照盖章(签名), 因此护照变得难以伪造. 其他政府通过验证这个盖章来确认护照是可信的. 同理, CA 给证书签名, 并且加密方法保证已经签名的证书是难以计算和伪造的. 所以, 只要 CA 是真实的可信的权威机构, 客户端能更好的保证他们连接到的是可信的机器.
+        <li><h4><a id="security_ssl_ca" href="#security_ssl_ca">Creating your own CA</a></h4>
+            After the first step, each machine in the cluster has a public-private key pair, and a certificate to identify the machine. The certificate, however, is unsigned, which means that an attacker can create such a certificate to pretend to be any machine.<p>
+            Therefore, it is important to prevent forged certificates by signing them for each machine in the cluster. A certificate authority (CA) is responsible for signing certificates. CA works likes a government that issues passports—the government stamps (signs) each passport so that the passport becomes difficult to forge. Other governments verify the stamps to ensure the passport is authentic. Similarly, the CA signs the certificates, and the cryptography guarantees that a signed certificate is computationally difficult to forge. Thus, as long as the CA is a genuine and trusted authority, the clients have high assurance that they are connecting to the authentic machines.
             <pre class="brush: bash;">
             openssl req -new -x509 -keyout ca-key -out ca-cert -days 365</pre>
 
-            生成的 CA 是一个简单的公私密钥对和证书, 然后, 它将对其他证书签名.<br>
+            The generated CA is simply a public-private key pair and certificate, and it is intended to sign other certificates.<br>
 
-            下一步是将生成的 CA 添加到 **客户端的信任存储区 (clients' truststore)**, 这样客户端才可以相信这个 CA:
+            The next step is to add the generated CA to the **clients' truststore** so that the clients can trust this CA:
             <pre class="brush: bash;">
             keytool -keystore client.truststore.jks -alias CARoot -import -file ca-cert</pre>
 
-            <b>Note:</b> 如果你将 Kafka broker 配置成需要客户端授权, 可以在 <a href="#config_broker">Kafka broker 配置</a>中设置 setting ssl.client.auth 属性为 "requested" 或者 "required". 然后你也一定要给 Kafka broker 提供一个信任存储区, 并且这个信任存储区应该拥有所有给客户端密钥签名的 CA 证书.
+            <b>Note:</b> If you configure the Kafka brokers to require client authentication by setting ssl.client.auth to be "requested" or "required" on the <a href="#config_broker">Kafka brokers config</a> then you must provide a truststore for the Kafka brokers as well and it should have all the CA certificates that clients' keys were signed by.
             <pre class="brush: bash;">
             keytool -keystore server.truststore.jks -alias CARoot -import -file ca-cert</pre>
 
-            相对于第一步中的密钥库 (keystore) 存储每个机器自己的标识, 客户端的信任存储区 (truststore) 保存所有客户端需要信任的证书. 导入一个证书到一台机器的信任存储区, 意味着这台机器将信任所有被这个证书签名的证书. 与上面相似的, 相信政府 (CA) 即相信政府发放的所有护照(证书). 这一特征称为信任链, 当在大型的 Kafka 集群中部署 SSL 时, 这一特征特别有用. 你可以用一个单一的 CA 给集群中的所有证书签名, 而且可以让所有机器共享信任该 CA 的信任存储区. 这样, 每个机器都可以认证除自己之外的全部机器.</li>
+            In contrast to the keystore in step 1 that stores each machine's own identity, the truststore of a client stores all the certificates that the client should trust. Importing a certificate into one's truststore also means trusting all certificates that are signed by that certificate. As the analogy above, trusting the government (CA) also means trusting all passports (certificates) that it has issued. This attribute is called the chain of trust, and it is particularly useful when deploying SSL on a large Kafka cluster. You can sign all certificates in the cluster with a single CA, and have all machines share the same truststore that trusts the CA. That way all machines can authenticate all other machines.</li>
 
-        <li><h4><a id="security_ssl_signing" href="#security_ssl_signing">给证书签名</a></h4>
-            下一步是用第二步生成的 CA 给第一步生成的所有证书签名. 首先, 你需要从密钥库中把证书导出来: 
+        <li><h4><a id="security_ssl_signing" href="#security_ssl_signing">Signing the certificate</a></h4>
+            The next step is to sign all certificates generated by step 1 with the CA generated in step 2. First, you need to export the certificate from the keystore:
             <pre class="brush: bash;">
             keytool -keystore server.keystore.jks -alias localhost -certreq -file cert-file</pre>
 
-            然后用 CA 给导出的证书签名:
+            Then sign it with the CA:
             <pre class="brush: bash;">
             openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days {validity} -CAcreateserial -passin pass:{ca-password}</pre>
 
-            最后, 你要把 CA 的证书和被签名的证书一起导入密钥库中:
+            Finally, you need to import both the certificate of the CA and the signed certificate into the keystore:
             <pre class="brush: bash;">
             keytool -keystore server.keystore.jks -alias CARoot -import -file ca-cert
             keytool -keystore server.keystore.jks -alias localhost -import -file cert-signed</pre>
 
-            参数的定义如下所示:
+            The definitions of the parameters are the following:
             <ol>
-                <li>keystore: 密钥库的地址</li>
-                <li>ca-cert: CA 的证书</li>
-                <li>ca-key: CA 的私钥</li>
-                <li>ca-password: CA 的密码</li>
-                <li>cert-file: 从服务器导出的未被签名的证书</li>
-                <li>cert-signed: 已经签名的服务器的证书</li>
+                <li>keystore: the location of the keystore</li>
+                <li>ca-cert: the certificate of the CA</li>
+                <li>ca-key: the private key of the CA</li>
+                <li>ca-password: the passphrase of the CA</li>
+                <li>cert-file: the exported, unsigned certificate of the server</li>
+                <li>cert-signed: the signed certificate of the server</li>
             </ol>
 
-            这是一个集合上面所有步骤, 用 bash 写的例子. 注意其中一条命令假设密码是 `test1234`, 所以你要么使用这个密码, 要么在执行命令前修改该密码:
-            <pre>
+            Here is an example of a bash script with all above steps. Note that one of the commands assumes a password of `test1234`, so either use that password or edit the command before running it.
+                <pre>
             #!/bin/bash
             #Step 1
             keytool -keystore server.keystore.jks -alias localhost -validity 365 -keyalg RSA -genkey
@@ -125,17 +126,16 @@
             openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:test1234
             keytool -keystore server.keystore.jks -alias CARoot -import -file ca-cert
             keytool -keystore server.keystore.jks -alias localhost -import -file cert-signed</pre></li>
-
-        <li><h4><a id="security_configbroker" href="#security_configbroker">配置 Kafka Broker</a></h4>
-            Kafka Broker 支持在多个端口上监听连接.
-            我们需要在 server.properties 中配置以下属性, 必须有一个或多个用逗号隔开的值:
+        <li><h4><a id="security_configbroker" href="#security_configbroker">Configuring Kafka Brokers</a></h4>
+            Kafka Brokers support listening for connections on multiple ports.
+            We need to configure the following property in server.properties, which must have one or more comma-separated values:
             <pre>listeners</pre>
 
-            如果 broker 之间的通信没有启用 SSL (如何启用可参照下文). PLAINTEXT 和 SSL 两个协议都需要提供端口信息.
+            If SSL is not enabled for inter-broker communication (see below for how to enable it), both PLAINTEXT and SSL ports will be necessary.
             <pre class="brush: text;">
             listeners=PLAINTEXT://host.name:port,SSL://host.name:port</pre>
 
-            下面是 broker 端需要的 SSL 的配置:
+            Following SSL configs are needed on the broker side
             <pre class="brush: text;">
             ssl.keystore.location=/var/private/ssl/server.keystore.jks
             ssl.keystore.password=test1234
@@ -143,131 +143,141 @@
             ssl.truststore.location=/var/private/ssl/server.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: 严格来讲 ssl.truststore.password 是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问信任存储区 (truststore), 但是不能进行真实性检查.
+            Note: ssl.truststore.password is technically optional but highly recommended. If a password is not set access to the truststore is still available, but integrity checking is disabled.
 
-            值得考虑的可选配置:
+            Optional settings that are worth considering:
             <ol>
-                <li>ssl.client.auth=none ("required" => 客户端授权是必须的, "requested" => 客户端授权是需要的, 但是没有证书依然可以连接. 因为 "requested" 会造成错误的安全感, 而且在客户端配置错误的情况下依然可以连接成功, 所以不鼓励使用.)</li>
-                <li>ssl.cipher.suites (可选的). 指定的密码套件, 由授权, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置. (默认是空的 list)</li>
-                <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1 (列出你将要从客户端接收的 SSL 协议. 注意, SSL 已经废弃, 支持 TLS, 并且不建议在生产环境中使用 SSL.)</li>
+                <li>ssl.client.auth=none ("required" => client authentication is required, "requested" => client authentication is requested and client without certs can still connect. The usage of "requested" is discouraged as it provides a false sense of security and misconfigured clients will still connect successfully.)</li>
+                <li>ssl.cipher.suites (Optional). A cipher suite is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol. (Default is an empty list)</li>
+                <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1 (list out the SSL protocols that you are going to accept from clients. Do note that SSL is deprecated in favor of TLS and using SSL in production is not recommended)</li>
                 <li>ssl.keystore.type=JKS</li>
                 <li>ssl.truststore.type=JKS</li>
                 <li>ssl.secure.random.implementation=SHA1PRNG</li>
             </ol>
-            如果你想 broker 间的通信启用 SSL, 将下面内容添加到 server.properties 文件中(默认是 PLAINTEXT ):
+            If you want to enable SSL for inter-broker communication, add the following to the server.properties file (it defaults to PLAINTEXT)
             <pre>
             security.inter.broker.protocol=SSL</pre>
 
             <p>
-            由于一些国家的进口规定, Oracle 的实现限制了默认加密算法的强度. 如果需要更强的算法 (例如, 256 位的 AES 密钥), 必须获得 <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JCE Unlimited Strength Jurisdiction Policy 文件</a>, 并且在 JDK/JRE 中安装.
-            参考 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">JCA Providers 文档</a> 获取更多新.
+            Due to import regulations in some countries, the Oracle implementation limits the strength of cryptographic algorithms available by default. If stronger algorithms are needed (for example, AES with 256-bit keys), the <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JCE Unlimited Strength Jurisdiction Policy Files</a> must be obtained and installed in the JDK/JRE. See the
+            <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">JCA Providers Documentation</a> for more information.
             </p>
 
             <p>
-            JRE/JDK 将有一个默认的伪随机数生成器 (PRNG), 用于加密操作, 所以没有要求使用 <pre>ssl.secure.random.implementation</pre> 配置 PRNG 的实现.
-            但是, 其中某些实现会造成性能问题 (尤其是, Linux 系统的默认选择, <pre>NativePRNG</pre>, 利用了一个全局锁.)
-            万一 SSL 连接的性能变成一个问题, 可以考虑, 明确的设置要使用的 PRNG 实现.
-            <pre>SHA1PRNG</pre> 实现是非阻塞的, 在高负载 (加上复制消息的流量, 每个 broker 生产消息的速度是 50 MB/sec) 下有非常好的性能表现.
+            The JRE/JDK will have a default pseudo-random number generator (PRNG) that is used for cryptography operations, so it is not required to configure the
+            implementation used with the <pre>ssl.secure.random.implementation</pre>. However, there are performance issues with some implementations (notably, the
+            default chosen on Linux systems, <pre>NativePRNG</pre>, utilizes a global lock). In cases where performance of SSL connections becomes an issue,
+            consider explicitly setting the implementation to be used. The <pre>SHA1PRNG</pre> implementation is non-blocking, and has shown very good performance
+            characteristics under heavy load (50 MB/sec of produced messages, plus replication traffic, per-broker).
             </p>
 
-            一旦你启动了 broker, 你应该能在 server.log 中看到如下内容:
+            Once you start the broker you should be able to see in the server.log
             <pre>
             with addresses: PLAINTEXT -> EndPoint(192.168.64.1,9092,PLAINTEXT),SSL -> EndPoint(192.168.64.1,9093,SSL)</pre>
 
-            用以下命令可以快速验证服务器的 keystore 和 truststore 是否设置正确:
-            <pre>openssl s_client -debug -connect localhost:9093 -tls1</pre> (Note: TLSv1 需要在 ssl.enabled.protocols 中列出)<br>
-            在命令的输出中, 你应该能看到服务器的证书:
+            To check quickly if  the server keystore and truststore are setup properly you can run the following command
+            <pre>openssl s_client -debug -connect localhost:9093 -tls1</pre> (Note: TLSv1 should be listed under ssl.enabled.protocols)<br>
+            In the output of this command you should see server's certificate:
             <pre>
             -----BEGIN CERTIFICATE-----
             {variable sized random bytes}
             -----END CERTIFICATE-----
             subject=/C=US/ST=CA/L=Santa Clara/O=org/OU=org/CN=Sriharsha Chintalapani
             issuer=/C=US/ST=CA/L=Santa Clara/O=org/OU=org/CN=kafka/emailAddress=test@test.com</pre>
-            如果没有显示证书信息, 或者有任何其他错误信息, 那么你的 keystore 设置不正确。</li>
+            If the certificate does not show up or if there are any other error messages then your keystore is not setup properly.</li>
 
-        <li><h4><a id="security_configclients" href="#security_configclients">配置 Kafka 客户端</a></h4>
-            只有新的 Kafka Producer 和 Consumer 支持 SSL, 旧的 API 不支持 SSL. Producer 和 Consumer 的 SSL 的配置相同.<br>
-            如果在 broker 中不需要客户端授权, 那么下面是最小的配置的例子:
+        <li><h4><a id="security_configclients" href="#security_configclients">Configuring Kafka Clients</a></h4>
+            SSL is supported only for the new Kafka Producer and Consumer, the older API is not supported. The configs for SSL will be the same for both producer and consumer.<br>
+            If client authentication is not required in the broker, then the following is a minimal configuration example:
             <pre class="brush: text;">
             security.protocol=SSL
             ssl.truststore.location=/var/private/ssl/client.truststore.jks
             ssl.truststore.password=test1234</pre>
 
-            Note: 严格来讲 ssl.truststore.password 是可选配置的, 但是强烈建议配置. 如果没有配置 password, 依然可以访问 truststore, 但是不能进行真实性检查.
+            Note: ssl.truststore.password is technically optional but highly recommended. If a password is not set access to the truststore is still available, but integrity checking is disabled.
 
-            如果要求客户端授权, 必须像第一步一样创建一个 keystore, 和配置下面这些信息:
+            If client authentication is required, then a keystore must be created like in step 1 and the following must also be configured:
             <pre class="brush: text;">
             ssl.keystore.location=/var/private/ssl/client.keystore.jks
             ssl.keystore.password=test1234
             ssl.key.password=test1234</pre>
 			
-            根据我们的需求和 broker 的配置, 也需要设置其他的配置:
+            Other configuration settings that may also be needed depending on our requirements and the broker configuration:
                 <ol>
-                    <li>ssl.provider (可选的). 用于 SSL 连接的安全提供程序名称. 默认值是 JVM 的默认安全提供程序.</li>
-                    <li>ssl.cipher.suites (可选的). 指定的密码套件, 由授权, 加密, MAC 和密钥交换算法组成, 用于给使用 TLS 或者 SSL 协议的网络协商安全设置.</li>
-                    <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1. 需要列出至少一个在 broker 端配置的协议</li>
+                    <li>ssl.provider (Optional). The name of the security provider used for SSL connections. Default value is the default security provider of the JVM.</li>
+                    <li>ssl.cipher.suites (Optional). A cipher suite is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol.</li>
+                    <li>ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1. It should list at least one of the protocols configured on the broker side</li>
                     <li>ssl.truststore.type=JKS</li>
                     <li>ssl.keystore.type=JKS</li>
                 </ol>
     <br>
-            使用 console-producer 和 console-consumer 的例子:
+            Examples using console-producer and console-consumer:
             <pre class="brush: bash;">
             kafka-console-producer.sh --broker-list localhost:9093 --topic test --producer.config client-ssl.properties
             kafka-console-consumer.sh --bootstrap-server localhost:9093 --topic test --consumer.config client-ssl.properties</pre>
         </li>
     </ol>
-    <h3><a id="security_sasl" href="#security_sasl">7.3 使用SASL实现身份验证</a></h3>
+    <h3><a id="security_sasl" href="#security_sasl">7.3 Authentication using SASL</a></h3>
 
     <ol>
-    <li><h4><a id="security_sasl_jaasconfig" href="#security_sasl_jaasconfig">JAAS 的配置</a></h4>
-    <p>Kafka 使用Java验证和授权API
+    <li><h4><a id="security_sasl_jaasconfig" href="#security_sasl_jaasconfig">JAAS configuration</a></h4>
+    <p>Kafka uses the Java Authentication and Authorization Service
     (<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jaas/JAASRefGuide.html">JAAS</a>)
-    来完成 SASL 配置.</p>
+    for SASL configuration.</p>
         <ol>
         <li><h5><a id="security_jaas_broker"
-            href="#security_jaas_broker">Kafka brokers 的 JAAS 的配置</a></h5>
+            href="#security_jaas_broker">JAAS configuration for Kafka brokers</a></h5>
 
-            <p><tt>KafkaServer</tt> 是每一个 KafkaServer/Broker 的 JASS 文件里面的节点名称。
-                在这个节点中，提供了用于所有 brokers 之间通信的 SASL 客户端连接的 SASL 配置选项。</p>
+            <p><tt>KafkaServer</tt> is the section name in the JAAS file used by each
+            KafkaServer/Broker. This section provides SASL configuration options
+            for the broker including any SASL client connections made by the broker
+            for inter-broker communication.</p>
 
-            <p><tt>Client</tt> 节点是用于认证 SASL 与 zookeeper 之间的连接。它也允许 brokers 通过设定 zookeeper 节点中 SASL ACL
-                来锁定这些节点 从而确定这些节点不被其他 broker 修改。
-                在所有的 broker 中都必须使用相同的名称。 如果您想使用 Client 以外名称, 请设置系统属性
-                <tt>zookeeper.sasl.clientconfig</tt> 中填写合适的名称
-                (<i>e.g.</i>, <tt>-Dzookeeper.sasl.clientconfig=ZkClient</tt>).</p>
+            <p><tt>Client</tt> section is used to authenticate a SASL connection with
+            zookeeper. It also allows the brokers to set SASL ACL on zookeeper
+            nodes which locks these nodes down so that only the brokers can
+            modify it. It is necessary to have the same principal name across all
+            brokers. If you want to use a section name other than Client, set the
+            system property <tt>zookeeper.sasl.clientconfig</tt> to the appropriate
+            name (<i>e.g.</i>, <tt>-Dzookeeper.sasl.clientconfig=ZkClient</tt>).</p>
 
-            <p>ZooKeeper 使用 "zookeeper" 作为默认的名称. 如果您想改变它的话, 请设置系统属性
-            <tt>zookeeper.sasl.client.username</tt> 中填写合适的名称
+            <p>ZooKeeper uses "zookeeper" as the service name by default. If you
+            want to change this, set the system property
+            <tt>zookeeper.sasl.client.username</tt> to the appropriate name
             (<i>e.g.</i>, <tt>-Dzookeeper.sasl.client.username=zk</tt>).</p></li>
 
         <li><h5><a id="security_jaas_client"
-            href="#security_jaas_client">Kafka clients 的 JAAS 的配置</a></h5>
+            href="#security_jaas_client">JAAS configuration for Kafka clients</a></h5>
 
-            <p>Client 通过配置客户端属性 <a href="#security_client_dynamicjaas">sasl.jaas.config</a>
-                或者通过与 brokers 相似的方法来配置 JAAS （<a href="#security_client_staticjaas">static JAAS config file</a>）
-            </p>
+            <p>Clients may configure JAAS using the client configuration property
+            <a href="#security_client_dynamicjaas">sasl.jaas.config</a>
+            or using the <a href="#security_client_staticjaas">static JAAS config file</a>
+            similar to brokers.</p>
 
             <ol>
             <li><h6><a id="security_client_dynamicjaas"
-                href="#security_client_dynamicjaas">通过客户端配置属性来配置JAAS</a></h6>
-                <p>客户无需创建物理文件来配置角色 只需要在 JASS 配置中指定 producer 或者 consumer。
-                    这种模式通过为每个客户端指定不同的属性来使用不同的凭证，从而确保可以在在同一个 JVM 中使用不同的 producers
-                    和 consumers。如果静态JAAS配置系统属性的方法
-                <code>java.security.auth.login.config</code> 和配置客户端属性 <code>sasl.jaas.config</code>的方法
-              同时被使用, 客户端的配置将会被使用.</p>
-                <p>请看 <a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
-                <a href="#security_sasl_plain_clientconfig">PLAIN</a> or
-                <a href="#security_sasl_scram_clientconfig">SCRAM</a> 中的示例配置。</p></li>
+                href="#security_client_dynamicjaas">JAAS configuration using client configuration property</a></h6>
+                <p>Clients may specify JAAS configuration as a producer or consumer property without
+                creating a physical configuration file. This mode also enables different producers
+                and consumers within the same JVM to use different credentials by specifying
+                different properties for each client. If both static JAAS configuration system property
+                <code>java.security.auth.login.config</code> and client property <code>sasl.jaas.config</code>
+                are specified, the client property will be used.</p>
 
-                <li><h6><a id="security_client_staticjaas" href="#security_client_staticjaas">通过静态配置文件来配置 JAAS</a></h6>
-                    使用静态 JAAS 配置文件 来配置 SASL 的客户端认证服务：
+                <p>See <a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
+                <a href="#security_sasl_plain_clientconfig">PLAIN</a> or
+                <a href="#security_sasl_scram_clientconfig">SCRAM</a> for example configurations.</p></li>
+
+                <li><h6><a id="security_client_staticjaas" href="#security_client_staticjaas">JAAS configuration using static config file</a></h6>
+                To configure SASL authentication on the clients using static JAAS config file:
                 <ol>
-                <li>添加一个名为 <tt>KafkaClient</tt> 客户端的登陆节点，同时为 <tt>KafkaClient</tt> 中所选机制来配置一个登陆模块
-                    如设置<a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
-                    <a href="#security_sasl_plain_clientconfig">PLAIN</a> 或者
-                    <a href="#security_sasl_scram_clientconfig">SCRAM</a>。
-                    例如, <a href="#security_sasl_gssapi_clientconfig">GSSAPI</a>
-                    的凭证配置如下:
+                <li>Add a JAAS config file with a client login section named <tt>KafkaClient</tt>. Configure
+                    a login module in <tt>KafkaClient</tt> for the selected mechanism as described in the examples
+                    for setting up <a href="#security_sasl_kerberos_clientconfig">GSSAPI (Kerberos)</a>,
+                    <a href="#security_sasl_plain_clientconfig">PLAIN</a> or
+                    <a href="#security_sasl_scram_clientconfig">SCRAM</a>.
+                    For example, <a href="#security_sasl_gssapi_clientconfig">GSSAPI</a>
+                    credentials may be configured as:
                     <pre class="brush: text;">
         KafkaClient {
         com.sun.security.auth.module.Krb5LoginModule required
@@ -277,7 +287,7 @@
         principal="kafka-client-1@EXAMPLE.COM";
     };</pre>
                 </li>
-                <li>将 JASS 的配置文件位置作为 JVM 的参数传递给每个客户端的 JVM。 例如:
+                <li>Pass the JAAS config file location as JVM parameter to each client JVM. For example:
                     <pre class="brush: bash;">    -Djava.security.auth.login.config=/etc/kafka/kafka_client_jaas.conf</pre></li>
 	</ol>
                 </li>
@@ -286,63 +296,68 @@
         </ol>
     </li>
     <li><h4><a id="security_sasl_config"
-               href="#security_sasl_config">SASL 的配置</a></h4>
+        href="#security_sasl_config">SASL configuration</a></h4>
 
-        <p> SASL 可以使用 PLAINTEXT 或者 SSL 协议作为传输层，相对应的就是使用 SASL_PLAINTEXT 或者 SASL_SSL 安全协议。
-            如果使用 SASL_SSL 安全协议，必须配置 <a href="#security_ssl">SSL证书</a>。</p>
+        <p>SASL may be used with PLAINTEXT or SSL as the transport layer using the
+        security protocol SASL_PLAINTEXT or SASL_SSL respectively. If SASL_SSL is
+        used, then <a href="#security_ssl">SSL must also be configured</a>.</p>
 
         <ol>
-            <li><h5><a id="security_sasl_mechanism"
-                       href="#security_sasl_mechanism">SASL 安全机制</a></h5>
-                Kafka 支持以下的四个 SASL 机制:
-                <ul>
-                    <li><a href="#security_sasl_kerberos">GSSAPI</a> (Kerberos)</li>
-                    <li><a href="#security_sasl_plain">PLAIN</a></li>
-                    <li><a href="#security_sasl_scram">SCRAM-SHA-256</a></li>
-                    <li><a href="#security_sasl_scram">SCRAM-SHA-512</a></li>
-                </ul>
-            </li>
-            <li><h5><a id="security_sasl_brokerconfig"
-                       href="#security_sasl_brokerconfig">Kafka brokers 的SASL配置</a></h5>
-                <ol>
-                    <li>在 server.properties 文件中配置一个 SASL 端口， 要为 <i>listeners</i> 添加其中至少一个参数（SASL_PLAINTEXT 或者 SASL_SSL）：
-                        <pre>    listeners=SASL_PLAINTEXT://host.name:port</pre>
-                        如果您只配置一个 SASL 端口 （或者您只想希望在 Kafka brokersz 之间使用 SASL 协议相互认证的话）您需要确保您在 borker 之间通信中 使用了了相同的 SASL 协议。
-                        <pre>    security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)</pre></li>
-                    <li>选择一个或者多个 <a href="#security_sasl_mechanism">支持的安全机制</a>
-                        然后按照所给的步骤来为所选的安全机制配置 SASL 协议。 如果您想在 broker 中启用多个安全机制， 请根据<a href="#security_sasl_multimechanism">此处</a>步骤操作。
-                </ol>
-            </li>
-            <li><h5><a id="security_sasl_clientconfig"
-                       href="#security_sasl_clientconfig">Kafka 客户端配置 SASL</a></h5>
-                <p> SASL 授权只在新的 Java Kafka producer and consumer API 中被支持。之前的API并不支持</p>
+        <li><h5><a id="security_sasl_mechanism"
+            href="#security_sasl_mechanism">SASL mechanisms</a></h5>
+            Kafka supports the following SASL mechanisms:
+            <ul>
+                <li><a href="#security_sasl_kerberos">GSSAPI</a> (Kerberos)</li>
+                <li><a href="#security_sasl_plain">PLAIN</a></li>
+                <li><a href="#security_sasl_scram">SCRAM-SHA-256</a></li>
+                <li><a href="#security_sasl_scram">SCRAM-SHA-512</a></li>
+            </ul>
+        </li>
+        <li><h5><a id="security_sasl_brokerconfig"
+            href="#security_sasl_brokerconfig">SASL configuration for Kafka brokers</a></h5>
+            <ol>
+            <li>Configure a SASL port in server.properties, by adding at least one of
+                SASL_PLAINTEXT or SASL_SSL to the <i>listeners</i> parameter, which
+                contains one or more comma-separated values:
+                <pre>    listeners=SASL_PLAINTEXT://host.name:port</pre>
+                If you are only configuring a SASL port (or if you want
+                the Kafka brokers to authenticate each other using SASL) then make sure
+                you set the same SASL protocol for inter-broker communication:
+                <pre>    security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)</pre></li>
+            <li>Select one or more  <a href="#security_sasl_mechanism">supported mechanisms</a>
+                to enable in the broker and follow the steps to configure SASL for the mechanism.
+                To enable multiple mechanisms in the broker, follow the steps
+                <a href="#security_sasl_multimechanism">here</a>.</li>
+            </ol>
+        </li>
+        <li><h5><a id="security_sasl_clientconfig"
+            href="#security_sasl_clientconfig">SASL configuration for Kafka clients</a></h5>
+            <p>SASL authentication is only supported for the new Java Kafka producer and
+            consumer, the older API is not supported.</p>
 
-                <p>要在客户端配置 SASL 授权， 需在 broker 中选择一个已启用的<a href="#security_sasl_mechanism">SASL 机制</a>用于客户端授权
-                    并且根据下面的步骤为所选的安全机制配置 SASL 协议。</p>
-            </li>
+            <p>To configure SASL authentication on the clients, select a SASL
+            <a href="#security_sasl_mechanism">mechanism</a> that is enabled in
+            the broker for client authentication and follow the steps to configure SASL
+            for the selected mechanism.</p></li>
         </ol>
     </li>
-    <li><h4><a id="security_sasl_kerberos" href="#security_sasl_kerberos">使用 SASL/Kerberos 认证协议</a></h4>
+    <li><h4><a id="security_sasl_kerberos" href="#security_sasl_kerberos">Authentication using SASL/Kerberos</a></h4>
         <ol>
-        <li><h5><a id="security_sasl_kerberos_prereq" href="#security_sasl_kerberos_prereq">准备条件</a></h5>
+        <li><h5><a id="security_sasl_kerberos_prereq" href="#security_sasl_kerberos_prereq">Prerequisites</a></h5>
         <ol>
             <li><b>Kerberos</b><br>
-                如果您的项目已经使用 Kerberos 认证协议服务器（例如使用了Active Directory），那么您就无需为 Kafka 安装新的服务器，否则您需要从您 Linux 社区中的服务包中安装一个。
-                此处有一个简短的指南教您如何安装并且配置它(<a href="https://help.ubuntu.com/community/Kerberos">Ubuntu</a>,<a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Managing_Smart_Cards/installing-kerberos.html">Redhat</a>).
-                请注意，若果您正在使用 Oracle Java， 您需要对应您的 Java 版本 下载 JCE 策略文件，并且将它拷贝到 $JAVA_HOME/jre/lib/security 路径下面。
-            </li>
-            <li><b>创建 Kerberos 证书</b><br>
-            如果您在使用团队的 Kerberos 服务器或者 Active Directory 服务器, 请向您的 Kerberos 管理员咨询集群中每一个 Kafka broker 的证书 和 每个将通过 Kerberos 身份验证的用户的证书（通过客户端或者工具等方式通过身份验证）。</br>
-                如果您已经安装了自己的 Kerberos， 您可以根据下面的步骤为您自己创建证书：
+            If your organization is already using a Kerberos server (for example, by using Active Directory), there is no need to install a new server just for Kafka. Otherwise you will need to install one, your Linux vendor likely has packages for Kerberos and a short guide on how to install and configure it (<a href="https://help.ubuntu.com/community/Kerberos">Ubuntu</a>, <a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Managing_Smart_Cards/installing-kerberos.html">Redhat</a>). Note that if you are using Oracle Java, you will need to download JCE policy files for your Java version and copy them to $JAVA_HOME/jre/lib/security.</li>
+            <li><b>Create Kerberos Principals</b><br>
+            If you are using the organization's Kerberos or Active Directory server, ask your Kerberos administrator for a principal for each Kafka broker in your cluster and for every operating system user that will access Kafka with Kerberos authentication (via clients and tools).</br>
+            If you have installed your own Kerberos, you will need to create these principals yourself using the following commands:
                 <pre class="brush: bash;">
         sudo /usr/sbin/kadmin.local -q 'addprinc -randkey kafka/{hostname}@{REALM}'
         sudo /usr/sbin/kadmin.local -q "ktadd -k /etc/security/keytabs/{keytabname}.keytab kafka/{hostname}@{REALM}"</pre></li>
-            <li><b>确保所有的主机名可以访问其对应的主机</b> - Kerberos 要求您的所有主机都可以被其 FQDN 进行解析。</li>
+            <li><b>Make sure all hosts can be reachable using hostnames</b> - it is a Kerberos requirement that all your hosts can be resolved with their FQDNs.</li>
         </ol>
-        <li><h5><a id="security_sasl_kerberos_brokerconfig" href="#security_sasl_kerberos_brokerconfig">Kafka Brokers 的配置</a></h5>
+        <li><h5><a id="security_sasl_kerberos_brokerconfig" href="#security_sasl_kerberos_brokerconfig">Configuring Kafka Brokers</a></h5>
         <ol>
-            <li>为每一个 Kafka broker 的 config 目录下，创建一个类似下面的适当修改的 JAAS 文件，我们在这个例子中把它命名为 kafka_server_jaas.conf
-                （请注意每一个 broker 都应该有他自己 keytab):
+            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example (note that each broker should have its own keytab):
             <pre class="brush: text;">
         KafkaServer {
             com.sun.security.auth.module.Krb5LoginModule required
@@ -362,50 +377,54 @@
         };</pre>
 
             </li>
-            JAAS 文件中 的 <tt>KafkaServer</tt> 节点 告诉 broker 使用哪一个认证以及对应的认证的 keytab 的位置。
-            它允许 broker 根据节点中的 keytab 中的信息来认证登陆。 有关 Zookeeper SASL 配置的更多详细信息，请参阅 <a href="#security_sasl_brokernotes">此处</a>。
-            <li>将 JAAS 和 krb5（可选）的文件位置作为 JVM 的参数传给每一个 Kafka broker。获取更多资料请参照 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">此处</a>。
+            <tt>KafkaServer</tt> section in the JAAS file tells the broker which principal to use and the location of the keytab where this principal is stored. It
+            allows the broker to login using the keytab specified in this section. See <a href="#security_sasl_brokernotes">notes</a> for more details on Zookeeper SASL configuration.
+            <li>Pass the JAAS and optionally the krb5 file locations as JVM parameters to each Kafka broker (see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">here</a> for more details):
                 <pre>    -Djava.security.krb5.conf=/etc/kafka/krb5.conf
         -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre>
             </li>
-            <li>确保启动 Kafka broker 的操作系统用户可以读取 JAAS 文件中的 keytabs。</li>
-            <li>在配置server.properties文件中，确保SASL 端口 和 SASL 安全机制<a href="#security_sasl_brokerconfig">配置</a>正确. 例如:
+            <li>Make sure the keytabs configured in the JAAS file are readable by the operating system user who is starting kafka broker.</li>
+            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>. For example:
             <pre>    listeners=SASL_PLAINTEXT://host.name:port
         security.inter.broker.protocol=SASL_PLAINTEXT
         sasl.mechanism.inter.broker.protocol=GSSAPI
         sasl.enabled.mechanisms=GSSAPI
             </pre>
-            </li>我们在 server.properties 文件中， 必须配置和 Kafka broker 证书中名称相匹配的服务器名称。
-            在下面的例子中， 证书的名称为"kafka/kafka1.hostname.com@EXAMPLE.com"，所以
+            </li>We must also configure the service name in server.properties, which should match the principal name of the kafka brokers. In the above example, principal is "kafka/kafka1.hostname.com@EXAMPLE.com", so:
             <pre>    sasl.kerberos.service.name=kafka</pre>
 
         </ol></li>
-        <li><h5><a id="security_sasl_kerberos_clientconfig" href="#security_kerberos_sasl_clientconfig">Kafka 客户端的配置</a></h5>
-            在客户端配置 SASL 认证:
+        <li><h5><a id="security_sasl_kerberos_clientconfig" href="#security_kerberos_sasl_clientconfig">Configuring Kafka Clients</a></h5>
+            To configure SASL authentication on the clients:
             <ol>
                 <li>
-                    客户端 (producers, consumers, connect workers, 等等) 将使用自己的证书对集群进行身份验证（证书的名字通常与运行客户端的用户同名）
-                    然后根据需要来创建或者获取证书。从而为每一个客户端配置 JAAS 配置属性。
-                    通过指定不同的证书， JVM的不同客户端可以作为不同的用户运行。
-                    在 producer.properties 或者 consumer.properties 文件中 <code>sasl.jaas.config</code> 属性描述着客户端（producer 或 consumer）通过何种方式连接 Kafka broker。
-                    下面的例子是使用 keytab 配置客户端（建议用于长时间运行的进程）：
+                    Clients (producers, consumers, connect workers, etc) will authenticate to the cluster with their
+                    own principal (usually with the same name as the user running the client), so obtain or create
+                    these principals as needed. Then configure the JAAS configuration property for each client.
+                    Different clients within a JVM may run as different users by specifiying different principals.
+                    The property <code>sasl.jaas.config</code> in producer.properties or consumer.properties describes
+                    how clients like producer and consumer can connect to the Kafka Broker. The following is an example
+                    configuration for a client using a keytab (recommended for long-running processes):
                 <pre>
     sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
         useKeyTab=true \
         storeKey=true  \
         keyTab="/etc/security/keytabs/kafka_client.keytab" \
         principal="kafka-client-1@EXAMPLE.COM";</pre>
-                    对于像 kafka-console-consumer 和 kafka-console-producer 这样的命令行应用程序， kinit 可以与 "useTicketCache=true" 一同使用。就像：
+
+                   For command-line utilities like kafka-console-consumer or kafka-console-producer, kinit can be used
+                   along with "useTicketCache=true" as in:
                 <pre>
     sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
         useTicketCache=true;</pre>
 
-                    客户端的 JAAS 配置 也可以设定为与<a href="#security_client_staticjaas">此处</a>所述的 broker 类似的参数。
-                    客户端使用登陆的节点名称(<tt>KafkaClient</tt>)的这个选项只来确保 一个 JVM 的所有的客户端只对应一个用户。</li>
-                <li>确保启动 Kafka broker 的操作系统用户可以读取 JAAS 文件中的 keytabs。</li>
-                <li>（可选）将 krb5 的文件位置作为 JVM 的参数传给每一个 Kafka broker。获取更多资料请参照<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">此处</a>：
+                   JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
+                   as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
+                   <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</li>
+                <li>Make sure the keytabs configured in the JAAS configuration are readable by the operating system user who is starting kafka client.</li>
+                <li>Optionally pass the krb5 file locations as JVM parameters to each client JVM (see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jgss/tutorials/KerberosReq.html">here</a> for more details):
                 <pre>    -Djava.security.krb5.conf=/etc/kafka/krb5.conf</pre></li>
-                <li>在 producer.properties 和 consumer.properties 文件中配置以下的属性：
+                <li>Configure the following properties in producer.properties or consumer.properties:
                 <pre>
     security.protocol=SASL_PLAINTEXT (or SASL_SSL)
     sasl.mechanism=GSSAPI
@@ -415,14 +434,14 @@
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_plain" href="#security_sasl_plain">使用 SASL/PLAIN 认证</a></h4>
-        <p>SASL/PLAIN 是一种简单的 username/password 认证机制, 通常与 TLS 加密一起使用, 用于实现安全认证.
-        Kafka 提供了一个默认的 SASL/PLAIN 实现, 可以做扩展后在生产环境使用, 如 <a href="#security_sasl_plain_production">这里</a> 的描述.</p>
-        username 在 ACL 等的配置中作为已认证的 <code>Principal</code>.
+    <li><h4><a id="security_sasl_plain" href="#security_sasl_plain">Authentication using SASL/PLAIN</a></h4>
+        <p>SASL/PLAIN is a simple username/password authentication mechanism that is typically used with TLS for encryption to implement secure authentication.
+        Kafka supports a default implementation for SASL/PLAIN which can be extended for production use as described <a href="#security_sasl_plain_production">here</a>.</p>
+        The username is used as the authenticated <code>Principal</code> for configuration of ACLs etc.
         <ol>
-        <li><h5><a id="security_sasl_plain_brokerconfig" href="#security_sasl_plain_brokerconfig">配置 Kafka Broker</a></h5>
+        <li><h5><a id="security_sasl_plain_brokerconfig" href="#security_sasl_plain_brokerconfig">Configuring Kafka Brokers</a></h5>
             <ol>
-            <li>在每一个 Kafka broker 的 config 目录中, 添加一个类似于下面的适当修改过的 JAAS 文件. 在这个例子中, 让我们将它命名为 kafka_server_jaas.conf:
+            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example:
                 <pre class="brush: text;">
         KafkaServer {
             org.apache.kafka.common.security.plain.PlainLoginModule required
@@ -431,14 +450,14 @@
             user_admin="admin-secret"
             user_alice="alice-secret";
         };</pre>
-                这个配置定义了两个用户 (<i>admin</i> and <i>alice</i>). 
-                broker 使用在 <tt>KafkaServer</tt> 部分的 <tt>username</tt> 和 <tt>password</tt> 属性初始化与其他 broker 的连接.
-                在这个例子中, <i>admin</i> 是 broker 间通信的用户.
-                <tt>user_<i>userName</i></tt> 属性的值定义了所有连接到 broker 的用户的密码.
-                这个 broker 验证所有客户端的连接, 包括那些使用了这些配置的 broker 的连接.</li>
-            <li>将 JAAS 配置文件的路径作为 JVM 的参数, 并传递到每一个 Kafka broker:
+                This configuration defines two users (<i>admin</i> and <i>alice</i>). The properties <tt>username</tt> and <tt>password</tt>
+                in the <tt>KafkaServer</tt> section are used by the broker to initiate connections to other brokers. In this example,
+                <i>admin</i> is the user for inter-broker communication. The set of properties <tt>user_<i>userName</i></tt> defines
+                the passwords for all users that connect to the broker and the broker validates all client connections including
+                those from other brokers using these properties.</li>
+            <li>Pass the JAAS config file location as JVM parameter to each Kafka broker:
                 <pre>    -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre></li>
-            <li>如 <a href="#security_sasl_brokerconfig">这里</a> 描述的, 在 server.properties 中配置 SASL 端口和 SASL 机制. 例如:
+            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>. For example:
                 <pre>    listeners=SASL_SSL://host.name:port
         security.inter.broker.protocol=SASL_SSL
         sasl.mechanism.inter.broker.protocol=PLAIN
@@ -446,46 +465,53 @@
             </ol>
         </li>
 
-        <li><h5><a id="security_sasl_plain_clientconfig" href="#security_sasl_plain_clientconfig">配置 Kafka Client</a></h5>
-            在客户端上配置 SASL 验证:
+        <li><h5><a id="security_sasl_plain_clientconfig" href="#security_sasl_plain_clientconfig">Configuring Kafka Clients</a></h5>
+            To configure SASL authentication on the clients:
             <ol>
-            <li>在每一个客户端的 producer.properties 或者 consumer.properties 中配置 JAAS 属性.
-                登录模块描述了像生产者和消费者这样的客户端如何连接到 Kafka Broker.
-                下面是一个 PLAIN 机制的客户端的配置示例:
+            <li>Configure the JAAS configuration property for each client in producer.properties or consumer.properties.
+                The login module describes how the clients like producer and consumer can connect to the Kafka Broker.
+                The following is an example configuration for a client for the PLAIN mechanism:
                 <pre class="brush: text;">
     sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
         username="alice" \
         password="alice-secret";</pre>
-                <p><tt>username</tt> 和 <tt>password</tt> 选项被客户端用于配置客户端连接的用户.
-                在这个例子中, 客户端以 <i>alice</i> 用户连接到 broker.
-                通过在 <code>sasl.jaas.config</code> 中指定不同的用户名和密码, 在一个 JVM 内不同的客户端可以以不同的用户连接.</p>
+                <p>The options <tt>username</tt> and <tt>password</tt> are used by clients to configure
+                the user for client connections. In this example, clients connect to the broker as user <i>alice</i>.
+                Different clients within a JVM may connect as different users by specifying different user names
+                and passwords in <code>sasl.jaas.config</code>.</p>
 
-                <p>客户端的 JAAS 配置也可以像 <a href="#security_client_staticjaas">这里</a> 描述的 broker 一样, 指定为一个 JVM 参数.
-                客户端使用名为 <tt>KafkaClient</tt> 的登录部分.
-                此选项仅允许来自 JVM 的所有客户端连接中的一个用户.</p></li>
-            <li>在 producer.properties 或者 consumer.properties 中配置下面这些属性:
+                <p>JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
+                as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
+                <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</p></li>
+            <li>Configure the following properties in producer.properties or consumer.properties:
                 <pre>
     security.protocol=SASL_SSL
     sasl.mechanism=PLAIN</pre></li>
             </ol>
         </li>
-        <li><h5><a id="security_sasl_plain_production" href="#security_sasl_plain_production">在生产环境中使用 SASL/PLAIN</a></h5>
+        <li><h5><a id="security_sasl_plain_production" href="#security_sasl_plain_production">Use of SASL/PLAIN in production</a></h5>
             <ul>
-            <li>SASL/PLAIN 应该只用 SSL 作为传输层, 以保证在没有加密的情况下不会在线上传输明文密码.</li>
-            <li>Kafka 中 SASL/PLAIN 的默认实现是在 JAAS 配置文件声明用户名和密码, 如 <a href="#security_sasl_plain_brokerconfig">这里</a> 展示的. 
-                为了避免在磁盘上保存密码, 你可以实现你自己的 <code>javax.security.auth.spi.LoginModule</code>, 从一个外部源提供用户名和密码.
-                登录模块的实现应该提供 <code>Subject</code> 的用户名作为公共证书和密码作为私有的凭证.
-                <code>org.apache.kafka.common.security.plain.PlainLoginModule</code> 的默认实现可以作为参考例子.</li>
-            <li>在生产系统, 外部的认证服务可以实现密码认证. 通过添加你自己的 <code>javax.security.sasl.SaslServer</code> 实现, Kafka brokers 可以和这些服务集成.
-                Kafka 中的默认实现在 <code>org.apache.kafka.common.security.plain</code> 包中, 可以作为开始学习的例子.
+            <li>SASL/PLAIN should be used only with SSL as transport layer to ensure that clear passwords are not transmitted on the wire without encryption.</li>
+            <li>The default implementation of SASL/PLAIN in Kafka specifies usernames and passwords in the JAAS configuration file as shown
+                <a href="#security_sasl_plain_brokerconfig">here</a>. To avoid storing passwords on disk, you can plug in your own implementation of
+                <code>javax.security.auth.spi.LoginModule</code> that provides usernames and passwords from an external source. The login module implementation should
+                provide username as the public credential and password as the private credential of the <code>Subject</code>. The default implementation
+                <code>org.apache.kafka.common.security.plain.PlainLoginModule</code> can be used as an example.</li>
+            <li>In production systems, external authentication servers may implement password authentication. Kafka brokers can be integrated with these servers by adding
+                your own implementation of <code>javax.security.sasl.SaslServer</code>. The default implementation included in Kafka in the package
+                <code>org.apache.kafka.common.security.plain</code> can be used as an example to get started.
                 <ul>
-                <li>新的提供者一定要在 JVM 中安装和注册. 可以通过添加提供类到平常的 <tt>CLASSPATH</tt>, 或者把提供类打包成 jar 文件并添加到<tt><i>JAVA_HOME</i>/lib/ext</tt>中来安装提供者.</li>
-                <li>将提供者添加到安全属性文件 (security properties file) <tt><i>JAVA_HOME</i>/lib/security/java.security</tt> 静态注册提供者.
+                <li>New providers must be installed and registered in the JVM. Providers can be installed by adding provider classes to
+                the normal <tt>CLASSPATH</tt> or bundled as a jar file and added to <tt><i>JAVA_HOME</i>/lib/ext</tt>.</li>
+                <li>Providers can be registered statically by adding a provider to the security properties file
+                <tt><i>JAVA_HOME</i>/lib/security/java.security</tt>.
                 <pre>    security.provider.n=providerClassName</pre>
-                其中 <i>providerClassName</i> 是新提供者的全称. <i>n</i> 是优先顺序, 比较小的数字表明更高的优先级.</li>
-                <li>此外, 你可以在运行时通过在客户端程序开始时或者在登录模块的一个静态初始化程序中唤起 <code>Security.addProvider</code>来动态的注册提供者. 例如:
+                where <i>providerClassName</i> is the fully qualified name of the new provider and <i>n</i> is the preference order with
+                lower numbers indicating higher preference.</li>
+                <li>Alternatively, you can register providers dynamically at runtime by invoking <code>Security.addProvider</code> at the beginning of the client
+                application or in a static initializer in the login module. For example:
                 <pre>    Security.addProvider(new PlainSaslServerProvider());</pre></li>
-                <li>更多细节, 请查看 <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html">JCA Reference</a>.</li>
+                <li>For more details, see <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html">JCA Reference</a>.</li>
                 </ul>
             </li>
             </ul>
@@ -493,53 +519,58 @@
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_scram" href="#security_sasl_scram">使用 SASL/SCRAM 认证</a></h4>
-        <p>Salted Challenge Response Authentication Mechanism (SCRAM) 是 SASL 机制家族中的一员, 
-        是用传统的机制解决安全问题, 执行像 PLAIN 和 DIGEST-MD5 一样的 username/password 认证.
-        这个机制在 <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a> 定义.
-        Kafka 支持 <a href="https://tools.ietf.org/html/rfc7677">SCRAM-SHA-256</a> 和 SCRAM-SHA-512, 可以和 TLS 一起用户执行安全认证.
-        username 在 ACL 等的配置中作为已认证的 <code>Principal</code>.
-        Kafka 中默认的 SCRAM 实现是在 Zookeeper 中保存 SCRAM 证书, 适用于 Zookeeper 在私有网络的 Kafka 安装.
-        更多信息请查看 <a href="#security_sasl_scram_security">安全注意事项</a>.</p>
+    <li><h4><a id="security_sasl_scram" href="#security_sasl_scram">Authentication using SASL/SCRAM</a></h4>
+        <p>Salted Challenge Response Authentication Mechanism (SCRAM) is a family of SASL mechanisms that
+        addresses the security concerns with traditional mechanisms that perform username/password authentication
+        like PLAIN and DIGEST-MD5. The mechanism is defined in <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a>.
+        Kafka supports <a href="https://tools.ietf.org/html/rfc7677">SCRAM-SHA-256</a> and SCRAM-SHA-512 which
+        can be used with TLS to perform secure authentication. The username is used as the authenticated
+        <code>Principal</code> for configuration of ACLs etc. The default SCRAM implementation in Kafka
+        stores SCRAM credentials in Zookeeper and is suitable for use in Kafka installations where Zookeeper
+        is on a private network. Refer to <a href="#security_sasl_scram_security">Security Considerations</a>
+        for more details.</p>
         <ol>
-        <li><h5><a id="security_sasl_scram_credentials" href="#security_sasl_scram_credentials">创建 SCRAM 证书</a></h5>
-        <p>Kafka 中的 SCRAM 实现使用 Zookeeper 作为证书存储. 可以使用 <tt>kafka-configs.sh</tt> 在 Zookeeper 中创建证书.
-        对每一个启用了 SCRAM 机制的, 必须通过添加机制名配置来创建证书. 用于 broker 间通信的证书必须在 Kafka broker 启动前创建.
-        客户端的证书可以动态创建和更新, 新的连接使用更新后的证书认证.</p>
-        <p>为用户 <i>alice</i> 创建密码为 <i>alice-secret</i> 的 SCRAM 凭证:
+        <li><h5><a id="security_sasl_scram_credentials" href="#security_sasl_scram_credentials">Creating SCRAM Credentials</a></h5>
+        <p>The SCRAM implementation in Kafka uses Zookeeper as credential store. Credentials can be created in
+        Zookeeper using <tt>kafka-configs.sh</tt>. For each SCRAM mechanism enabled, credentials must be created
+        by adding a config with the mechanism name. Credentials for inter-broker communication must be created
+        before Kafka brokers are started. Client credentials may be created and updated dynamically and updated
+        credentials will be used to authenticate new connections.</p>
+        <p>Create SCRAM credentials for user <i>alice</i> with password <i>alice-secret</i>:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=alice-secret],SCRAM-SHA-512=[password=alice-secret]' --entity-type users --entity-name alice
         </pre>
-        <p>如果未指定迭代次数, 将使用默认的迭代次数, 4096. 创建一个随机 salt, SCRAM 标识由 salt, 迭代和 StoredKey 组成.
-        ServerKey 保存在 Zookeeper 中.
-        有关 SCRAM 的标识和各个字段的详细信息，请参考 <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a>.
-        <p>以下示例中, 关于 broker 间的通信, 需要一个 <i>admin</i> 用户. 使用如下命令创建:
+        <p>The default iteration count of 4096 is used if iterations are not specified. A random salt is created
+        and the SCRAM identity consisting of salt, iterations, StoredKey and ServerKey are stored in Zookeeper.
+        See <a href="https://tools.ietf.org/html/rfc5802">RFC 5802</a> for details on SCRAM identity and the individual fields.
+        <p>The following examples also require a user <i>admin</i> for inter-broker communication which can be created using:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config 'SCRAM-SHA-256=[password=admin-secret],SCRAM-SHA-512=[password=admin-secret]' --entity-type users --entity-name admin
         </pre>
-        <p>使用 <i>--describe</i> 选项可以 列出所有存在的证书:
+        <p>Existing credentials may be listed using the <i>--describe</i> option:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --describe --entity-type users --entity-name alice
         </pre>
-        <p>使用 <i>--delete</i> 选项删除一个或多个 SCRAM 机制的证书:
+        <p>Credentials may be deleted for one or more SCRAM mechanisms using the <i>--delete</i> option:
         <pre class="brush: bash;">
     > bin/kafka-configs.sh --zookeeper localhost:2181 --alter --delete-config 'SCRAM-SHA-512' --entity-type users --entity-name alice
         </pre>
         </li>
-        <li><h5><a id="security_sasl_scram_brokerconfig" href="#security_sasl_scram_brokerconfig">配置 Kafka Broker</a></h5>
+        <li><h5><a id="security_sasl_scram_brokerconfig" href="#security_sasl_scram_brokerconfig">Configuring Kafka Brokers</a></h5>
             <ol>
-            <li>在每个 Kafka broker 的 config 目录, 添加一个类似下面的适当修改的 JAAS 文件. 在这个例子中, 我们将其命名为 kafka_server_jaas.conf:
+            <li>Add a suitably modified JAAS file similar to the one below to each Kafka broker's config directory, let's call it kafka_server_jaas.conf for this example:
                 <pre>
     KafkaServer {
         org.apache.kafka.common.security.scram.ScramLoginModule required
         username="admin"
         password="admin-secret";
     };</pre>
-                broker 使用 <tt>KafkaServer</tt> 部分中 <tt>username</tt> 和 <tt>password</tt> 属性来初始化与其他 broker 的连接.
-                在这个例子中, <i>admin</i> 是 broker 间通信的用户.</li>
-            <li>JAAS 配置文件的路径作为 JVM 参数传递给每个 Kafka broker:
+                The properties <tt>username</tt> and <tt>password</tt> in the <tt>KafkaServer</tt> section are used by
+                the broker to initiate connections to other brokers. In this example, <i>admin</i> is the user for
+                inter-broker communication.</li>
+            <li>Pass the JAAS config file location as JVM parameter to each Kafka broker:
                 <pre>    -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf</pre></li>
-            <li>参考 <a href="#security_sasl_brokerconfig">这里</a> 的描述, 在 server.properties 配置 SASL 端口和 SASL 机制. 例如:
+            <li>Configure SASL port and SASL mechanisms in server.properties as described <a href="#security_sasl_brokerconfig">here</a>.</pre> For example:
                 <pre>
     listeners=SASL_SSL://host.name:port
     security.inter.broker.protocol=SASL_SSL
@@ -548,46 +579,52 @@
             </ol>
         </li>
 
-        <li><h5><a id="security_sasl_scram_clientconfig" href="#security_sasl_scram_clientconfig">配置 Kafka Client</a></h5>
+        <li><h5><a id="security_sasl_scram_clientconfig" href="#security_sasl_scram_clientconfig">Configuring Kafka Clients</a></h5>
             To configure SASL authentication on the clients:
-            在客户端配置 SASL 认证:
             <ol>
-	    <li>在每个客户端的 producer.properties 或者 consumer.properties 文件中配置 JAAS 配置项.
-            登录模块描述了像生产者和消费者这样的客户端如何连接到 Kafka Broker.
-            下面是一个 SCRAM 机制的客户端的配置示例:
+	    <li>Configure the JAAS configuration property for each client in producer.properties or consumer.properties.
+                The login module describes how the clients like producer and consumer can connect to the Kafka Broker.
+	        The following is an example configuration for a client for the SCRAM mechanisms:
                 <pre class="brush: text;">
    sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
         username="alice" \
         password="alice-secret";</pre>
 
-                <p><tt>username</tt> 和 <tt>password</tt> 选项被客户端用于配置客户端连接的用户信息. 
-                    在这个例子中, 客户端作为 <i>alice</i> 用户连接到 broker.
-                    通过在 <code>sasl.jaas.config</code> 中指定不同的用户名和密码, 在一个 JVM 内不同的客户端可以根据不同的用户连接.</p>
+                <p>The options <tt>username</tt> and <tt>password</tt> are used by clients to configure
+                the user for client connections. In this example, clients connect to the broker as user <i>alice</i>.
+                Different clients within a JVM may connect as different users by specifying different user names
+                and passwords in <code>sasl.jaas.config</code>.</p>
 
-                <p>客户端的 JAAS 配置也可以像 broker <a href="#security_client_staticjaas">这里</a> 描述的一样, 指定为一个 JVM 参数.
-                客户端使用命名为 <tt>KafkaClient</tt> 的登录部分.
-                此选项仅允许来自 JVM 的所有客户端连接中的一个用户.</p></li>
-            <li>在 producer.properties 或者 consumer.properties 中配置下面这些属性:
+                <p>JAAS configuration for clients may alternatively be specified as a JVM parameter similar to brokers
+                as described <a href="#security_client_staticjaas">here</a>. Clients use the login section named
+                <tt>KafkaClient</tt>. This option allows only one user for all client connections from a JVM.</p></li>
+            <li>Configure the following properties in producer.properties or consumer.properties:
                 <pre>
     security.protocol=SASL_SSL
     sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)</pre></li>
             </ol>
         </li>
-        <li><h5><a id="security_sasl_scram_security" href="#security_sasl_scram_security">SASL/SCRAM 的安全注意事项</a></h5>
+        <li><h5><a id="security_sasl_scram_security" href="#security_sasl_scram_security">Security Considerations for SASL/SCRAM</a></h5>
             <ul>
-            <li>Kafka 中 SASL/SCRAM 的默认实现在 Zookeeper 中保存 SCRAM 证书. 这个适合当 Zookeeper 是安全并且是在私有网络时, 在生产环境安装.</li>
-            <li>Kafka 只支持强散列函数 SHA-256 和 SHA-512, 和最小迭代数为4096. 如果 Zookeeper 安全性收到威胁, 强散列函数结合强密码, 高迭代次数可以防止暴力攻击.</li>
-            <li>SCRAM 应只使用 TLS 加密, 防止 SCRAM 交换时的中途拦截. 如果 Zookeeper 受到威胁, 这可以防止字典或者暴力攻击, 和防止伪装模拟.</li>
-            <li>当 Zookeeper 不安全是, SASL/SCRAM 的默认实现可以在安装时使用自定义的登录模块重写. 更多细节查看 <a href="#security_sasl_plain_production">这里</a>.</li>
-            <li>了解安全注意事项的更多细节, 参考 <a href="https://tools.ietf.org/html/rfc5802#section-9">RFC 5802</a>.
+            <li>The default implementation of SASL/SCRAM in Kafka stores SCRAM credentials in Zookeeper. This
+            is suitable for production use in installations where Zookeeper is secure and on a private network.</li>
+            <li>Kafka supports only the strong hash functions SHA-256 and SHA-512 with a minimum iteration count
+            of 4096. Strong hash functions combined with strong passwords and high iteration counts protect
+            against brute force attacks if Zookeeper security is compromised.</li>
+            <li>SCRAM should be used only with TLS-encryption to prevent interception of SCRAM exchanges. This
+            protects against dictionary or brute force attacks and against impersonation if Zookeeper is compromised.</li>
+            <li>The default SASL/SCRAM implementation may be overridden using custom login modules in installations
+            where Zookeeper is not secure. See <a href="#security_sasl_plain_production">here</a> for details.</li>
+            <li>For more details on security considerations, refer to
+            <a href="https://tools.ietf.org/html/rfc5802#section-9">RFC 5802</a>.
             </ul>
         </li>
         </ol>
     </li>
 
-    <li><h4><a id="security_sasl_multimechanism" href="#security_sasl_multimechanism">Enabling multiple SASL mechanisms in a broker（broker 节点上启用多个 SASL 机制                       ）</a></h4>
+    <li><h4><a id="security_sasl_multimechanism" href="#security_sasl_multimechanism">Enabling multiple SASL mechanisms in a broker</a></h4>
         <ol>
-        <li>在JAAS配置文件的<tt>KafkaServer</tt> 部分中指定所有启用机制的登录模块的配置。例如：
+        <li>Specify configuration for the login modules of all enabled mechanisms in the <tt>KafkaServer</tt> section of the JAAS config file. For example:
             <pre>
         KafkaServer {
             com.sun.security.auth.module.Krb5LoginModule required
@@ -602,211 +639,204 @@
             user_admin="admin-secret"
             user_alice="alice-secret";
         };</pre></li>
-        <li>在 server.properties 配置文件中启用 SASL 机制： <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
-        <li>如果需要，可以在 server.properties 中指定 SASL 安全协议和 broker 间的通信机制：
+        <li>Enable the SASL mechanisms in server.properties: <pre>    sasl.enabled.mechanisms=GSSAPI,PLAIN,SCRAM-SHA-256,SCRAM-SHA-512</pre></li>
+        <li>Specify the SASL security protocol and mechanism for inter-broker communication in server.properties if required:
             <pre>
     security.inter.broker.protocol=SASL_PLAINTEXT (or SASL_SSL)
     sasl.mechanism.inter.broker.protocol=GSSAPI (or one of the other enabled mechanisms)</pre></li>
-        <li>遵循 <a href="#security_sasl_kerberos_brokerconfig">GSSAPI (Kerberos)</a>、
-            <a href="#security_sasl_plain_brokerconfig"> PLAIN </a> 和 <a href="#security_sasl_scram_brokerconfig">SCRAM</a>
-            特定的步骤来配置启用 SASL 机制。</li>
+        <li>Follow the mechanism-specific steps in <a href="#security_sasl_kerberos_brokerconfig">GSSAPI (Kerberos)</a>,
+            <a href="#security_sasl_plain_brokerconfig">PLAIN</a> and <a href="#security_sasl_scram_brokerconfig">SCRAM</a>
+            to configure SASL for the enabled mechanisms.</li>
         </ol>
     </li>
-    <li><h4><a id="saslmechanism_rolling_upgrade" href="#saslmechanism_rolling_upgrade">Modifying SASL mechanism in a Running Cluster（在运行的集群里修改 SASL 机制）</a></h4>
-        <p>按照下面的步骤可以修改正在运行中的集群的 SASL 机制：</p>
+    <li><h4><a id="saslmechanism_rolling_upgrade" href="#saslmechanism_rolling_upgrade">Modifying SASL mechanism in a Running Cluster</a></h4>
+        <p>SASL mechanism can be modified in a running cluster using the following sequence:</p>
         <ol>
-        <li>为了给每个 broker 启用新的 SASL 机制，需要在 server.properties 中添加 <tt>sasl.enabled.mechanisms</tt> 配置。更新 <a href="#security_sasl_multimechanism">这里</a>描述的两种机制到JAAS配置文件。
-            依次更新每个集群节点</li>
-        <li>使用新机制重新启动客户端。</li>
-        <li>如果有必要，可以在 server.properties 文件中指定新的<tt>sasl.mechanism.inter.broker.protocol</tt>的配置，来修改 broker 间的通信机制。然后再次依次的更新集群。
-            </li>
-        <li>如果有必要，可以从 server.properties 文件中的<tt>sasl.enabled.mechanisms</tt> 配置中和 JAAS 配置文件中删除旧的机制条目，来删除旧的机制。
-            然后再次依次的更新集群。</li>
+        <li>Enable new SASL mechanism by adding the mechanism to <tt>sasl.enabled.mechanisms</tt> in server.properties for each broker. Update JAAS config file to include both
+            mechanisms as described <a href="#security_sasl_multimechanism">here</a>. Incrementally bounce the cluster nodes.</li>
+        <li>Restart clients using the new mechanism.</li>
+        <li>To change the mechanism of inter-broker communication (if this is required), set <tt>sasl.mechanism.inter.broker.protocol</tt> in server.properties to the new mechanism and
+            incrementally bounce the cluster again.</li>
+        <li>To remove old mechanism (if this is required), remove the old mechanism from <tt>sasl.enabled.mechanisms</tt> in server.properties and remove the entries for the
+            old mechanism from JAAS config file. Incrementally bounce the cluster again.</li>
         </ol>
     </li>
     </ol>
 
-    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs(授权和访问控制列表)</a></h3>
-    Kafka 带有一个可扩展的 Authorizer (授权器) 和一个用 zookeeper 实现的 Authorizer (授权器)，zookeeper 会存储所有的 acls 授权信息。 Kafka acls 授权信息定义的规则是 " P is [Allowed/Denied] Operation O From Host H On Resource R"。您可以在KIP-11上阅读更多关于 acl 结构信息。您可以通过Kafka认证器(authorizer)的CLI对acls进行添加、删除或查询。默认情况下，如果资源R没有关联acls 授权信息，那么除超级用户以外的任何人都不能访问资源R。如果要更改该行为，你可以在server.properties 文件中填写以下内容。
+    <h3><a id="security_authz" href="#security_authz">7.4 Authorization and ACLs</a></h3>
+    Kafka ships with a pluggable Authorizer and an out-of-box authorizer implementation that uses zookeeper to store all the acls. Kafka acls are defined in the general format of "Principal P is [Allowed/Denied] Operation O From Host H On Resource R". You can read more about the acl structure on KIP-11. In order to add, remove or list acls you can use the Kafka authorizer CLI. By default, if a Resource R has no associated acls, no one other than super users is allowed to access R. If you want to change that behavior, you can include the following in server.properties.
     <pre>allow.everyone.if.no.acl.found=true</pre>
-    还可以在server.properties中添加超级用户，如下所示（请注意，由于SSL用户名可能包含逗号，因此分隔符是分号）
+    One can also add super users in server.properties like the following (note that the delimiter is semicolon since SSL user names may contain comma).
     <pre>super.users=User:Bob;User:Alice</pre>
-    默认情况下，SSL用户名的格式为："CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown"。可以通过在server.properties中设置一个自定义的PrincipalBuilder来改变这种情况，如下所示。
+    By default, the SSL user name will be of the form "CN=writeuser,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=Unknown". One can change that by setting a customized PrincipalBuilder in server.properties like the following.
     <pre>principal.builder.class=CustomizedPrincipalBuilderClass</pre>
-    默认情况下，SASL用户名将成为Kerberos主体的主要部分。有一种方式可以改变，通过设置 <code>sasl.kerberos.principal.to.local.rules</code> 在server.properties中自定义规则。
-    <code>sasl.kerberos.principal.to.local.rules</code>是一个列表，其中每个规则的工作方式与<a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>中的auth_to_local相同。每一个规则以 RULE: 开始，并且包含一个格式为[n:string](regexp)s/pattern/replacement/g的表达式。请查看kerberos文档获取更多细节。下面是添加一个规则的示例，该示例可以很正确地翻译user@MYDOMAIN.COM。并让user同时保持默认的规则:
+    By default, the SASL user name will be the primary part of the Kerberos principal. One can change that by setting <code>sasl.kerberos.principal.to.local.rules</code> to a customized rule in server.properties.
+    The format of <code>sasl.kerberos.principal.to.local.rules</code> is a list where each rule works in the same way as the auth_to_local in <a href="http://web.mit.edu/Kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">Kerberos configuration file (krb5.conf)</a>. Each rules starts with RULE: and contains an expression in the format [n:string](regexp)s/pattern/replacement/g. See the kerberos documentation for more details. An example of adding a rule to properly translate user@MYDOMAIN.COM to user while also keeping the default rule in place is:
     <pre>sasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@MYDOMAIN.COM)s/@.*//,DEFAULT</pre>
 
-    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface(命令行界面) </a></h4>
-    Kafka的授权管理CLI(命令行界面)可以在bin目录下找到，并使用所有其他CLIs。命令行界面脚本的名字是 <b>kafka-acls.sh</b>。以下列出了脚本支持的所有选项：
+    <h4><a id="security_authz_cli" href="#security_authz_cli">Command Line Interface</a></h4>
+    Kafka Authorization management CLI can be found under bin directory with all the other CLIs. The CLI script is called <b>kafka-acls.sh</b>. Following lists all the options that the script supports:
     <p></p>
     <table class="data-table">
         <tr>
-            <th>选项</th>
-            <th>说明</th>
-            <th>默认值</th>
-            <th>选项类型</th>
+            <th>Option</th>
+            <th>Description</th>
+            <th>Default</th>
+            <th>Option type</th>
         </tr>
         <tr>
             <td>--add</td>
-            <td>表示用户正在尝试添加acl的脚本</td>
+            <td>Indicates to the script that user is trying to add an acl.</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--remove</td>
-            <td>表示用户正在尝试删除acl的脚本。</td>
+            <td>Indicates to the script that user is trying to remove an acl.</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--list</td>
-            <td>表示用户正在尝试列出acls的脚本。</td>
+            <td>Indicates to the script that user is trying to list acls.</td>
             <td></td>
             <td>Action</td>
         </tr>
         <tr>
             <td>--authorizer</td>
-            <td>授权器的完全限定类名。</td>
+            <td>Fully qualified class name of the authorizer.</td>
             <td>kafka.security.auth.SimpleAclAuthorizer</td>
             <td>Configuration</td>
         </tr>
         <tr>
             <td>--authorizer-properties</td>
-            <td>键值对(key=val)将被传递给授权器进行初始化。对于默认授权器，示例值为：zookeeper.connect = localhost：2181</td>
+            <td>key=val pairs that will be passed to authorizer for initialization. For the default authorizer the example values are: zookeeper.connect=localhost:2181</td>
             <td></td>
             <td>Configuration</td>
         </tr>
         <tr>
             <td>--cluster</td>
-            <td>指定一个集群作为资源。</td>
+            <td>Specifies cluster as resource.</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--topic [topic-name]</td>
-            <td>指定一个topic(主题)作为资源。</td>
+            <td>Specifies the topic as resource.</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--group [group-name]</td>
-            <td>指定consumer-group(消费组)作为资源。</td>
+            <td>Specifies the consumer-group as resource.</td>
             <td></td>
             <td>Resource</td>
         </tr>
         <tr>
             <td>--allow-principal</td>
-            <td>Principal(委托人)是PrincipalType:name的格式，将被添加到ACL中并有允许权限。<br>你可以在单个命令中指定多个 --allow-principal。</td>
+            <td>Principal is in PrincipalType:name format that will be added to ACL with Allow permission. <br>You can specify multiple --allow-principal in a single command.</td>
             <td></td>
             <td>Principal</td>
         </tr>
         <tr>
             <td>--deny-principal</td>
-            <td>Principal是PrincipalType:name格式，将被添加到ACL中并有拒绝权限。<br>你可以在单个命令中指定多个--deny-principal。</td>
+            <td>Principal is in PrincipalType:name format that will be added to ACL with Deny permission. <br>You can specify multiple --deny-principal in a single command.</td>
             <td></td>
             <td>Principal</td>
         </tr>
         <tr>
             <td>--allow-host</td>
-            <td>在--allow-principal中列出将允许principal从哪些IP地址访问。</td>
-            <td>如果指定 --allow-principal的默认值为 *，将允许从所有主机进行访问。</td>
+            <td>IP address from which principals listed in --allow-principal will have access.</td>
+            <td> if --allow-principal is specified defaults to * which translates to "all hosts"</td>
             <td>Host</td>
         </tr>
         <tr>
             <td>--deny-host</td>
-            <td>在--deny-principal中列出将拒绝principal从哪些IP地址访问。</td>
-            <td>如果指定 --deny-principal的默认值为 *，将允许从所有主机进行访问。</td>
+            <td>IP address from which principals listed in --deny-principal will be denied access.</td>
+            <td>if --deny-principal is specified defaults to * which translates to "all hosts"</td>
             <td>Host</td>
         </tr>
         <tr>
             <td>--operation</td>
-            <td>将会被允许和拒绝的操作<br>
-                有效值: Read(读), Write(写), Create(创建), Delete(删除), Alter(修改), Describe(描述), ClusterAction(集群操作), All(所有)</td>
+            <td>Operation that will be allowed or denied.<br>
+                Valid values are : Read, Write, Create, Delete, Alter, Describe, ClusterAction, All</td>
             <td>All</td>
             <td>Operation</td>
         </tr>
         <tr>
             <td>--producer</td>
-            <td> 该选项可为生产者添加和删除acls(访问控制列表)。它生成的acls允许在topic(主题)上进行WRITE,
-                DESCRIBE操作，并且在集群上进行CREATE操作。</td>
+            <td> Convenience option to add/remove acls for producer role. This will generate acls that allows WRITE,
+                DESCRIBE on topic and CREATE on cluster.</td>
             <td></td>
             <td>Convenience</td>
         </tr>
         <tr>
             <td>--consumer</td>
-            <td> 该选项可为消费者添加和删除acls(访问控制列表)。 它生成的acls允许在topic(主题)上进行READ,
-                DESCRIBE操作，并且通过消费组进行READ操作。</td>
+            <td> Convenience option to add/remove acls for consumer role. This will generate acls that allows READ,
+                DESCRIBE on topic and READ on consumer-group.</td>
             <td></td>
             <td>Convenience</td>
         </tr>
         <tr>
             <td>--force</td>
-            <td> 该选项对所有的查询都假设为yes，并且不提示。</td>
+            <td> Convenience option to assume yes to all queries and do not prompt.</td>
             <td></td>
             <td>Convenience</td>
         </tr>
     </tbody></table>
 
-    <h4><a id="security_authz_examples" href="#security_authz_examples">Examples(例子)</a></h4>
+    <h4><a id="security_authz_examples" href="#security_authz_examples">Examples</a></h4>
     <ul>
         <li><b>Adding Acls</b><br>
-            如果您想添加一个 acl 授权信息 "允许 User:Bob 和 User:Alice 从 IP 198.51.100.0 和 198.51.100.1 对 Topic 中的 Test-Topic 进行读写"。您可以按照下面的选项在终端执行 CLI :
+    Suppose you want to add an acl "Principals User:Bob and User:Alice are allowed to perform Operation Read and Write on Topic Test-Topic from IP 198.51.100.0 and IP 198.51.100.1". You can do that by executing the CLI with following options:
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic</pre>
-            默认情况下，所有的没有显示声明 acl 授权信息的用户，对某个资源操作时都将被拒绝。在极少情况下，我们需要在acl 授权信息定义一个少数用户不允许访问，其他用户都允许访问的规则，这个时候就需要使用 --deny-principal 和 --deny-host 选项。如果我们想允许所有用户对 Test-topic 进行读取，仅拒绝 User:BadBob 从 IP 198.51.100.3 进行读取。我们可以使用下面的命令：
+            By default, all principals that don't have an explicit acl that allows access for an operation to a resource are denied. In rare cases where an allow acl is defined that allows access to all but some principal we will have to use the --deny-principal and --deny-host option. For example, if we want to allow all users to Read from Test-topic but only deny User:BadBob from IP 198.51.100.3 we can do so using following commands:
             <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:* --allow-host * --deny-principal User:BadBob --deny-host 198.51.100.3 --operation Read --topic Test-topic</pre>
             Note that ``--allow-host`` and ``deny-host`` only support IP addresses (hostnames are not supported).
-            注意：``--allow-host`` 和 ``deny-host`` 只支持 IP地址(不支持主机名)
-            以上示例通过--topic [topic-name]指定资源选项来将acls添加到 topic 上。同样，用户可以通过指定 --cluster 将 acls 添加到 cluster；通过指定 --group [group-name] 将 acls 添加到一个 consumer group。</li>
+            Above examples add acls to a topic by specifying --topic [topic-name] as the resource option. Similarly user can add acls to cluster by specifying --cluster and to a consumer group by specifying --group [group-name].</li>
 
         <li><b>Removing Acls</b><br>
-                移除 acl 授权信息几乎是相同的命令。唯一的不同就是必须使用 --remove 选项来代替 --add 选项。为了移除上面第一个示例添加的 acls 授权信息，我们可以用 CLI 终端执行下面的选项：
+                Removing acls is pretty much the same. The only difference is instead of --add option users will have to specify --remove option. To remove the acls added by the first example above we can execute the CLI with following options:
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --remove --allow-principal User:Bob --allow-principal User:Alice --allow-host 198.51.100.0 --allow-host 198.51.100.1 --operation Read --operation Write --topic Test-topic </pre></li>
 
         <li><b>List Acls</b><br>
-                我们可以通过指定 --list 选项和资源来列出任何资源的 acls 授权信息。如果我们想列出 Test-topic 的所有的 acls授权信息,我们可以用 CLI 终端执行下面的选项：
+                We can list acls for any resource by specifying the --list option with the resource. To list all acls for Test-topic we can execute the CLI with following options:
                 <pre class="brush: bash;">bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --list --topic Test-topic</pre></li>
 
         <li><b>Adding or removing a principal as producer or consumer</b><br>
-                ACL 管理最常见的情况就是添加或移除一个用户作为 producer 或 consumer。因此我们添加方便的选项来处理这些情景。为了添加 User:Bob 作为 Test-topic 的 producer 我们可以执行下面的命令：
+                The most common use case for acl management are adding/removing a principal as producer or consumer so we added convenience options to handle these cases. In order to add User:Bob as a producer of  Test-topic we can execute the following command:
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --producer --topic Test-topic</pre>
-            类似的，如果要添加 Alice 到 consumer group Group-1 中作为 Test-topic 的一个 consumer，我们仅需要传递 --consumer 选项：
+                Similarly to add Alice as a consumer of Test-topic with consumer group Group-1 we just have to pass --consumer option:
             <pre class="brush: bash;"> bin/kafka-acls.sh --authorizer-properties zookeeper.connect=localhost:2181 --add --allow-principal User:Bob --consumer --topic Test-topic --group Group-1 </pre>
-                注意：对于 consumer 选项我们必须指定 consumer group。
-                为了从 producer 和 consumer 的角色中移除一个用户我们仅需要传 --remove 选项</li>
+                Note that for consumer option we must also specify the consumer group.
+                In order to remove a principal from producer or consumer role we just need to pass --remove option. </li>
         </ul>
 
-    <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 将安全功能应用在正在运行的集群中</a></h3>
-        通过前面讨论的安全协议，选择一个或者多个协议保护正在运行的集群。 您可以通过以下步骤来完善安全功能：
+    <h3><a id="security_rolling_upgrade" href="#security_rolling_upgrade">7.5 Incorporating Security Features in a Running Cluster</a></h3>
+        You can secure a running cluster via one or more of the supported protocols discussed previously. This is done in phases:
         <p></p>
         <ul>
-            <li>
-                滚动重启集群节点开启额外的安全端口。 </li>
-            <li>
-                使用安全端口重启客户端而不是 PLAINTEXT 端口（假设你正在设置 client-broker 的安全连接 ）。</li>
-            <li>
-                滚动重启集群节点开启 broker和broker之间的安全模式（如果需要的话）。</li>
-            <li>
-                最后滚动关闭 PLAINTEXT 端口</li>
+            <li>Incrementally bounce the cluster nodes to open additional secured port(s).</li>
+            <li>Restart clients using the secured rather than PLAINTEXT port (assuming you are securing the client-broker connection).</li>
+            <li>Incrementally bounce the cluster again to enable broker-to-broker security (if this is required)</li>
+            <li>A final incremental bounce to close the PLAINTEXT port.</li>
         </ul>
         <p></p>
-        关于配置 SSL 和 SASL 的详细步骤已经在 <a href="#security_ssl">7.2</a> 和 <a href="#security_sasl">7.3</a> 描述了。
-        遵循文档中的步骤配置你想要的安全协议，开启安全模式。
+        The specific steps for configuring SSL and SASL are described in sections <a href="#security_ssl">7.2</a> and <a href="#security_sasl">7.3</a>.
+        Follow these steps to enable security for your desired protocol(s).
         <p></p>
-        你可以为 broker-client 之间和 broker-broker 之间的通信配置不同的安全协议。
-        这两种协议必须分别启用。
-        PLAINTEXT 端口要同时保持开放，以便 broker 和 clients 能够继续通信
+        The security implementation lets you configure different protocols for both broker-client and broker-broker communication.
+        These must be enabled in separate bounces. A PLAINTEXT port must be left open throughout so brokers and/or clients can continue to communicate.
         <p></p>
 
-        通过SIGTERM(终止进程) 滚动停止 brokers. 在停止下一个节点之前， 等待重新启动的节点的副本回到 ISR 列表是一种好的行为。
+        When performing an incremental bounce stop the brokers cleanly via a SIGTERM. It's also good practice to wait for restarted replicas to return to the ISR list before moving onto the next node.
         <p></p>
-        举个例子， 假设我们希望使用 SSL 加密 broker 与 client之间 和 broker和broker 之间的通信。 在第一次滚动重启的时候，每个节点上开启 SSL 端口：
+        As an example, say we wish to encrypt both broker-client and broker-broker communication with SSL. In the first incremental bounce, a SSL port is opened on each node:
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             </pre>
 
-
-        然后我们重启客户端， 将其配置更改为指向新打开的安全端口：
+        We then restart the clients, changing their config to point at the newly opened, secured port:
 
             <pre>
             bootstrap.servers = [broker1:9092,...]
@@ -814,25 +844,27 @@
             ...etc
             </pre>
 
-        在第二次滚动重启集群节点时， 我们指定 Kafka 使用 SSL 作为 broker 之间的 安全协议（所有集群节点将使用相同的 SSL 端口）
+        In the second incremental server bounce we instruct Kafka to use SSL as the broker-broker protocol (which will use the same SSL port):
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-        最后一次滚动重启节点的过程中， 我们通过关闭 PLAINTEXT 端口， 来确保集群的安全。
+        In the final bounce we secure the cluster by closing the PLAINTEXT port:
 
             <pre>
             listeners=SSL://broker1:9092
             security.inter.broker.protocol=SSL
             </pre>
 
-            另外， 我们可能使用多个端口，以便在 broker 与 client之间 和 broker与broker 之间使用不同的协议来通信。 假设我们已经在 broker 与 client 和 broker 之间使用 SSL 加密， 而现在想在 broker 与 client 通信中添加 SASL 认证。在第一次滚动重启节点的时候，我们将开启两个额外的端口来实现两种不同的安全协议。    <pre>
+        Alternatively we might choose to open multiple ports so that different protocols can be used for broker-broker and broker-client communication. Say we wished to use SSL encryption throughout (i.e. for broker-broker and broker-client communication) but we'd like to add SASL authentication to the broker-client connection also. We would achieve this by opening two additional ports during the first bounce:
+
+            <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             </pre>
 
-            然后我们重启客户端， 将其配置更改为新打开的安全端口（SASL 和 SSAL 端口）：
+        We would then restart the clients, changing their config to point at the newly opened, SASL & SSL secured port:
 
             <pre>
             bootstrap.servers = [broker1:9093,...]
@@ -840,86 +872,56 @@
             ...etc
             </pre>
 
-            第二次滚动重启集群节点的时候， 通过使用我们之前打开的 SSL 端口（9092），将集群切换到 broker-broker 加密的通信。
+        The second server bounce would switch the cluster to use encrypted broker-broker communication via the SSL port we previously opened on port 9092:
 
             <pre>
             listeners=PLAINTEXT://broker1:9091,SSL://broker1:9092,SASL_SSL://broker1:9093
             security.inter.broker.protocol=SSL
             </pre>
 
-            最后滚动重启集群节点， 我们通过关闭他们的 PLAINTEXT 端口， 来确保集群的安全。
+        The final bounce secures the cluster by closing the PLAINTEXT port.
 
             <pre>
         listeners=SSL://broker1:9092,SASL_SSL://broker1:9093
         security.inter.broker.protocol=SSL
             </pre>
-     ZooKeeper 可以独立于 Kafka 集群进行安全防护。 <a href="#zk_authz_migration">7.6.2</a> 章节将介绍 ZooKeeper 的安全防护。
 
-    <h3><a id="zk_authz" href="#zk_authz">7.6 ZooKeeper 认证</a></h3>
-    <h4><a id="zk_authz_new" href="#zk_authz_new">7.6.1 新集群</a></h4>
-    在对broker进行Zookeeper认证前，有两个必要步骤：
+        ZooKeeper can be secured independently of the Kafka cluster. The steps for doing this are covered in section <a href="#zk_authz_migration">7.6.2</a>.
+
+
+    <h3><a id="zk_authz" href="#zk_authz">7.6 ZooKeeper Authentication</a></h3>
+    <h4><a id="zk_authz_new" href="#zk_authz_new">7.6.1 New clusters</a></h4>
+    To enable ZooKeeper authentication on brokers, there are two necessary steps:
     <ol>
-        <li>
-            创建一个JAAS登录文件并在文件中设置适当的系统属性，如上文所述。
-        </li>
-        <li>
-            在每个broker上设置配置项 <tt>zookeeper.set.acl</tt>为true。
-        </li>
+        <li> Create a JAAS login file and set the appropriate system property to point to it as described above</li>
+        <li> Set the configuration property <tt>zookeeper.set.acl</tt> in each broker to true</li>
     </ol>
 
-    The metadata stored in ZooKeeper for the Kafka cluster is world-readable,but can only be modified by the brokers.
-    The rationale behind this decision is that the data stored in ZooKeeper is not sensitive,but inappropriate manipulation of that data can cause cluster disruption.
-    We also recommend limiting the access to ZooKeeper via network segmentation (only brokers and some admin tools need access to ZooKeeper if the new Java consumer and producer clients are used).
+    The metadata stored in ZooKeeper for the Kafka cluster is world-readable, but can only be modified by the brokers. The rationale behind this decision is that the data stored in ZooKeeper is not sensitive, but inappropriate manipulation of that data can cause cluster disruption. We also recommend limiting the access to ZooKeeper via network segmentation (only brokers and some admin tools need access to ZooKeeper if the new Java consumer and producer clients are used).
 
-    Kafka 存储在Zookeeper的元数据是全局可读的，但是只有 brokers 能够进行修改。
-    这一决定背后的理由是，存储在 zookeeper 上的数据虽然不重要，但是如果数据被肆意串改，会导致broker程序出错，程序中断。
-    我们还是建议通过ip 网段来限制访问 zookeeper 的权限（仅允许broker和一些管理工具访问zookeeper）。
-
-    <h4><a id="zk_authz_migration" href="#zk_authz_migration">7.6.2 集群迁移</a></h4>
-
-    如果你使用kafka的版本不支持安全的或简单的禁用安全，你还是想设置集群安全，则需要执行以下步骤启用ZooKeeper认证（最小的中断操作）：
+    <h4><a id="zk_authz_migration" href="#zk_authz_migration">7.6.2 Migrating clusters</a></h4>
+    If you are running a version of Kafka that does not support security or simply with security disabled, and you want to make the cluster secure, then you need to execute the following steps to enable ZooKeeper authentication with minimal disruption to your operations:
     <ol>
-        <li>
-
-            滚动重新启动设置的JAAS登录文件，这样可以使broker进行身份认证。在滚动重启结束后，broker就能够用ACL操作这些znode（节点）了（但不能创建）。
-        </li>
-        <li>
-            进行第二次滚动重启，这次设置配置参数<tt>zookeeper.set.acl</tt>为true，这样就能使用安全的ACL创建znode。
-        </li>
-        <li>
-            执行ZkSecurityMigrator工具。执行脚本：./bin/zookeeper-security-migration.sh，将zookeeper.acl 设置secure，这个工具通过相应的sub-trees修改的znodes ACL。
-        </li>
+        <li>Perform a rolling restart setting the JAAS login file, which enables brokers to authenticate. At the end of the rolling restart, brokers are able to manipulate znodes with strict ACLs, but they will not create znodes with those ACLs</li>
+        <li>Perform a second rolling restart of brokers, this time setting the configuration parameter <tt>zookeeper.set.acl</tt> to true, which enables the use of secure ACLs when creating znodes</li>
+        <li>Execute the ZkSecurityMigrator tool. To execute the tool, there is this script: <tt>./bin/zookeeper-security-migration.sh</tt> with <tt>zookeeper.acl</tt> set to secure. This tool traverses the corresponding sub-trees changing the ACLs of the znodes</li>
     </ol>
-    <p>
-        除了以上操作，还需要在安全集群中关闭认证，具体操作如下：
-    </p>
+    <p>It is also possible to turn off authentication in a secure cluster. To do it, follow these steps:</p>
     <ol>
-        <li>
-
-            滚动重新启动设置的JAAS登录文件，进行broker认证，这里需要将<tt>zookeeper.set.acl</tt>设置为false。
-            重启结束之后，broker停止用ACL创建znodes，但是仍然能认证和操作znodes。
-        </li>
-        <li>
-            执行ZkSecurityMigrator工具.
-            运行脚本：<tt>./bin/zookeeper-security-migration.sh</tt>，将<tt>zookeeper.acl</tt>设置为unsecure，这个工具通过相应的sub-trees修改的znodes ACL。
-        </li>
-        <li>
-            执行第二次滚动重启broker，这次忽略了JAAS登录文件设置系统属性。
-        </li>
+        <li>Perform a rolling restart of brokers setting the JAAS login file, which enables brokers to authenticate, but setting <tt>zookeeper.set.acl</tt> to false. At the end of the rolling restart, brokers stop creating znodes with secure ACLs, but are still able to authenticate and manipulate all znodes</li>
+        <li>Execute the ZkSecurityMigrator tool. To execute the tool, run this script <tt>./bin/zookeeper-security-migration.sh</tt> with <tt>zookeeper.acl</tt> set to unsecure. This tool traverses the corresponding sub-trees changing the ACLs of the znodes</li>
+        <li>Perform a second rolling restart of brokers, this time omitting the system property that sets the JAAS login file</li>
     </ol>
-
-    这里提供了一个如何运行迁移工具的例子，：
+    Here is an example of how to run the migration tool:
     <pre class="brush: bash;">
     ./bin/zookeeper-security-migration.sh --zookeeper.acl=secure --zookeeper.connect=localhost:2181
     </pre>
-    <p>
-        运行以下命令查看完整列表：
-    </p>
+    <p>Run this to see the full list of parameters:</p>
     <pre class="brush: bash;">
     ./bin/zookeeper-security-migration.sh --help
     </pre>
-    <h4><a id="zk_authz_ensemble" href="#zk_authz_ensemble">7.6.3 ZooKeeper 整体迁移</a></h4>
-    在进行迁移时候有必要对全部zookeeper启用身份验证。要做到这一点，我们需要设置一些属性参数。请参阅更详细的zookeeper文档︰:
+    <h4><a id="zk_authz_ensemble" href="#zk_authz_ensemble">7.6.3 Migrating the ZooKeeper ensemble</a></h4>
+    It is also necessary to enable authentication on the ZooKeeper ensemble. To do it, we need to perform a rolling restart of the server and set a few properties. Please refer to the ZooKeeper documentation for more detail:
     <ol>
         <li><a href="http://zookeeper.apache.org/doc/r3.4.9/zookeeperProgrammers.html#sc_ZooKeeperAccessControl">Apache ZooKeeper documentation</a></li>
         <li><a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Zookeeper+and+SASL">Apache ZooKeeper wiki</a></li>
