@@ -113,6 +113,28 @@ gulp.task('10streams2', function () {
     }
 }); 
 
+gulp.task('21stream-guide', function () {
+    for(var i=0;i<folders.length;i++){
+    gulp.src('21/documentation/streams/developer-guide/**.html')
+        .pipe(fileinclude({
+            prefix: '@@',
+            basepath: '@file'
+        }))
+        .pipe(gulp.dest('dist/21/documentation/streams/developer-guide'));
+    }
+}); 
+
+gulp.task('22stream-guide', function () {
+    for(var i=0;i<folders.length;i++){
+    gulp.src('22/documentation/streams/developer-guide/**.html')
+        .pipe(fileinclude({
+            prefix: '@@',
+            basepath: '@file'
+        }))
+        .pipe(gulp.dest('dist/22/documentation/streams/developer-guide'));
+    }
+}); 
+
 gulp.task('22imgae', function () {
     for(var i=0;i<folders.length;i++){
     gulp.src('22/images/**')
@@ -137,5 +159,5 @@ gulp.task('21imgae', function () {
 
 
 
-gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2','22imgae','21imgae'] )
+gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2','22imgae','21imgae','21stream-guide','22stream-guide'] )
 
