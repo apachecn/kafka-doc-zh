@@ -15,16 +15,16 @@
  limitations under the License.
 -->
 <script id="api-template" type="text/x-handlebars-template">
-	Kafka includes five core apis:
+	Kafka包含五个核心的应用程序接口：
 	<ol>
-	<li>The <a href="#producerapi">Producer</a> API allows applications to send streams of data to topics in the Kafka cluster.
-	<li>The <a href="#consumerapi">Consumer</a> API allows applications to read streams of data from topics in the Kafka cluster.
-	<li>The <a href="#streamsapi">Streams</a> API allows transforming streams of data from input topics to output topics.
-	<li>The <a href="#connectapi">Connect</a> API allows implementing connectors that continually pull from some source system or application into Kafka or push from Kafka into some sink system or application.
-	<li>The <a href="#adminapi">AdminClient</a> API allows managing and inspecting topics, brokers, and other Kafka objects.
+	<li> <a href="#producerapi">Producer</a> 接口允许应用程序发送数据流到Kafka集群的topic中。
+	<li><a href="#consumerapi">Consumer</a> 接口允许应用程序读取Kafka集群的topic中的数据流。
+	<li><a href="#streamsapi">Streams</a> 接口允许将数据流从输入topic转换到输出topic。
+	<li><a href="#connectapi">Connect</a> 接口允许实现从某些源系统或应用程序拉取到Kakfa、或从Kafka推送到接收系统或应用程序的连接器。
+	<li><a href="#adminapi">AdminClient</a> 接口允许管理和检查topic、broker、其它Kafka的对象。
 	</ol>
 
-	Kafka exposes all its functionality over a language independent protocol which has clients available in many programming languages. However only the Java clients are maintained as part of the main Kafka project, the others are available as independent open source projects. A list of non-Java clients is available <a href="https://cwiki.apache.org/confluence/display/KAFKA/Clients">here</a>.
+	Kafka通过一个独立于语言的协议公开了它所有功能，该协议的客户端可以在许多编程语言中使用。然而，只有Java客户端作为Kafka项目的重要部分进行维护，其它的客户端作为独立的开源项目提供。可以从<a href="https://cwiki.apache.org/confluence/display/KAFKA/Clients">这里</a>获取非Java客户端的列表。
 
 	<h3><a id="producerapi" href="#producerapi">2.1 Producer API</a></h3>
 
