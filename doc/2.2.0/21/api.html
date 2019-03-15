@@ -20,7 +20,7 @@
 	<li><a href="#producerapi">Producer</a> API允许应用程序发送数据流到Kafka集群的topic中。
 	<li><a href="#consumerapi">Consumer</a> API允许应用程序读取Kafka集群的topic中的数据流。
 	<li><a href="#streamsapi">Streams</a> API允许将数据流从输入topic转换到输出topic。
-	<li><a href="#connectapi">Connect</a> API允许实现从某些源系统或应用程序拉取到Kakfa、或从Kafka推送到接收系统或应用程序的连接器。
+	<li><a href="#connectapi">Connect</a> API允许实现从某些源系统或应用程序持续不断地拉取到Kakfa、或从Kafka推送到接收系统或应用程序的连接器。
 	<li><a href="#adminapi">AdminClient</a> API允许管理和检查topic、broker、其它Kafka的对象。
 	</ol>
 
@@ -90,11 +90,11 @@
 
 	<h3><a id="connectapi" href="#connectapi">2.4 Connect API</a></h3>
 
-	The Connect API allows implementing connectors that continually pull from some source data system into Kafka or push from Kafka into some sink data system.
+	Connect API 允许实现从某些源系统或应用程序持续不断地拉取到Kakfa、或从Kafka推送到接收系统或应用程序的连接器。
 	<p>
-	Many users of Connect won't need to use this API directly, though, they can use pre-built connectors without needing to write any code. Additional information on using Connect is available <a href="/documentation.html#connect">here</a>.
+	许多连接的用户可以使用预构建的连接器，从而不需要使用这个API，也不需要写任何代码。<a href="/documentation.html#connect">这里</a>提供了使用连接的其它信息。
 	<p>
-	Those who want to implement custom connectors can see the <a href="/{{version}}/javadoc/index.html?org/apache/kafka/connect" title="Kafka {{dotVersion}} Javadoc">javadoc</a>.
+	如果想实现自定义的连接器，你可以参考<a href="/{{version}}/javadoc/index.html?org/apache/kafka/connect" title="Kafka {{dotVersion}} Javadoc">javadoc</a>。
 	<p>
 
 	<h3><a id="adminapi" href="#adminapi">2.5 AdminClient API</a></h3>
