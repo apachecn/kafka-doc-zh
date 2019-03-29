@@ -67,17 +67,17 @@
         必须保留基础序列号来做重复检查( broker 通过验证传入批次的第一个和最后一个序列号是否与该 producer 的最后一个序列号匹配来检查传入的重复 produce 请求)。因此,当批次中所有的记录被清理但批次数据依然保留是为了保存 producer 最后一次的序列号,日志中可能有空的数据。
         不解的是在压缩中时间戳可能不会被保留,所以如果批次中的第一条记录被压缩,时间戳也会改变。</p>
 
-    <h5><a id="controlbatch" href="#controlbatch">5.3.1.1 Control Batches</a></h5>
-    <p>A control batch contains a single record called the control record. Control records should not be passed on to applications. Instead, they are used by consumers to filter out aborted transactional messages.</p>
-    <p> The key of a control record conforms to the following schema: </p>
+    <h5><a id="controlbatch" href="#controlbatch">5.3.1.1 控制批次</a></h5>
+    <p>控制批次包含一个称为控制记录的记录。控制记录不应传递给应用程序。相反，消费者使用它们来过滤掉中止的事务性消息。</p>
+    <p>  控制记录的 key 符合以下模式: </p>
     <p><pre class="brush: java">
        version: int16 (current version is 0)
        type: int16 (0 indicates an abort marker, 1 indicates a commit)
     </pre></p>
-    <p>The schema for the value of a control record is dependent on the type. The value is opaque to clients.</p>
+    <p>控制记录值的模式取决于类型。该值对客户端不透明。</p>
 
     <h4><a id="record" href="#record">5.3.2 Record</a></h4>
-	<p>Record level headers were introduced in Kafka 0.11.0. The on-disk format of a record with Headers is delineated below. </p>
+	<p>Record 级别的头部信息在0.11.0 版本引入。拥有 headers 的 Record 的磁盘格式如下：</p>
 	<p><pre class="brush: java;">
 		length: varint
 		attributes: int8
@@ -97,13 +97,13 @@
 		headerValueLength: varint
 		Value: byte[]
 	</pre></p>
-    <p>We use the same varint encoding as Protobuf. More information on the latter can be found <a href="https://developers.google.com/protocol-buffers/docs/encoding#varints">here</a>. The count of headers in a record
-    is also encoded as a varint.</p>
+    <p>我们使用与Protobuf相同的varint编码。有关后者的更多信息，请访问<a href="https://developers.google.com/protocol-buffers/docs/encoding#varints">此处</a>。
+        记录中的 header 数也被编码为varint。</p>
 
-    <h4><a id="messageset" href="#messageset">5.3.3 Old Message Format</a></h4>
+    <h4><a id="messageset" href="#messageset">5.3.3 旧的消息格式</a></h4>
     <p>
-        Prior to Kafka 0.11, messages were transferred and stored in <i>message sets</i>. In a message set, each message has its own metadata. Note that although message sets are represented as an array,
-        they are not preceded by an int32 array size like other array elements in the protocol.
+        在Kafka 0.11之前，消息被传输并存储在<i>Message Set</i>中。在消息集中，每条消息都有自己的元数据。
+        请注意，虽然消息集表示为一个数组，但它们之前没有像协议中其他数组元素那样的int32数组大小。
     </p>
 
     <b>Message Set:</b><br>
