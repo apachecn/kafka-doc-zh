@@ -157,7 +157,4 @@ gulp.task('21imgae', function () {
 }); 
 
 
-
-
-gulp.task( 'default', [ 'fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2','22imgae','21imgae','21stream-guide','22stream-guide'] )
-
+gulp.task('default', gulp.series('fileinclude','copy1','copy2','copy3','copy4','copy5','copy6','html','documentation','streams','10streams','10streams2','22imgae','21imgae','21stream-guide','22stream-guide'))
