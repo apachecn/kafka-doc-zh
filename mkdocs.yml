@@ -1,0 +1,41 @@
+site_name: 【布客】kafka 中文翻译
+site_url: https://kafka.apachecn.org
+
+# Repository
+repo_name: apachecn/kafka-doc-zh
+repo_url: https://github.com/apachecn/kafka-doc-zh
+
+theme:
+  name: material
+  custom_dir: themes_material
+  locale: zh_CN
+  analytics:
+    gtag: G-8DP4GX97XY
+  features:
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - navigation.footer
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  # - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - "kafke 中文文档": "index.md"
+  - "1. 入门": "1.md"
+  - "2. APIs": "2.md"
+  - "3. 配置": "3.md"
+  - "4. 设计": "4.md"
+  - "5. 实施": "5.md"
+  - "6. 运维": "6.md"
+  - "7. 安全": "7.md"
+  - "8. Kafka 连接": "8.md"
+  - "下载 Kafka": "downloads.md"
+  - "关于我们": "https://www.apachecn.org/about"
+  - "中文资源合集": "https://docs.apachecn.org"

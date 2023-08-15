@@ -1,0 +1,20 @@
+# 编译脚本 - 当前使用
+image: python:alpine
+
+before_script:
+  - pip install -i https://pypi.tuna.tsinghua.edu.cn/simple mkdocs && mkdocs --version
+  - pip install -i https://pypi.tuna.tsinghua.edu.cn/simple mkdocs-material
+
+# CI 拉取 submodules
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+pages:
+  script:
+  - mkdocs build --clean
+  - mv site public
+  artifacts:
+    paths:
+    - public
+  only:
+  - main
