@@ -26,3 +26,23 @@
 + `pull request`
 
 请见 [Github 入门指南](https://interview.apachecn.org/GitHub/)。
+
+## 贡献者
+
+### Kafka 1.0.0 中文文档贡献者
+
+* [@那伊抹微笑](https://github.com/wangyangting)
+* [@mikechengwei](https://github.com/mikechengwei)
+* [@lc3030](https://github.com/lc3030)
+* [@Elena7](https://github.com/Elena7)
+* [@Raymoonkie](https://github.com/Raymoonkie)
+* [@gongchu](https://github.com/gongchu)
+* [@Islotus](https://github.com/Islotus)
+* [@coboe](https://github.com/coboe)
+* [@Qanora](https://github.com/Qanora)
+* [@sirwangshuai](https://github.com/sirwangshuai)
+* [@hyper-xx](https://github.com/hyper-xx)
+* [@aspoman](https://github.com/aspoman)
+* [@chenliusuo](https://github.com/chenliusuo)
+* [@mantianstar](https://github.com/mantianstar) 
+
