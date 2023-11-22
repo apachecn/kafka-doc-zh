@@ -28,8 +28,8 @@ extra_javascript:
 
 nav:
   - "kafke 中文文档": "index.md"
-  - "kafke 1.0 版本": "https://kafka.apachecn.org"
-  - "kafke 3.5 版本":
+  - "kafke 1.0.x 版本": "https://kafka1x.apachecn.org"
+  - "kafke 3.5.x 版本":
     - "1. 入门": "1.md"
     - "2. APIs": "2.md"
     - "3. 配置": "3.md"
@@ -40,5 +40,7 @@ nav:
     - "8. Kafka 连接": "8.md"
     - "9. Kafka Streams": "9.md"
   - "下载 Kafka": "downloads.md"
+  - "贡献指南": "contrib.md"
   - "关于我们": "https://www.apachecn.org/about"
+  - "加入我们": "https://www.apachecn.org/join"
   - "中文资源合集": "https://docs.apachecn.org"
