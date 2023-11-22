@@ -40,5 +40,7 @@ nav:
     - "8. Kafka 连接": "8.md"
     - "9. Kafka Streams": "9.md"
   - "下载 Kafka": "downloads.md"
+  - "贡献指南": "contrib.md"
   - "关于我们": "https://www.apachecn.org/about"
+  - "加入我们": "https://www.apachecn.org/join"
   - "中文资源合集": "https://docs.apachecn.org"
