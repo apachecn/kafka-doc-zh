@@ -28,8 +28,8 @@ extra_javascript:
 
 nav:
   - "kafke 中文文档": "index.md"
-  - "kafke 1.0 版本": "https://kafka1x.apachecn.org"
-  - "kafke 3.5 版本":
+  - "kafke 1.0.x 版本": "https://kafka1x.apachecn.org"
+  - "kafke 3.5.x 版本":
     - "1. 入门": "1.md"
     - "2. APIs": "2.md"
     - "3. 配置": "3.md"
