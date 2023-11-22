@@ -21,6 +21,30 @@ Apache Kafka 是一个开源分布式事件流平台，已被数千家公司用�
 * [ApacheCN 组织资源](https://docs.apachecn.org/)
 * 注: 广告位合作(物美价廉)，请联系 <apachecn@163.com> 【QQ/微信: 529815144】
 
+## 贡献者
+
+### Kafka 3.5.x 中文文档贡献者
+
+* [@片刻小哥哥](https://github.com/jiangzhonglian)
+
+### Kafka 1.0.0 中文文档贡献者
+
+* [@那伊抹微笑](https://github.com/wangyangting)
+* [@mikechengwei](https://github.com/mikechengwei)
+* [@lc3030](https://github.com/lc3030)
+* [@Elena7](https://github.com/Elena7)
+* [@Raymoonkie](https://github.com/Raymoonkie)
+* [@gongchu](https://github.com/gongchu)
+* [@Islotus](https://github.com/Islotus)
+* [@coboe](https://github.com/coboe)
+* [@Qanora](https://github.com/Qanora)
+* [@sirwangshuai](https://github.com/sirwangshuai)
+* [@hyper-xx](https://github.com/hyper-xx)
+* [@aspoman](https://github.com/aspoman)
+* [@chenliusuo](https://github.com/chenliusuo)
+* [@mantianstar](https://github.com/mantianstar) 
+
+
 ## 赞助我们
 
 <img src="http://data.apachecn.org/img/about/donate.jpg" alt="微信&支付宝" />
